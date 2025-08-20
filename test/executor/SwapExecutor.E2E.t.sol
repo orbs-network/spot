@@ -13,7 +13,7 @@ import {DutchOutput, DutchInput} from "uniswapx/src/lib/DutchOrderLib.sol";
 import {ERC20} from "solmate/src/tokens/ERC20.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
+import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 import {MockReactor} from "test/mocks/MockReactor.sol";
 
 contract SwapExecutorE2ETest is BaseTest {
