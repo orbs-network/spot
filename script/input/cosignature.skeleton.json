@@ -7,16 +7,37 @@
     },
     "primaryType": "Cosignature",
     "types": {
-        "CosignedValue": [
-            { "name": "token", "type": "address" },
-            { "name": "value", "type": "uint256" },
-            { "name": "decimals", "type": "uint8" }
-        ],
         "Cosignature": [
-            { "name": "timestamp", "type": "uint256" },
-            { "name": "nonce", "type": "bytes32" },
-            { "name": "input", "type": "CosignedValue" },
-            { "name": "output", "type": "CosignedValue" }
+            {
+                "name": "timestamp",
+                "type": "uint256"
+            },
+            {
+                "name": "nonce",
+                "type": "bytes32"
+            },
+            {
+                "name": "input",
+                "type": "CosignedValue"
+            },
+            {
+                "name": "output",
+                "type": "CosignedValue"
+            }
+        ],
+        "CosignedValue": [
+            {
+                "name": "token",
+                "type": "address"
+            },
+            {
+                "name": "value",
+                "type": "uint256"
+            },
+            {
+                "name": "decimals",
+                "type": "uint8"
+            }
         ]
     },
     "message": {
@@ -24,12 +45,12 @@
         "nonce": "<ORDERHASH>",
         "input": {
             "token": "<INTOKEN>",
-            "value": "<INVALUE>",
+            "value": "<INVALUE_INDECIMALS>",
             "decimals": "<INDECIMALS>"
         },
         "output": {
             "token": "<OUTTOKEN>",
-            "value": "<OUTVALUE>",
+            "value": "<OUTVALUE_OUTDECIMALS>",
             "decimals": "<OUTDECIMALS>"
         }
     }
