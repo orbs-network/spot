@@ -24,7 +24,7 @@ Architecture (At a Glance)
 - 🧠 Reactor (`OrderReactor`): validates order, checks epoch, computes min-out from cosigned price, settles via inlined implementation.
 - ✍️ RePermit (`RePermit`): Permit2-style EIP-712 with witness tying spend to the exact order hash.
 - 🧾 Cosigner: signs current input/output price; freshness enforced (1 min).
-- 🛠️ Executors (`SwapExecutor`/`Executor`): whitelisted fillers run venue logic via Multicall, return outputs, handle surplus.
+- 🛠️ Executor (`Executor`): whitelisted fillers run venue logic via Multicall, return outputs, handle surplus.
 - 🔐 WM (`WM`): allowlist gate for executors/admin functions.
 - 🏭 Refinery (`Refinery`): ops utility to batch and sweep balances by bps.
 
@@ -85,4 +85,3 @@ Glossary
 - Executor: runs swap strategy, returns outputs, manages surplus/refshare.
 - Cosigner: price attester used to derive min-out.
 - Epoch: time bucket controlling TWAP cadence.
-

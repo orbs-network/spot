@@ -46,6 +46,27 @@ abstract contract BaseTest is BaseScript, PermitSignature, DeployTestInfra {
         other = makeAddr("other");
     }
 
+    // helpers to manage WM allowlist in tests
+    function allow(address who) internal {
+        address[] memory addrs = new address[](1);
+        addrs[0] = who;
+        WM(wm).set(addrs, true);
+    }
+
+    function disallow(address who) internal {
+        address[] memory addrs = new address[](1);
+        addrs[0] = who;
+        WM(wm).set(addrs, false);
+    }
+
+    function allowThis() internal {
+        allow(address(this));
+    }
+
+    function disallowThis() internal {
+        disallow(address(this));
+    }
+
     // uint256 private nonce;
     // address public ref = makeAddr("ref");
     // uint8 public refshare = 90;

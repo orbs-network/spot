@@ -5,6 +5,7 @@ import {IMulticall3} from "forge-std/interfaces/IMulticall3.sol";
 
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IWM} from "src/interface/IWM.sol";
 
 contract Refinery {
     uint256 public constant BPS = 10_000;
@@ -48,8 +49,4 @@ contract Refinery {
     receive() external payable {
         // accept ETH
     }
-}
-
-interface IWM {
-    function allowed(address) external view returns (bool);
 }

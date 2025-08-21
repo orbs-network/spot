@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import "forge-std/Script.sol";
 
 import {BaseScript} from "script/base/BaseScript.sol";
-import {Executor, IReactor, IAllowed} from "src/executor/Executor.sol";
+import {Executor, SignedOrder, IMulticall3} from "src/executor/Executor.sol";
 
 contract DeployExecutor is BaseScript {
     function run() public returns (address executor) {

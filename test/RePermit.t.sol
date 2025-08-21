@@ -6,7 +6,7 @@ import "forge-std/Test.sol";
 import {BaseTest, ERC20Mock} from "test/base/BaseTest.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
-import {SwapExecutor, SignedOrder, IMulticall3} from "src/executor/SwapExecutor.sol";
+import {Executor, SignedOrder, IMulticall3} from "src/executor/Executor.sol";
 import {RePermit, RePermitLib} from "src/repermit/RePermit.sol";
 
 contract RePermitTest is BaseTest {
