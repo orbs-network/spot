@@ -29,7 +29,7 @@ library OrderLib {
     bytes32 internal constant COSIGNED_VALUE_TYPE_HASH = keccak256(bytes(COSIGNED_VALUE_TYPE));
 
     string internal constant COSIGNATURE_TYPE =
-        "Cosignature(uint256 timestamp,bytes32 nonce,CosignedValue input,CosignedValue output)";
+        "Cosignature(uint256 timestamp,CosignedValue input,CosignedValue output)";
     bytes32 internal constant COSIGNATURE_TYPE_HASH = keccak256(abi.encodePacked(COSIGNATURE_TYPE, COSIGNED_VALUE_TYPE));
 
     struct OrderInfo {
@@ -60,19 +60,19 @@ library OrderLib {
         uint256 exclusivityOverrideBps;
         uint256 epoch; // seconds per chunk; 0 = single-use
         uint256 slippage; // bps
+        uint256 cosignerFreshness; // seconds
         Input input;
         Output output;
     }
 
     struct CosignedValue {
         address token;
-        uint256 value; // in token decimals
-        uint8 decimals;
+        uint256 value; // 18 decimals
+        uint8 decimals; // informative
     }
 
     struct Cosignature {
         uint256 timestamp;
-        bytes32 nonce; // order hash
         CosignedValue input;
         CosignedValue output;
     }
@@ -118,7 +118,6 @@ library OrderLib {
             abi.encode(
                 COSIGNATURE_TYPE_HASH,
                 cosignature.timestamp,
-                cosignature.nonce,
                 keccak256(abi.encode(COSIGNED_VALUE_TYPE_HASH, cosignature.input)),
                 keccak256(abi.encode(COSIGNED_VALUE_TYPE_HASH, cosignature.output))
             )

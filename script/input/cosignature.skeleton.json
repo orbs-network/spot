@@ -13,10 +13,6 @@
                 "type": "uint256"
             },
             {
-                "name": "nonce",
-                "type": "bytes32"
-            },
-            {
                 "name": "input",
                 "type": "CosignedValue"
             },
@@ -42,7 +38,6 @@
     },
     "message": {
         "timestamp": "<TIMESTAMP>",
-        "nonce": "<ORDERHASH>",
         "input": {
             "token": "<INTOKEN>",
             "value": "<INVALUE_INDECIMALS>",

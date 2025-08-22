@@ -48,7 +48,6 @@ contract CosignatureLibTest is Test {
 
         OrderLib.Cosignature memory c;
         c.timestamp = block.timestamp;
-        c.nonce = orderHash;
         c.input = OrderLib.CosignedValue({token: o.input.token, value: 100, decimals: 18});
         c.output = OrderLib.CosignedValue({token: o.output.token, value: 200, decimals: 18});
         co.cosignatureData = c;
@@ -65,13 +64,6 @@ contract CosignatureLibTest is Test {
         vm.warp(block.timestamp + 1000);
         co.cosignatureData.timestamp = 0;
         vm.expectRevert(CosignatureLib.StaleCosignature.selector);
-        this.callValidateCosignature(co, orderHash, signer);
-    }
-
-    function test_validateCosignature_reverts_invalidNonce() public {
-        (OrderLib.CosignedOrder memory co, bytes32 orderHash) = _baseCosignedWithSig();
-        co.cosignatureData.nonce = keccak256("other");
-        vm.expectRevert(CosignatureLib.InvalidCosignatureNonce.selector);
         this.callValidateCosignature(co, orderHash, signer);
     }
 

@@ -14,6 +14,7 @@ library ResolutionLib {
         uint256 cosignedOutput = cosigned.order.input.amount.mulDiv(
             cosigned.cosignatureData.output.value, cosigned.cosignatureData.input.value
         );
+
         if (cosignedOutput > cosigned.order.output.maxAmount) revert CosignedMaxAmount();
 
         uint256 minOut = cosignedOutput.mulDiv(ReactorConstants.BPS - cosigned.order.slippage, ReactorConstants.BPS);

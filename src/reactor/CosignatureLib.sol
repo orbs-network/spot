@@ -8,7 +8,6 @@ import {ReactorConstants} from "src/reactor/Constants.sol";
 
 library CosignatureLib {
     error InvalidCosignature();
-    error InvalidCosignatureNonce();
     error InvalidCosignatureInputToken();
     error InvalidCosignatureOutputToken();
     error InvalidCosignatureZeroInputValue();
@@ -22,7 +21,6 @@ library CosignatureLib {
         if (cosigned.cosignatureData.timestamp + ReactorConstants.COSIGNATURE_FRESHNESS < block.timestamp) {
             revert StaleCosignature();
         }
-        if (cosigned.cosignatureData.nonce != orderHash) revert InvalidCosignatureNonce();
         if (cosigned.cosignatureData.input.token != cosigned.order.input.token) revert InvalidCosignatureInputToken();
         if (cosigned.cosignatureData.output.token != cosigned.order.output.token) {
             revert InvalidCosignatureOutputToken();
