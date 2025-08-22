@@ -23,7 +23,7 @@ Architecture (At a Glance)
 
 - 🧠 Reactor (`OrderReactor`): validates order, checks epoch, computes min-out from cosigned price, settles via inlined implementation.
 - ✍️ RePermit (`RePermit`): Permit2-style EIP-712 with witness tying spend to the exact order hash.
-- 🧾 Cosigner: signs current input/output price; freshness enforced (1 min).
+- 🧾 Cosigner: signs current input/output price; enforced freshness window.
 - 🛠️ Executor (`Executor`): whitelisted fillers run venue logic via Multicall, return outputs, handle surplus.
 - 🔐 WM (`WM`): allowlist gate for executors/admin functions.
 - 🏭 Refinery (`Refinery`): ops utility to batch and sweep balances by bps.
@@ -61,7 +61,7 @@ Integration Checklist
 
 Security Model
 
-- ⏳ Freshness: cosignatures expire after 1 minute.
+- ⏳ Freshness: per-order; 0 disables expiry.
 - 📉 Slippage cap: orders with extreme slippage are rejected.
 - ⏱️ Epoch: prevents early/duplicate fills within a window.
 - 🔐 Allowlist: only approved executors/admins can act.
@@ -69,7 +69,7 @@ Security Model
 Limits & Defaults
 
 - Max slippage: 50% (in bps).
-- Cosign freshness: 60 seconds.
+- Cosign freshness: configurable per order (> 0; must be < epoch when epoch != 0).
 - Epoch=0 means single execution.
 
 Repo Map

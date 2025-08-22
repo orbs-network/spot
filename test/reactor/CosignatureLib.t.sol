@@ -42,6 +42,7 @@ contract CosignatureLibTest is Test {
         o.output.amount = 500;
         o.output.maxAmount = 5_000;
         o.slippage = 100; // 1%
+        o.freshness = 300; // 5 minutes
 
         orderHash = OrderLib.hash(o);
         co.order = o;

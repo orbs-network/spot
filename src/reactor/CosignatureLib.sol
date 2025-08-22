@@ -4,7 +4,6 @@ pragma solidity 0.8.20;
 import {SignatureChecker} from "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 import {IEIP712} from "src/interface/IEIP712.sol";
 import {OrderLib} from "src/reactor/OrderLib.sol";
-import {ReactorConstants} from "src/reactor/Constants.sol";
 
 library CosignatureLib {
     error InvalidCosignature();
@@ -13,14 +12,18 @@ library CosignatureLib {
     error InvalidCosignatureZeroInputValue();
     error InvalidCosignatureZeroOutputValue();
     error StaleCosignature();
+    error FutureCosignatureTimestamp();
+    error InvalidFreshness();
+    error InvalidFreshnessVsEpoch();
 
     function validate(OrderLib.CosignedOrder memory cosigned, bytes32 orderHash, address cosigner, address eip712)
         internal
         view
     {
-        if (cosigned.cosignatureData.timestamp + ReactorConstants.COSIGNATURE_FRESHNESS < block.timestamp) {
-            revert StaleCosignature();
-        }
+        if (cosigned.cosignatureData.timestamp > block.timestamp) revert FutureCosignatureTimestamp();
+        if (cosigned.order.freshness == 0) revert InvalidFreshness();
+        if (cosigned.order.epoch != 0 && cosigned.order.freshness >= cosigned.order.epoch) revert InvalidFreshnessVsEpoch();
+        if (cosigned.cosignatureData.timestamp + cosigned.order.freshness < block.timestamp) revert StaleCosignature();
         if (cosigned.cosignatureData.input.token != cosigned.order.input.token) revert InvalidCosignatureInputToken();
         if (cosigned.cosignatureData.output.token != cosigned.order.output.token) {
             revert InvalidCosignatureOutputToken();
