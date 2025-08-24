@@ -22,7 +22,9 @@ library CosignatureLib {
     {
         if (cosigned.cosignatureData.timestamp > block.timestamp) revert FutureCosignatureTimestamp();
         if (cosigned.order.freshness == 0) revert InvalidFreshness();
-        if (cosigned.order.epoch != 0 && cosigned.order.freshness >= cosigned.order.epoch) revert InvalidFreshnessVsEpoch();
+        if (cosigned.order.epoch != 0 && cosigned.order.freshness >= cosigned.order.epoch) {
+            revert InvalidFreshnessVsEpoch();
+        }
         if (cosigned.cosignatureData.timestamp + cosigned.order.freshness < block.timestamp) revert StaleCosignature();
         if (cosigned.cosignatureData.input.token != cosigned.order.input.token) revert InvalidCosignatureInputToken();
         if (cosigned.cosignatureData.output.token != cosigned.order.output.token) {

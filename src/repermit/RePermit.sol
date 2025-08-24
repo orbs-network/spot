@@ -41,6 +41,13 @@ contract RePermit is EIP712, IEIP712 {
         return _hashTypedDataV4(structHash);
     }
 
+    function cancel(uint256[] memory nonces) external {
+        for (uint256 i = 0; i < nonces.length; i++) {
+            canceled[msg.sender][nonces[i]] = true;
+            emit RePermitLib.Cancel(msg.sender, nonces[i]);
+        }
+    }
+
     function cancel(uint256 nonce) external {
         canceled[msg.sender][nonce] = true;
         emit RePermitLib.Cancel(msg.sender, nonce);
