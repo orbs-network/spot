@@ -36,7 +36,7 @@ contract OrderValidationLibFuzzTest is Test {
         o.output.amount = minOut;
         o.output.maxAmount = maxOut;
         o.output.recipient = recipient;
-        o.slippage = slippage;
+        o.slippage = uint32(slippage);
 
         OrderValidationLib.validate(o);
     }

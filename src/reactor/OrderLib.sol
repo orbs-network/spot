@@ -58,8 +58,8 @@ library OrderLib {
         OrderInfo info;
         address exclusiveFiller; // executor
         uint256 exclusivityOverrideBps;
-        uint256 epoch; // seconds per chunk; 0 = single-use
-        uint256 slippage; // bps
+        uint32 epoch; // seconds per chunk; 0 = single-use
+        uint32 slippage; // bps
         uint32 freshness; // seconds, must be > 0
         Input input;
         Output output;

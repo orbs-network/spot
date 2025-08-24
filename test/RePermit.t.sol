@@ -136,7 +136,9 @@ contract RePermitTest is BaseTest {
         emit RePermitLib.Cancel(signer, permit.nonce);
 
         hoax(signer);
-        uut.cancel(permit.nonce);
+        uint256[] memory nonces = new uint256[](1);
+        nonces[0] = permit.nonce;
+        uut.cancel(nonces);
 
         vm.expectRevert(RePermit.Canceled.selector);
         uut.repermitWitnessTransferFrom(permit, request, signer, witness, witnessTypeString, signature);

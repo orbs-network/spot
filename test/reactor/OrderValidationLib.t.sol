@@ -52,7 +52,7 @@ contract OrderValidationLibTest is Test {
 
     function test_validate_reverts_slippageTooHigh() public {
         OrderLib.Order memory o = _baseOrder();
-        o.slippage = ReactorConstants.MAX_SLIPPAGE; // >= MAX_SLIPPAGE
+        o.slippage = uint32(ReactorConstants.MAX_SLIPPAGE); // >= MAX_SLIPPAGE
         vm.expectRevert(OrderValidationLib.InvalidOrderSlippageTooHigh.selector);
         this.callValidate(o);
     }
