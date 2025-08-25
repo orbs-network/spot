@@ -3,10 +3,8 @@ pragma solidity 0.8.20;
 
 import "forge-std/Test.sol";
 
-import {BaseTest, ERC20Mock} from "test/base/BaseTest.sol";
+import {BaseTest} from "test/base/BaseTest.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-
-import {Executor, SignedOrder, IMulticall3} from "src/executor/Executor.sol";
 import {RePermit, RePermitLib} from "src/repermit/RePermit.sol";
 
 contract RePermitTest is BaseTest {
@@ -17,6 +15,22 @@ contract RePermitTest is BaseTest {
 
     RePermitLib.RePermitTransferFrom public permit;
     RePermitLib.TransferRequest public request;
+
+    function _structHash(bytes32 wit) internal view returns (bytes32) {
+        return hashRePermit(
+            permit.permitted.token,
+            permit.permitted.amount,
+            permit.nonce,
+            permit.deadline,
+            wit,
+            witnessTypeString,
+            address(this)
+        );
+    }
+
+    function _sign(bytes32 wit) internal view returns (bytes memory) {
+        return signEIP712(repermit, signerPK, _structHash(wit));
+    }
 
     // Duplicate event for expectEmit
     event Spend(
@@ -65,19 +79,7 @@ contract RePermitTest is BaseTest {
         permit.permitted.amount = 1 ether;
         request.amount = 1.1 ether;
 
-        bytes memory signature = signEIP712(
-            repermit,
-            signerPK,
-            hashRePermit(
-                permit.permitted.token,
-                permit.permitted.amount,
-                permit.nonce,
-                permit.deadline,
-                witness,
-                witnessTypeString,
-                address(this)
-            )
-        );
+        bytes memory signature = _sign(witness);
 
         vm.expectRevert(abi.encodeWithSelector(RePermit.InsufficientAllowance.selector));
         uut.repermitWitnessTransferFrom(permit, request, signer, witness, witnessTypeString, signature);
@@ -94,19 +96,7 @@ contract RePermitTest is BaseTest {
         request.amount = 0.7 ether;
         request.to = other;
 
-        bytes memory signature = signEIP712(
-            repermit,
-            signerPK,
-            hashRePermit(
-                permit.permitted.token,
-                permit.permitted.amount,
-                permit.nonce,
-                permit.deadline,
-                witness,
-                witnessTypeString,
-                address(this)
-            )
-        );
+        bytes memory signature = _sign(witness);
 
         uut.repermitWitnessTransferFrom(permit, request, signer, witness, witnessTypeString, signature);
         assertEq(token.balanceOf(other), 0.7 ether, "recipient balance");
@@ -120,19 +110,7 @@ contract RePermitTest is BaseTest {
         permit.deadline = 1_000_000;
         permit.nonce = 1234;
 
-        bytes memory signature = signEIP712(
-            repermit,
-            signerPK,
-            hashRePermit(
-                permit.permitted.token,
-                permit.permitted.amount,
-                permit.nonce,
-                permit.deadline,
-                witness,
-                witnessTypeString,
-                address(this)
-            )
-        );
+        bytes memory signature = _sign(witness);
         vm.expectEmit(address(uut));
         emit RePermitLib.Cancel(signer, permit.nonce);
 
@@ -156,19 +134,7 @@ contract RePermitTest is BaseTest {
         request.amount = 0.7 ether;
         request.to = other;
 
-        bytes memory signature = signEIP712(
-            repermit,
-            signerPK,
-            hashRePermit(
-                permit.permitted.token,
-                permit.permitted.amount,
-                permit.nonce,
-                permit.deadline,
-                witness,
-                witnessTypeString,
-                address(this)
-            )
-        );
+        bytes memory signature = _sign(witness);
         uut.repermitWitnessTransferFrom(permit, request, signer, witness, witnessTypeString, signature);
 
         assertEq(token.balanceOf(signer), 0.3 ether, "signer balance");
@@ -192,15 +158,7 @@ contract RePermitTest is BaseTest {
         request.amount = 0.25 ether;
         request.to = other;
 
-        bytes32 structHash = hashRePermit(
-            permit.permitted.token,
-            permit.permitted.amount,
-            permit.nonce,
-            permit.deadline,
-            witness,
-            witnessTypeString,
-            address(this)
-        );
+        bytes32 structHash = _structHash(witness);
         bytes memory signature = signEIP712(repermit, signerPK, structHash);
         bytes32 digest = uut.hashTypedData(structHash);
 
@@ -222,19 +180,7 @@ contract RePermitTest is BaseTest {
         request.to = other;
 
         // Sign for this contract as spender
-        bytes memory signature = signEIP712(
-            repermit,
-            signerPK,
-            hashRePermit(
-                permit.permitted.token,
-                permit.permitted.amount,
-                permit.nonce,
-                permit.deadline,
-                witness,
-                witnessTypeString,
-                address(this)
-            )
-        );
+        bytes memory signature = _sign(witness);
 
         // Call from a different spender
         address attacker = makeAddr("attacker");
@@ -254,19 +200,7 @@ contract RePermitTest is BaseTest {
         permit.permitted.token = address(token);
         request.to = other;
 
-        bytes memory signature = signEIP712(
-            repermit,
-            signerPK,
-            hashRePermit(
-                permit.permitted.token,
-                permit.permitted.amount,
-                permit.nonce,
-                permit.deadline,
-                witness,
-                witnessTypeString,
-                address(this)
-            )
-        );
+        bytes memory signature = _sign(witness);
 
         // Spend in two chunks that sum to exactly the allowance
         request.amount = 0.6 ether;
@@ -291,37 +225,13 @@ contract RePermitTest is BaseTest {
 
         // First permit with amount 1 ether
         permit.permitted.amount = 1 ether;
-        bytes memory sig1 = signEIP712(
-            repermit,
-            signerPK,
-            hashRePermit(
-                permit.permitted.token,
-                permit.permitted.amount,
-                permit.nonce,
-                permit.deadline,
-                witness,
-                witnessTypeString,
-                address(this)
-            )
-        );
+        bytes memory sig1 = _sign(witness);
         request.amount = 0.7 ether;
         uut.repermitWitnessTransferFrom(permit, request, signer, witness, witnessTypeString, sig1);
 
         // Second permit with different amount (different hash)
         permit.permitted.amount = 2 ether;
-        bytes memory sig2 = signEIP712(
-            repermit,
-            signerPK,
-            hashRePermit(
-                permit.permitted.token,
-                permit.permitted.amount,
-                permit.nonce,
-                permit.deadline,
-                witness,
-                witnessTypeString,
-                address(this)
-            )
-        );
+        bytes memory sig2 = _sign(witness);
         request.amount = 1.5 ether;
         uut.repermitWitnessTransferFrom(permit, request, signer, witness, witnessTypeString, sig2);
 
@@ -346,15 +256,7 @@ contract RePermitTest is BaseTest {
         request.to = other;
         request.amount = 0;
 
-        bytes32 structHash = hashRePermit(
-            permit.permitted.token,
-            permit.permitted.amount,
-            permit.nonce,
-            permit.deadline,
-            witness,
-            witnessTypeString,
-            address(this)
-        );
+        bytes32 structHash = _structHash(witness);
         bytes memory signature = signEIP712(repermit, signerPK, structHash);
         bytes32 digest = uut.hashTypedData(structHash);
 
@@ -378,19 +280,7 @@ contract RePermitTest is BaseTest {
         request.amount = 0.1 ether;
         request.to = other;
 
-        bytes memory signature = signEIP712(
-            repermit,
-            signerPK,
-            hashRePermit(
-                permit.permitted.token,
-                permit.permitted.amount,
-                permit.nonce,
-                permit.deadline,
-                witness,
-                witnessTypeString,
-                address(this)
-            )
-        );
+        bytes memory signature = _sign(witness);
 
         string memory otherSuffix = "bytes32 other)";
         vm.expectRevert(RePermit.InvalidSignature.selector);

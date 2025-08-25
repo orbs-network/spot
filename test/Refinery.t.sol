@@ -3,8 +3,8 @@ pragma solidity 0.8.20;
 
 import {Vm} from "forge-std/Vm.sol";
 
-import {BaseTest} from "./base/BaseTest.sol";
-import {Refinery, IWM} from "../src/Refinery.sol";
+import {BaseTest} from "test/base/BaseTest.sol";
+import {Refinery} from "src/Refinery.sol";
 import {IMulticall3} from "forge-std/interfaces/IMulticall3.sol";
 
 contract RefineryTest is BaseTest {

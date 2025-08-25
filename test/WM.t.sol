@@ -5,7 +5,7 @@ import {Vm} from "forge-std/Vm.sol";
 
 import "forge-std/Test.sol";
 
-import {BaseTest, IMulticall3, ERC20Mock} from "test/base/BaseTest.sol";
+import {BaseTest} from "test/base/BaseTest.sol";
 
 import {WM} from "src/WM.sol";
 
