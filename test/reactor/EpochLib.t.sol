@@ -40,6 +40,11 @@ contract EpochLibTest is Test {
         uint256 interval = 60;
         bytes32 h1 = bytes32(uint256(1));
         bytes32 h2 = bytes32(uint256(2));
+        // Align timestamp so advancing to h1's next boundary does not
+        // also advance h2. Ensure (block.timestamp + o1) % interval == interval - 1
+        uint256 o1 = uint256(h1) % interval;
+        uint256 align = (interval - 1 + interval - ((block.timestamp + o1) % interval)) % interval;
+        if (align != 0) vm.warp(block.timestamp + align);
         // Initial calls succeed for both
         this.callEpoch(h1, interval);
         this.callEpoch(h2, interval);
@@ -50,7 +55,6 @@ contract EpochLibTest is Test {
         this.callEpoch(h2, interval);
 
         // Advance to h1's next bucket boundary only
-        uint256 o1 = uint256(h1) % interval;
         uint256 rem1 = (block.timestamp + o1) % interval;
         uint256 d1 = rem1 == 0 ? interval : (interval - rem1);
         vm.warp(block.timestamp + d1);
