@@ -17,13 +17,14 @@ contract CosignatureLibTest is Test {
         rp = new RePermit();
         (signer, signerPK) = makeAddrAndKey("signer");
         other = makeAddr("other");
+        vm.warp(1_000_000);
     }
 
-    function callValidateCosignature(OrderLib.CosignedOrder memory co, bytes32 orderHash, address cosigner)
+    function callValidateCosignature(OrderLib.CosignedOrder memory co, address cosigner)
         external
         view
     {
-        CosignatureLib.validate(co, orderHash, cosigner, address(rp));
+        CosignatureLib.validate(co, cosigner, address(rp));
     }
 
     function _signCosignature(OrderLib.Cosignature memory c) internal view returns (bytes memory sig) {
@@ -48,7 +49,7 @@ contract CosignatureLibTest is Test {
         co.order = o;
 
         OrderLib.Cosignature memory c;
-        c.timestamp = block.timestamp;
+        c.timestamp = 1_000_000;
         c.input = OrderLib.CosignedValue({token: o.input.token, value: 100, decimals: 18});
         c.output = OrderLib.CosignedValue({token: o.output.token, value: 200, decimals: 18});
         co.cosignatureData = c;
@@ -56,49 +57,70 @@ contract CosignatureLibTest is Test {
     }
 
     function test_validateCosignature_ok() public {
-        (OrderLib.CosignedOrder memory co, bytes32 orderHash) = _baseCosignedWithSig();
-        this.callValidateCosignature(co, orderHash, signer);
+        (OrderLib.CosignedOrder memory co,) = _baseCosignedWithSig();
+        this.callValidateCosignature(co, signer);
     }
 
     function test_validateCosignature_reverts_stale() public {
-        (OrderLib.CosignedOrder memory co, bytes32 orderHash) = _baseCosignedWithSig();
-        vm.warp(block.timestamp + 1000);
-        co.cosignatureData.timestamp = 0;
+        (OrderLib.CosignedOrder memory co,) = _baseCosignedWithSig();
+        vm.warp(1_000_400); // freshness=300, timestamp=1_000_000 → stale
         vm.expectRevert(CosignatureLib.StaleCosignature.selector);
-        this.callValidateCosignature(co, orderHash, signer);
+        this.callValidateCosignature(co, signer);
     }
 
     function test_validateCosignature_reverts_invalidInputToken() public {
-        (OrderLib.CosignedOrder memory co, bytes32 orderHash) = _baseCosignedWithSig();
+        (OrderLib.CosignedOrder memory co,) = _baseCosignedWithSig();
         co.cosignatureData.input.token = makeAddr("wrongIn");
         vm.expectRevert(CosignatureLib.InvalidCosignatureInputToken.selector);
-        this.callValidateCosignature(co, orderHash, signer);
+        this.callValidateCosignature(co, signer);
     }
 
     function test_validateCosignature_reverts_invalidOutputToken() public {
-        (OrderLib.CosignedOrder memory co, bytes32 orderHash) = _baseCosignedWithSig();
+        (OrderLib.CosignedOrder memory co,) = _baseCosignedWithSig();
         co.cosignatureData.output.token = makeAddr("wrongOut");
         vm.expectRevert(CosignatureLib.InvalidCosignatureOutputToken.selector);
-        this.callValidateCosignature(co, orderHash, signer);
+        this.callValidateCosignature(co, signer);
     }
 
     function test_validateCosignature_reverts_zeroInputValue() public {
-        (OrderLib.CosignedOrder memory co, bytes32 orderHash) = _baseCosignedWithSig();
+        (OrderLib.CosignedOrder memory co,) = _baseCosignedWithSig();
         co.cosignatureData.input.value = 0;
         vm.expectRevert(CosignatureLib.InvalidCosignatureZeroInputValue.selector);
-        this.callValidateCosignature(co, orderHash, signer);
+        this.callValidateCosignature(co, signer);
     }
 
     function test_validateCosignature_reverts_zeroOutputValue() public {
-        (OrderLib.CosignedOrder memory co, bytes32 orderHash) = _baseCosignedWithSig();
+        (OrderLib.CosignedOrder memory co,) = _baseCosignedWithSig();
         co.cosignatureData.output.value = 0;
         vm.expectRevert(CosignatureLib.InvalidCosignatureZeroOutputValue.selector);
-        this.callValidateCosignature(co, orderHash, signer);
+        this.callValidateCosignature(co, signer);
     }
 
     function test_validateCosignature_reverts_invalidCosigner() public {
-        (OrderLib.CosignedOrder memory co, bytes32 orderHash) = _baseCosignedWithSig();
+        (OrderLib.CosignedOrder memory co,) = _baseCosignedWithSig();
         vm.expectRevert(CosignatureLib.InvalidCosignature.selector);
-        this.callValidateCosignature(co, orderHash, other);
+        this.callValidateCosignature(co, other);
+    }
+
+    function test_validateCosignature_reverts_futureTimestamp() public {
+        (OrderLib.CosignedOrder memory co,) = _baseCosignedWithSig();
+        co.cosignatureData.timestamp = 1_000_001; // future vs warped 1_000_000
+        vm.expectRevert(CosignatureLib.FutureCosignatureTimestamp.selector);
+        this.callValidateCosignature(co, signer);
+    }
+
+    function test_validateCosignature_reverts_freshness_zero() public {
+        (OrderLib.CosignedOrder memory co,) = _baseCosignedWithSig();
+        co.order.freshness = 0;
+        vm.expectRevert(CosignatureLib.InvalidFreshness.selector);
+        this.callValidateCosignature(co, signer);
+    }
+
+    function test_validateCosignature_reverts_freshness_vs_epoch() public {
+        (OrderLib.CosignedOrder memory co,) = _baseCosignedWithSig();
+        co.order.epoch = 60;
+        co.order.freshness = 60; // >= epoch
+        vm.expectRevert(CosignatureLib.InvalidFreshnessVsEpoch.selector);
+        this.callValidateCosignature(co, signer);
     }
 }

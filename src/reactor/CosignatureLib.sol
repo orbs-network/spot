@@ -16,7 +16,7 @@ library CosignatureLib {
     error InvalidFreshness();
     error InvalidFreshnessVsEpoch();
 
-    function validate(OrderLib.CosignedOrder memory cosigned, bytes32 orderHash, address cosigner, address eip712)
+    function validate(OrderLib.CosignedOrder memory cosigned, address cosigner, address eip712)
         internal
         view
     {

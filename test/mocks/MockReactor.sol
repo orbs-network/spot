@@ -35,7 +35,7 @@ contract MockReactor is IReactor {
                 reactor: IReactor(address(this)),
                 swapper: co.order.info.swapper,
                 nonce: 1,
-                deadline: block.timestamp + 1 days,
+                deadline: 1_086_400,
                 additionalValidationContract: IValidationCallback(address(0)),
                 additionalValidationData: abi.encode(r)
             }),

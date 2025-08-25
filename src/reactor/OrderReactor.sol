@@ -40,7 +40,7 @@ contract OrderReactor is BaseReactor {
         bytes32 orderHash = OrderLib.hash(cosigned.order);
 
         OrderValidationLib.validate(cosigned.order);
-        CosignatureLib.validate(cosigned, orderHash, cosigner, address(permit2));
+        CosignatureLib.validate(cosigned, cosigner, address(permit2));
 
         EpochLib.update(epochs, orderHash, cosigned.order.epoch);
 

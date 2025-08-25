@@ -28,6 +28,7 @@ contract ExecutorTest is BaseTest {
 
     function setUp() public override {
         super.setUp();
+        vm.warp(1_000_000);
 
         reactor = new MockReactor();
         exec = new Executor(multicall, address(reactor), wm);
@@ -194,7 +195,7 @@ contract ExecutorTest is BaseTest {
             reactor: address(reactor),
             swapper: signer,
             nonce: 1,
-            deadline: block.timestamp + 1 days,
+            deadline: 1_086_400,
             additionalValidationContract: address(0),
             additionalValidationData: abi.encode(ref, refShare)
         });
@@ -228,7 +229,7 @@ contract ExecutorTest is BaseTest {
             reactor: address(reactor),
             swapper: signer,
             nonce: 0,
-            deadline: block.timestamp + 1 days,
+            deadline: 1_086_400,
             additionalValidationContract: address(0),
             additionalValidationData: abi.encode(address(0), uint8(0))
         });
@@ -248,7 +249,7 @@ contract ExecutorTest is BaseTest {
             reactor: IReactor(address(reactor)),
             swapper: signer,
             nonce: 0,
-            deadline: block.timestamp + 1 days,
+            deadline: 1_086_400,
             additionalValidationContract: IValidationCallback(address(0)),
             additionalValidationData: abi.encode(address(0))
         });

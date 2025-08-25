@@ -77,17 +77,15 @@ contract RefineryTest is BaseTest {
     function test_transfer_eth() public {
         allowThis();
         vm.deal(address(refinery), 1e18);
-        uint256 bobBalanceBefore = bob.balance;
         refinery.transfer(address(0), bob, 5_000); // 50%
-        assertEq(bob.balance, bobBalanceBefore + 0.5e18);
+        assertEq(bob.balance, 0.5e18);
     }
 
     function test_transfer_eth_bps_zero_noop() public {
         allowThis();
         vm.deal(address(refinery), 1e18);
-        uint256 bobBalanceBefore = bob.balance;
         refinery.transfer(address(0), bob, 0); // 0%
-        assertEq(bob.balance, bobBalanceBefore);
+        assertEq(bob.balance, 0);
     }
 
     function test_transfer_eth_bps_full() public {
@@ -99,9 +97,8 @@ contract RefineryTest is BaseTest {
 
     function test_transfer_eth_zero_balance() public {
         allowThis();
-        uint256 bobBalanceBefore = bob.balance;
         refinery.transfer(address(0), bob, 5_000); // 50%
-        assertEq(bob.balance, bobBalanceBefore);
+        assertEq(bob.balance, 0);
     }
 
     function test_transfer_erc20() public {
