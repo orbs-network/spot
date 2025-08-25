@@ -145,23 +145,18 @@ contract ExecutorTest is BaseTest {
         exec.validate(other, _dummyResolvedOrder(address(token), 0));
     }
 
-    // Additional coverage merged from former SwapExecutor.t.sol
-    event ExtraOut(address indexed recipient, address token, uint256 amount);
-
-    function test_reactorCallback_emits_ExtraOut_for_non_swapper_recipient() public {
-        OutputToken[] memory outs = new OutputToken[](2);
-        outs[0] = OutputToken({token: address(token), amount: 100, recipient: signer});
-        outs[1] = OutputToken({token: address(token), amount: 50, recipient: other});
+    function test_reactorCallback_allows_single_output_to_non_swapper() public {
+        OutputToken[] memory outs = new OutputToken[](1);
+        outs[0] = OutputToken({token: address(token), amount: 100, recipient: other});
 
         ResolvedOrder[] memory ros = new ResolvedOrder[](1);
         ros[0] = _dummyResolvedOrder(address(token), 0);
         ros[0].outputs = outs;
 
-        vm.expectEmit(true, true, true, true);
-        emit ExtraOut(other, address(token), 50);
-
+        // should not revert; also sets approval for reactor
         vm.prank(address(reactor));
         exec.reactorCallback(ros, abi.encode(new IMulticall3.Call[](0), 0));
+        assertEq(IERC20(address(token)).allowance(address(exec), address(reactor)), 100);
     }
 
     function test_reactorCallback_reverts_on_mixed_out_tokens_to_swapper() public {

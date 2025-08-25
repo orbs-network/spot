@@ -29,11 +29,9 @@ contract Executor is IReactorCallback, IValidationCallback {
         uint256 outAmount
     );
 
-    event ExtraOut(address indexed recipient, address token, uint256 amount);
 
     event Surplus(address indexed ref, address swapper, address token, uint256 amount, uint256 refshare);
 
-    address public constant INVALID_ADDRESS = address(1);
 
     address public immutable multicall;
     address public immutable reactor;
@@ -55,11 +53,11 @@ contract Executor is IReactorCallback, IValidationCallback {
         _;
     }
 
-    function execute(SignedOrder calldata order, IMulticall3.Call[] calldata calls, uint256 outAmountSwapper)
+    function execute(SignedOrder calldata order, IMulticall3.Call[] calldata calls, uint256 minAmountOutRecipient)
         external
         onlyAllowed
     {
-        IReactor(reactor).executeWithCallback(order, abi.encode(calls, outAmountSwapper));
+        IReactor(reactor).executeWithCallback(order, abi.encode(calls, minAmountOutRecipient));
 
         OrderLib.CosignedOrder memory co = abi.decode(order.order, (OrderLib.CosignedOrder));
         (address ref, uint8 share) = abi.decode(co.order.info.additionalValidationData, (address, uint8));
@@ -71,13 +69,15 @@ contract Executor is IReactorCallback, IValidationCallback {
     function reactorCallback(ResolvedOrder[] memory orders, bytes memory callbackData) external override onlyReactor {
         ResolvedOrder memory order = orders[0];
 
-        (IMulticall3.Call[] memory calls, uint256 outAmountSwapper) =
+        (IMulticall3.Call[] memory calls, uint256 minAmountOutRecipient) =
             abi.decode(callbackData, (IMulticall3.Call[], uint256));
 
         _executeMulticall(calls);
 
-        (address outToken, uint256 outAmount) = _handleOrderOutputs(order);
-        if (outAmountSwapper > outAmount) _transfer(outToken, order.info.swapper, outAmountSwapper - outAmount);
+        uint256 outAmount = _handleOrderOutputs(order);
+        address outToken = address(order.outputs[0].token);
+        address recipient = order.outputs[0].recipient;
+        if (minAmountOutRecipient > outAmount) _transfer(outToken, recipient, minAmountOutRecipient - outAmount);
 
         address ref = abi.decode(order.info.additionalValidationData, (address));
 
@@ -90,24 +90,13 @@ contract Executor is IReactorCallback, IValidationCallback {
         Address.functionDelegateCall(multicall, abi.encodeWithSelector(IMulticall3.aggregate.selector, calls));
     }
 
-    function _handleOrderOutputs(ResolvedOrder memory order) private returns (address outToken, uint256 outAmount) {
-        outToken = INVALID_ADDRESS;
-        for (uint256 i = 0; i < order.outputs.length; i++) {
-            uint256 amount = order.outputs[i].amount;
+    function _handleOrderOutputs(ResolvedOrder memory order) private returns (uint256 outAmount) {
+        if (order.outputs.length != 1) revert InvalidOrder();
 
-            if (amount > 0) {
-                address token = address(order.outputs[i].token);
-                _outputReactor(token, amount);
-
-                if (order.outputs[i].recipient == order.info.swapper) {
-                    if (outToken != INVALID_ADDRESS && outToken != token) revert InvalidOrder();
-                    outToken = token;
-                    outAmount += amount;
-                } else {
-                    emit ExtraOut(order.outputs[i].recipient, token, amount);
-                }
-            }
-        }
+        address token = address(order.outputs[0].token);
+        uint256 amount = order.outputs[0].amount;
+        if (amount > 0) _outputReactor(token, amount);
+        outAmount = amount;
     }
 
     function _surplus(address ref, address swapper, address token, uint8 share) private {
