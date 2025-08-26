@@ -26,52 +26,13 @@ Standard Foundry installation now works normally without network restrictions.
    - Installs forge, cast, anvil, and chisel
    - Verifies binaries against attestation files
 
-3. **Build Working Contracts**:
-   ```bash
-   forge build src/WM.sol src/Refinery.sol src/repermit/RePermit.sol
-   ```
-   - **Timing**: ~0.8 seconds for working contracts
-   - **CRITICAL**: Full `forge build` still fails due to compilation issues
-   - **Known Issues**: 
-     - OrderReactor has state mutability conflicts with UniswapX BaseReactor
-     - Test dependencies have ERC20Mock path resolution issues
-   - **Workaround**: Build individual working contracts until issues are resolved
+
 
 ## Validation Scenarios
 
-### ALWAYS Test These Core Workflows After Changes:
+`forge fmt; forge test`
 
-1. **Basic Compilation Test**:
-   ```bash
-   forge build src/WM.sol src/Refinery.sol src/repermit/RePermit.sol  # Should complete in ~0.8s
-   ```
 
-2. **Code Formatting Check**:
-   ```bash
-   forge fmt --check  # Format validation - should complete in ~0.1s
-   ```
-
-3. **Individual Contract Validation**:
-   ```bash
-   forge build src/WM.sol  # Test allowlist contract compilation
-   ```
-
-4. **Multi-Chain Configuration Validation**:
-   - Check `script/input/config.json` for deployment addresses
-   - Verify chain IDs and contract addresses are consistent
-
-5. **Deployment Script Syntax Check**:
-   ```bash
-   forge script script/00_DeployWM.s.sol --help  # Verify script syntax
-   ```
-   - **Note**: Actual deployment testing requires fixing compilation issues first
-
-### Manual Validation Requirements
-- **ALWAYS** validate that changes maintain the allowlist security model
-- Test that RePermit signatures are properly validated
-- Verify that OrderReactor properly handles epoch and slippage calculations
-- Check that Executor correctly manages surplus distribution
-- Ensure WM (allowlist) controls are not bypassed
 
 ## Project Architecture
 
@@ -101,25 +62,14 @@ Standard Foundry installation now works normally without network restrictions.
 - **Dependencies**: Managed via git submodules (UniswapX, OpenZeppelin, Solmate, forge-std)
 - **Remappings**: See `remappings.txt` - critical for compilation
 
-## Common Validation Commands
-```bash
-# Working commands - always run these before committing changes
-forge fmt --check                                   # Format validation (~0.1s)
-forge build src/WM.sol src/Refinery.sol             # Verify working contracts compile (~0.8s)
-forge build src/repermit/RePermit.sol               # Test RePermit compilation (~0.8s)
 
-# Commands currently blocked by compilation issues:
-# forge build                                      # Full build fails due to OrderReactor state mutability issues
-# forge test                                       # Tests fail due to ERC20Mock path resolution issues
-# forge snapshot                                   # Gas snapshots unavailable until build works
-```
 
 ## Deployment Process
 1. **WM (Allowlist)**: `script/00_DeployWM.s.sol`
-2. **RePermit**: `script/02_DeployRepermit.s.sol` 
-3. **OrderReactor**: `script/03_DeployReactor.s.sol`
-4. **Executor**: `script/04_DeployExecutor.s.sol`
-5. **Whitelist Updates**: `script/01_UpdateWMWhitelist.s.sol`
+2. **Whitelist Updates**: `script/01_UpdateWMWhitelist.s.sol`
+3. **RePermit**: `script/02_DeployRepermit.s.sol` 
+4. **OrderReactor**: `script/03_DeployReactor.s.sol`
+5. **Executor**: `script/04_DeployExecutor.s.sol`
 
 All deployments use CREATE2 with configurable salts for deterministic addresses across chains.
 
@@ -133,22 +83,6 @@ The protocol deploys on 18+ chains. Key considerations:
 ## Debugging Tips
 - **Build Failures**: Check submodule initialization first
 - **Path Issues**: Verify remappings.txt matches dependency structure  
-- **State Mutability Errors**: Known issue with OrderReactor inheritance from UniswapX BaseReactor
-- **Test Failures**: ERC20Mock path resolution issues prevent test compilation
 - **Gas Issues**: Check .gas-snapshot for unexpected increases (when available)
-
-## Known Issues & Workarounds
-- **CRITICAL COMPILATION ISSUE**: OrderReactor has state mutability conflicts with UniswapX BaseReactor
-  - Error: "Overriding function changes state mutability from 'view' to 'nonpayable'"
-  - Location: `src/reactor/OrderReactor.sol:34` overriding `lib/UniswapX/src/reactors/BaseReactor.sol:139`
-  - **Workaround**: Build individual contracts until this is resolved
-- **Test Dependencies**: ERC20Mock path resolution issues prevent full test suite from running
-  - Error: Source "lib/UniswapX/lib/openzeppelin-contracts/contracts/mocks/token/ERC20Mock.sol" not found
-  - **Workaround**: Focus on individual contract testing and compilation validation
-- **Build Limitations**: Use `forge build src/WM.sol src/Refinery.sol src/repermit/RePermit.sol` for working compilation
-- **Gas Snapshots**: Cannot run until compilation issues are resolved
-- **Full Test Suite**: Currently blocked by compilation issues
-
-**DEVELOPMENT PRIORITY**: Fix OrderReactor state mutability issue before proceeding with full development workflow.
 
 **NEVER** ignore compilation errors or test failures - they often indicate critical security issues in a DeFi protocol handling user funds.
