@@ -104,34 +104,4 @@ abstract contract BaseTest is BaseScript, PermitSignature, DeployTestInfra {
     //     result.sig = signOrder(signerPK, PERMIT2_ADDRESS, order);
     //     result.order = abi.encode(order);
     // }
-    //
-    // function signedPartialOrder(
-    //     address signer,
-    //     uint256 signerPK,
-    //     address inToken,
-    //     address outToken,
-    //     uint256 inAmount,
-    //     uint256 outAmount,
-    //     uint256 fillOutAmount
-    // ) internal view returns (SignedOrder memory result) {
-    //     PartialOrderLib.PartialOrder memory order;
-    //     {
-    //         order.info.reactor = address(config.reactorPartial);
-    //         order.info.swapper = signer;
-    //         order.info.nonce = block.timestamp;
-    //         order.info.deadline = block.timestamp + 10 minutes;
-    //
-    //         order.exclusiveFiller = address(config.executor);
-    //         // order.info.additionalValidationContract = IValidationCallback(config.executor); // this will work, but redundant and wastes gas
-    //
-    //         order.input.token = inToken;
-    //         order.input.amount = inAmount;
-    //
-    //         order.outputs = new PartialOrderLib.PartialOutput[](1);
-    //         order.outputs[0] = PartialOrderLib.PartialOutput(outToken, outAmount, signer);
-    //     }
-    //
-    //     result.sig = signRePermit(signerPK, order);
-    //     result.order = abi.encode(PartialOrderLib.PartialFill(order, fillOutAmount));
-    // }
 }

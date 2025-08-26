@@ -111,7 +111,7 @@ contract Executor is IReactorCallback, IValidationCallback {
 
     function _outputReactor(address token, uint256 amount) private {
         if (token == address(0)) {
-            Address.sendValue(payable(address(reactor)), amount);
+            _transfer(token, address(reactor), amount);
         } else {
             uint256 allowance = IERC20(token).allowance(address(this), address(reactor));
             IERC20(token).safeApprove(address(reactor), 0);
