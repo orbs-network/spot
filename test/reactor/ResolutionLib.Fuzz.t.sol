@@ -5,7 +5,7 @@ import "forge-std/Test.sol";
 
 import {ResolutionLib} from "src/reactor/ResolutionLib.sol";
 import {OrderLib} from "src/reactor/OrderLib.sol";
-import {ReactorConstants} from "src/reactor/Constants.sol";
+import {Constants} from "src/reactor/Constants.sol";
 
 contract ResolutionLibFuzzTest is Test {
     function callResolve(OrderLib.CosignedOrder memory co) external pure returns (uint256) {
@@ -24,7 +24,7 @@ contract ResolutionLibFuzzTest is Test {
         vm.assume(limit < type(uint128).max);
         vm.assume(maxOut > 0 && maxOut < type(uint128).max);
         vm.assume(inputValue > 0 && outputValue > 0 && inputValue < 1e36 && outputValue < 1e36);
-        vm.assume(slippage < ReactorConstants.MAX_SLIPPAGE);
+        vm.assume(slippage < Constants.MAX_SLIPPAGE);
 
         OrderLib.CosignedOrder memory co;
         co.order.input.amount = inAmount;
@@ -41,7 +41,7 @@ contract ResolutionLibFuzzTest is Test {
             return;
         }
 
-        uint256 minOut = (cosignedOutput * (ReactorConstants.BPS - slippage)) / ReactorConstants.BPS;
+        uint256 minOut = (cosignedOutput * (Constants.BPS - slippage)) / Constants.BPS;
         uint256 expected = minOut > limit ? minOut : limit;
         uint256 outAmt = this.callResolve(co);
         assertEq(outAmt, expected);

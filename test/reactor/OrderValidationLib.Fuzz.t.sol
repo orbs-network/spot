@@ -5,7 +5,7 @@ import "forge-std/Test.sol";
 
 import {OrderValidationLib} from "src/reactor/OrderValidationLib.sol";
 import {OrderLib} from "src/reactor/OrderLib.sol";
-import {ReactorConstants} from "src/reactor/Constants.sol";
+import {Constants} from "src/reactor/Constants.sol";
 
 contract OrderValidationLibFuzzTest is Test {
     function testFuzz_validate_ok(
@@ -25,7 +25,7 @@ contract OrderValidationLibFuzzTest is Test {
         vm.assume(inAmount > 0);
         vm.assume(maxAmount >= inAmount);
         vm.assume(maxOut >= minOut);
-        vm.assume(slippage < ReactorConstants.MAX_SLIPPAGE);
+        vm.assume(slippage < Constants.MAX_SLIPPAGE);
 
         OrderLib.Order memory o;
         o.info.swapper = swapper;

@@ -5,7 +5,7 @@ import "forge-std/Test.sol";
 
 import {OrderValidationLib} from "src/reactor/OrderValidationLib.sol";
 import {OrderLib} from "src/reactor/OrderLib.sol";
-import {ReactorConstants} from "src/reactor/Constants.sol";
+import {Constants} from "src/reactor/Constants.sol";
 
 contract OrderValidationLibTest is Test {
     function callValidate(OrderLib.Order memory order) external pure {
@@ -52,7 +52,7 @@ contract OrderValidationLibTest is Test {
 
     function test_validate_reverts_slippageTooHigh() public {
         OrderLib.Order memory o = _baseOrder();
-        o.slippage = uint32(ReactorConstants.MAX_SLIPPAGE); // >= MAX_SLIPPAGE
+        o.slippage = uint32(Constants.MAX_SLIPPAGE); // >= MAX_SLIPPAGE
         vm.expectRevert(OrderValidationLib.InvalidOrderSlippageTooHigh.selector);
         this.callValidate(o);
     }

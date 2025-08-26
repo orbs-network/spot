@@ -67,7 +67,7 @@ library OrderLib {
 
     struct CosignedValue {
         address token;
-        uint256 value; // 18 decimals
+        uint256 value; // in token decimals
         uint8 decimals; // informative
     }
 

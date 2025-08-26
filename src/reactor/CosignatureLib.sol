@@ -22,13 +22,14 @@ library CosignatureLib {
         if (cosigned.order.epoch != 0 && cosigned.order.freshness >= cosigned.order.epoch) {
             revert InvalidFreshnessVsEpoch();
         }
-        if (cosigned.cosignatureData.timestamp + cosigned.order.freshness < block.timestamp) revert StaleCosignature();
         if (cosigned.cosignatureData.input.token != cosigned.order.input.token) revert InvalidCosignatureInputToken();
         if (cosigned.cosignatureData.output.token != cosigned.order.output.token) {
             revert InvalidCosignatureOutputToken();
         }
         if (cosigned.cosignatureData.input.value == 0) revert InvalidCosignatureZeroInputValue();
         if (cosigned.cosignatureData.output.value == 0) revert InvalidCosignatureZeroOutputValue();
+
+        if (cosigned.cosignatureData.timestamp + cosigned.order.freshness < block.timestamp) revert StaleCosignature();
 
         bytes32 digest = IEIP712(eip712).hashTypedData(OrderLib.hash(cosigned.cosignatureData));
         if (!SignatureChecker.isValidSignatureNow(cosigner, digest, cosigned.cosignature)) revert InvalidCosignature();
