@@ -16,10 +16,7 @@ library CosignatureLib {
     error InvalidFreshness();
     error InvalidFreshnessVsEpoch();
 
-    function validate(OrderLib.CosignedOrder memory cosigned, address cosigner, address eip712)
-        internal
-        view
-    {
+    function validate(OrderLib.CosignedOrder memory cosigned, address cosigner, address eip712) internal view {
         if (cosigned.cosignatureData.timestamp > block.timestamp) revert FutureCosignatureTimestamp();
         if (cosigned.order.freshness == 0) revert InvalidFreshness();
         if (cosigned.order.epoch != 0 && cosigned.order.freshness >= cosigned.order.epoch) {

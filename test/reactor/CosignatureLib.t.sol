@@ -20,10 +20,7 @@ contract CosignatureLibTest is Test {
         vm.warp(1_000_000);
     }
 
-    function callValidateCosignature(OrderLib.CosignedOrder memory co, address cosigner)
-        external
-        view
-    {
+    function callValidateCosignature(OrderLib.CosignedOrder memory co, address cosigner) external view {
         CosignatureLib.validate(co, cosigner, address(rp));
     }
 

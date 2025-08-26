@@ -29,9 +29,7 @@ contract Executor is IReactorCallback, IValidationCallback {
         uint256 outAmount
     );
 
-
     event Surplus(address indexed ref, address swapper, address token, uint256 amount, uint256 refshare);
-
 
     address public immutable multicall;
     address public immutable reactor;
