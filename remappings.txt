@@ -3,4 +3,3 @@ forge-std/=lib/forge-std/src/
 @openzeppelin/contracts/=lib/UniswapX/lib/openzeppelin-contracts/contracts/
 openzeppelin-contracts/=lib/UniswapX/lib/openzeppelin-contracts/contracts/
 uniswapx/=lib/UniswapX/
-solmate/=lib/UniswapX/lib/solmate/
