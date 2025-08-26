@@ -5,7 +5,7 @@ import "forge-std/Test.sol";
 
 import {IMulticall3} from "forge-std/interfaces/IMulticall3.sol";
 
-import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
+import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 
 import {PermitSignature} from "uniswapx/test/util/PermitSignature.sol";
 
@@ -17,7 +17,6 @@ import {RePermit} from "src/repermit/RePermit.sol";
 
 abstract contract BaseTest is BaseScript, PermitSignature, DeployTestInfra {
     address public multicall;
-    address public weth;
     address public permit2;
 
     address public wm;
@@ -30,7 +29,7 @@ abstract contract BaseTest is BaseScript, PermitSignature, DeployTestInfra {
 
     function setUp() public virtual override {
         super.setUp();
-        (permit2, multicall, weth) = deployTestInfra();
+        (permit2, multicall) = deployTestInfra();
 
         wm = address(new WM(address(this)));
         vm.label(wm, "wm");

@@ -7,6 +7,3 @@
 [submodule "lib/UniswapX"]
 	path = lib/UniswapX
 	url = https://github.com/uniswap/UniswapX
-[submodule "lib/solmate"]
-	path = lib/solmate
-	url = https://github.com/transmissions11/solmate
