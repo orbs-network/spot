@@ -11,8 +11,6 @@ contract RefineryTest is BaseTest {
     Refinery internal refinery;
     address internal bob = address(2);
 
-    event Refined(address indexed token, address indexed recipient, uint256 amount);
-
     function setUp() public virtual override {
         super.setUp();
         refinery = new Refinery(multicall, wm);
@@ -138,7 +136,7 @@ contract RefineryTest is BaseTest {
         allowThis();
         vm.deal(address(refinery), 1e18);
         vm.expectEmit(true, true, true, true);
-        emit Refined(address(0), bob, 0.5e18);
+        emit refinery.Refined(address(0), bob, 0.5e18);
         refinery.transfer(address(0), bob, 5_000); // 50%
     }
 
@@ -155,7 +153,7 @@ contract RefineryTest is BaseTest {
         allowThis();
         token.mint(address(refinery), 1e18);
         vm.expectEmit(true, true, true, true);
-        emit Refined(address(token), bob, 0.5e18);
+        emit refinery.Refined(address(token), bob, 0.5e18);
         refinery.transfer(address(token), bob, 5_000); // 50%
     }
 

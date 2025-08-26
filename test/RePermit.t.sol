@@ -32,16 +32,6 @@ contract RePermitTest is BaseTest {
         return signEIP712(repermit, signerPK, _structHash(wit));
     }
 
-    // Duplicate event for expectEmit
-    event Spend(
-        address indexed signer,
-        bytes32 indexed permitHash,
-        address indexed token,
-        address to,
-        uint256 amount,
-        uint256 totalSpent
-    );
-
     function setUp() public override {
         super.setUp();
         vm.warp(1_000_000);
@@ -163,7 +153,7 @@ contract RePermitTest is BaseTest {
         bytes32 digest = uut.hashTypedData(structHash);
 
         vm.expectEmit(address(uut));
-        emit Spend(signer, digest, address(token), other, 0.25 ether, 0.25 ether);
+        emit uut.Spend(signer, digest, address(token), other, 0.25 ether, 0.25 ether);
 
         uut.repermitWitnessTransferFrom(permit, request, signer, witness, witnessTypeString, signature);
     }

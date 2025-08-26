@@ -12,9 +12,6 @@ import {WM} from "src/WM.sol";
 contract WMTest is BaseTest {
     WM public uut;
 
-    // Duplicate event signature for expectEmit matching
-    event AllowedSet(address indexed addr, bool allowed);
-
     function setUp() public override {
         super.setUp();
         uut = WM(payable(wm));
@@ -49,13 +46,13 @@ contract WMTest is BaseTest {
 
         // expect allow
         vm.expectEmit(address(uut));
-        emit AllowedSet(a, true);
+        emit uut.AllowedSet(a, true);
         uut.set(addrs, true);
         assertEq(uut.allowed(a), true);
 
         // expect revoke
         vm.expectEmit(address(uut));
-        emit AllowedSet(a, false);
+        emit uut.AllowedSet(a, false);
         uut.set(addrs, false);
         assertEq(uut.allowed(a), false);
     }
@@ -72,11 +69,11 @@ contract WMTest is BaseTest {
 
         // expect three events in order
         vm.expectEmit(address(uut));
-        emit AllowedSet(a, true);
+        emit uut.AllowedSet(a, true);
         vm.expectEmit(address(uut));
-        emit AllowedSet(b, true);
+        emit uut.AllowedSet(b, true);
         vm.expectEmit(address(uut));
-        emit AllowedSet(c, true);
+        emit uut.AllowedSet(c, true);
 
         uut.set(addrs, true);
 
@@ -157,18 +154,18 @@ contract WMTest is BaseTest {
 
         // Expect two events for the same address since loop emits per entry
         vm.expectEmit(address(uut));
-        emit AllowedSet(a, true);
+        emit uut.AllowedSet(a, true);
         vm.expectEmit(address(uut));
-        emit AllowedSet(a, true);
+        emit uut.AllowedSet(a, true);
 
         uut.set(addrs, true);
         assertEq(uut.allowed(a), true);
 
         // Now revoke twice as well
         vm.expectEmit(address(uut));
-        emit AllowedSet(a, false);
+        emit uut.AllowedSet(a, false);
         vm.expectEmit(address(uut));
-        emit AllowedSet(a, false);
+        emit uut.AllowedSet(a, false);
         uut.set(addrs, false);
         assertEq(uut.allowed(a), false);
     }
