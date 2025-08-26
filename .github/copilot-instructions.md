@@ -6,10 +6,8 @@ Always reference these instructions first and fallback to search or bash command
 
 ## Working Effectively
 
-### Environment Setup - CRITICAL NETWORK LIMITATIONS
-- **WARNING**: Standard Foundry installation methods are blocked in many environments due to network restrictions
-- Primary installation domains (foundry.paradigm.xyz, GitHub releases, crates.io) may be inaccessible
-- **ALWAYS** use the alternative installation method below
+### Environment Setup
+Standard Foundry installation now works normally without network restrictions.
 
 ### Bootstrap and Build Process
 1. **Initialize Dependencies**:
@@ -18,47 +16,26 @@ Always reference these instructions first and fallback to search or bash command
    ```
    - NEVER CANCEL: This takes 3-5 minutes. Set timeout to 10+ minutes.
 
-2. **Install Foundry** (Network-Restricted Environment):
+2. **Install Foundry**:
    ```bash
-   mkdir -p /home/runner/.config/.foundry/bin
-   wget -q -O foundryup https://raw.githubusercontent.com/foundry-rs/foundry/master/foundryup/foundryup
-   chmod +x foundryup
-   ./foundryup
-   export PATH="/home/runner/.config/.foundry/bin:$PATH"
+   curl -L https://foundry.paradigm.xyz | bash
+   source ~/.bashrc
+   foundryup
    ```
-   - If foundryup fails, install Solidity compiler directly:
-   ```bash
-   curl -L https://github.com/ethereum/solidity/releases/download/v0.8.20/solc-static-linux -o /tmp/solc && chmod +x /tmp/solc
-   export FOUNDRY_SOLC=/tmp/solc
-   ```
+   - Standard installation takes ~30 seconds
+   - Installs forge, cast, anvil, and chisel
+   - Verifies binaries against attestation files
 
-3. **Build the Project**:
+3. **Build Working Contracts**:
    ```bash
-   export PATH="/home/runner/.config/.foundry/bin:$PATH"
-   forge build src/WM.sol src/Refinery.sol  # Build working contracts first
+   forge build src/WM.sol src/Refinery.sol src/repermit/RePermit.sol
    ```
-   - NEVER CANCEL: Build takes 1-2 minutes for core contracts. Set timeout to 5+ minutes.
-   - **CRITICAL**: Full `forge build` currently fails due to OrderReactor compilation issues
+   - **Timing**: ~0.8 seconds for working contracts
+   - **CRITICAL**: Full `forge build` still fails due to compilation issues
    - **Known Issues**: 
      - OrderReactor has state mutability conflicts with UniswapX BaseReactor
-     - Some test dependencies have path conflicts with ERC20Mock location
+     - Test dependencies have ERC20Mock path resolution issues
    - **Workaround**: Build individual working contracts until issues are resolved
-
-4. **Validate Compilation**:
-   ```bash
-   forge build src/WM.sol src/Refinery.sol src/repermit/RePermit.sol  # Working contracts
-   ```
-   - These core contracts compile successfully and take ~500ms
-   - **DO NOT** attempt `forge test` until compilation issues are resolved
-   - Focus on individual contract validation
-
-### Alternative Build Validation
-If Foundry installation completely fails:
-```bash
-# Use direct solc compilation for validation
-/tmp/solc --version
-/tmp/solc src/WM.sol --base-path . --include-path lib/UniswapX/lib/openzeppelin-contracts "@openzeppelin/contracts/=lib/UniswapX/lib/openzeppelin-contracts/contracts/"
-```
 
 ## Validation Scenarios
 
@@ -66,15 +43,15 @@ If Foundry installation completely fails:
 
 1. **Basic Compilation Test**:
    ```bash
-   forge build src/WM.sol src/Refinery.sol src/repermit/RePermit.sol  # Should complete in ~500ms
+   forge build src/WM.sol src/Refinery.sol src/repermit/RePermit.sol  # Should complete in ~0.8s
    ```
 
-2. **Individual Contract Validation**:
+2. **Code Formatting Check**:
    ```bash
-   forge fmt  # Format check - should complete in ~100ms
+   forge fmt --check  # Format validation - should complete in ~0.1s
    ```
 
-3. **Contract Interface Check**:
+3. **Individual Contract Validation**:
    ```bash
    forge build src/WM.sol  # Test allowlist contract compilation
    ```
@@ -127,13 +104,13 @@ If Foundry installation completely fails:
 ## Common Validation Commands
 ```bash
 # Working commands - always run these before committing changes
-forge fmt                                           # Format code (~100ms)
-forge build src/WM.sol src/Refinery.sol            # Verify working contracts compile (~500ms)
-forge build src/repermit/RePermit.sol               # Test RePermit compilation (~600ms)
+forge fmt --check                                   # Format validation (~0.1s)
+forge build src/WM.sol src/Refinery.sol             # Verify working contracts compile (~0.8s)
+forge build src/repermit/RePermit.sol               # Test RePermit compilation (~0.8s)
 
 # Commands currently blocked by compilation issues:
-# forge build                                      # Full build fails due to OrderReactor issues
-# forge test                                       # Tests fail due to compilation issues  
+# forge build                                      # Full build fails due to OrderReactor state mutability issues
+# forge test                                       # Tests fail due to ERC20Mock path resolution issues
 # forge snapshot                                   # Gas snapshots unavailable until build works
 ```
 
@@ -156,17 +133,18 @@ The protocol deploys on 18+ chains. Key considerations:
 ## Debugging Tips
 - **Build Failures**: Check submodule initialization first
 - **Path Issues**: Verify remappings.txt matches dependency structure  
-- **Network Errors**: Use alternative installation methods above
-- **Test Failures**: Run individual contract tests to isolate issues
-- **Gas Issues**: Check .gas-snapshot for unexpected increases
+- **State Mutability Errors**: Known issue with OrderReactor inheritance from UniswapX BaseReactor
+- **Test Failures**: ERC20Mock path resolution issues prevent test compilation
+- **Gas Issues**: Check .gas-snapshot for unexpected increases (when available)
 
 ## Known Issues & Workarounds
 - **CRITICAL COMPILATION ISSUE**: OrderReactor has state mutability conflicts with UniswapX BaseReactor
   - Error: "Overriding function changes state mutability from 'view' to 'nonpayable'"
+  - Location: `src/reactor/OrderReactor.sol:34` overriding `lib/UniswapX/src/reactors/BaseReactor.sol:139`
   - **Workaround**: Build individual contracts until this is resolved
-- **Test Dependencies**: ERC20Mock path conflicts prevent full test suite from running
+- **Test Dependencies**: ERC20Mock path resolution issues prevent full test suite from running
+  - Error: Source "lib/UniswapX/lib/openzeppelin-contracts/contracts/mocks/token/ERC20Mock.sol" not found
   - **Workaround**: Focus on individual contract testing and compilation validation
-- **Network Restrictions**: Standard Foundry installation may fail - use alternative methods
 - **Build Limitations**: Use `forge build src/WM.sol src/Refinery.sol src/repermit/RePermit.sol` for working compilation
 - **Gas Snapshots**: Cannot run until compilation issues are resolved
 - **Full Test Suite**: Currently blocked by compilation issues
