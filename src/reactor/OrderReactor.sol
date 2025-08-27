@@ -14,7 +14,8 @@ import {
 import {BaseReactor, IPermit2} from "uniswapx/src/reactors/BaseReactor.sol";
 import {ExclusivityLib} from "uniswapx/src/lib/ExclusivityLib.sol";
 
-import {RePermit, RePermitLib} from "src/repermit/RePermit.sol";
+import {RePermit} from "src/repermit/RePermit.sol";
+import {RePermitLib} from "src/repermit/RePermitLib.sol";
 import {OrderLib} from "src/reactor/OrderLib.sol";
 import {OrderValidationLib} from "src/reactor/OrderValidationLib.sol";
 import {CosignatureLib} from "src/reactor/CosignatureLib.sol";

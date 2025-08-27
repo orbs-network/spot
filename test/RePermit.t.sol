@@ -5,7 +5,8 @@ import "forge-std/Test.sol";
 
 import {BaseTest} from "test/base/BaseTest.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import {RePermit, RePermitLib} from "src/repermit/RePermit.sol";
+import {RePermit} from "src/repermit/RePermit.sol";
+import {RePermitLib} from "src/repermit/RePermitLib.sol";
 
 contract RePermitTest is BaseTest {
     RePermit uut;

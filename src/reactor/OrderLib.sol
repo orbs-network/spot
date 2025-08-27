@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import {RePermitLib} from "src/repermit/RePermit.sol";
+import {RePermitLib} from "src/repermit/RePermitLib.sol";
 
 library OrderLib {
     string internal constant ORDER_INFO_TYPE =

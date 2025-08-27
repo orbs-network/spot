@@ -6,7 +6,8 @@ import "forge-std/Script.sol";
 
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
-import {IEIP712, RePermitLib} from "src/repermit/RePermit.sol";
+import {IEIP712} from "src/interface/IEIP712.sol";
+import {RePermitLib} from "src/repermit/RePermitLib.sol";
 import {OrderLib} from "src/reactor/OrderLib.sol";
 
 abstract contract BaseScript is Script {
