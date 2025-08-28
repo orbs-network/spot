@@ -17,8 +17,6 @@ contract RePermit is EIP712, IEIP712 {
     error Canceled();
     error InsufficientAllowance();
 
-    
-
     // signer => hash => spent
     mapping(address => mapping(bytes32 => uint256)) public spent;
     // signer => nonce => canceled

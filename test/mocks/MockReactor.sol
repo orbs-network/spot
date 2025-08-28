@@ -28,7 +28,7 @@ contract MockReactor is IReactor {
         OutputToken[] memory outs = new OutputToken[](1);
         outs[0] = OutputToken({token: address(co.order.output.token), amount: 500, recipient: co.order.info.swapper});
 
-        (address r,) = abi.decode(co.order.info.additionalValidationData, (address, uint8));
+        (address r,) = abi.decode(co.order.info.additionalValidationData, (address, uint16));
 
         ros[0] = ResolvedOrder({
             info: OrderInfo({

@@ -24,7 +24,7 @@ contract ExecutorTest is BaseTest {
     MockReactor public reactor;
     ERC20Mock public tokenOut;
     address public ref;
-    uint8 public refShare = 10; // 10%
+    uint16 public refShare = 1000; // 10% in bps
 
     function setUp() public override {
         super.setUp();
@@ -67,7 +67,7 @@ contract ExecutorTest is BaseTest {
         SignedOrder memory so = _dummySignedOrder();
         IMulticall3.Call[] memory calls = new IMulticall3.Call[](0);
 
-        vm.expectRevert(abi.encodeWithSelector(Executor.InvalidSender.selector, address(this)));
+        vm.expectRevert(abi.encodeWithSelector(Executor.InvalidSender.selector));
         exec.execute(so, calls, 0);
     }
 
@@ -76,7 +76,7 @@ contract ExecutorTest is BaseTest {
         ros[0] = _dummyResolvedOrder(address(token), 0);
         IMulticall3.Call[] memory calls = new IMulticall3.Call[](0);
 
-        vm.expectRevert(abi.encodeWithSelector(Executor.InvalidSender.selector, address(this)));
+        vm.expectRevert(abi.encodeWithSelector(Executor.InvalidSender.selector));
         exec.reactorCallback(ros, abi.encode(calls, 0));
     }
 
@@ -142,7 +142,7 @@ contract ExecutorTest is BaseTest {
     }
 
     function test_validate_reverts_for_others() public {
-        vm.expectRevert(abi.encodeWithSelector(Executor.InvalidSender.selector, other));
+        vm.expectRevert(abi.encodeWithSelector(Executor.InvalidSender.selector));
         exec.validate(other, _dummyResolvedOrder(address(token), 0));
     }
 
@@ -231,7 +231,7 @@ contract ExecutorTest is BaseTest {
             nonce: 0,
             deadline: 1_086_400,
             additionalValidationContract: address(0),
-            additionalValidationData: abi.encode(address(0), uint8(0))
+            additionalValidationData: abi.encode(address(0), uint16(0))
         });
         co.order.exclusiveFiller = address(exec);
         co.order.exclusivityOverrideBps = 0;

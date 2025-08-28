@@ -31,8 +31,10 @@ contract ResolutionLibFuzzTest is Test {
         co.order.output.amount = limit;
         co.order.output.maxAmount = maxOut;
         co.order.slippage = uint32(slippage);
-        co.cosignatureData.input = OrderLib.CosignedValue({token: makeAddr("cosignedInputToken"), value: inputValue, decimals: 18});
-        co.cosignatureData.output = OrderLib.CosignedValue({token: makeAddr("cosignedOutputToken"), value: outputValue, decimals: 18});
+        co.cosignatureData.input =
+            OrderLib.CosignedValue({token: makeAddr("cosignedInputToken"), value: inputValue, decimals: 18});
+        co.cosignatureData.output =
+            OrderLib.CosignedValue({token: makeAddr("cosignedOutputToken"), value: outputValue, decimals: 18});
 
         uint256 cosignedOutput = (inAmount * outputValue) / inputValue;
         if (cosignedOutput > maxOut) {

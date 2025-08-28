@@ -11,12 +11,13 @@ import {IReactorCallback} from "uniswapx/src/interfaces/IReactorCallback.sol";
 import {IValidationCallback} from "uniswapx/src/interfaces/IValidationCallback.sol";
 import {ResolvedOrder, SignedOrder} from "uniswapx/src/base/ReactorStructs.sol";
 import {OrderLib} from "src/reactor/OrderLib.sol";
+import {Constants} from "src/reactor/Constants.sol";
 import {IWM} from "src/interface/IWM.sol";
 
 contract Executor is IReactorCallback, IValidationCallback {
     using SafeERC20 for IERC20;
 
-    error InvalidSender(address sender);
+    error InvalidSender();
     error InvalidOrder();
 
     event Resolved(
@@ -42,12 +43,12 @@ contract Executor is IReactorCallback, IValidationCallback {
     }
 
     modifier onlyAllowed() {
-        if (!IWM(allowed).allowed(msg.sender)) revert InvalidSender(msg.sender);
+        if (!IWM(allowed).allowed(msg.sender)) revert InvalidSender();
         _;
     }
 
     modifier onlyReactor() {
-        if (msg.sender != address(reactor)) revert InvalidSender(msg.sender);
+        if (msg.sender != address(reactor)) revert InvalidSender();
         _;
     }
 
@@ -58,23 +59,23 @@ contract Executor is IReactorCallback, IValidationCallback {
         IReactor(reactor).executeWithCallback(order, abi.encode(calls, minAmountOutRecipient));
 
         OrderLib.CosignedOrder memory co = abi.decode(order.order, (OrderLib.CosignedOrder));
-        (address ref, uint8 share) = abi.decode(co.order.info.additionalValidationData, (address, uint8));
-
+        (address ref, uint16 share) = abi.decode(co.order.info.additionalValidationData, (address, uint16));
         _surplus(ref, co.order.info.swapper, address(co.order.input.token), share);
         _surplus(ref, co.order.info.swapper, address(co.order.output.token), share);
     }
 
     function reactorCallback(ResolvedOrder[] memory orders, bytes memory callbackData) external override onlyReactor {
         ResolvedOrder memory order = orders[0];
-
         (IMulticall3.Call[] memory calls, uint256 minAmountOutRecipient) =
             abi.decode(callbackData, (IMulticall3.Call[], uint256));
 
         _executeMulticall(calls);
 
-        uint256 outAmount = _handleOrderOutputs(order);
+        if (order.outputs.length != 1) revert InvalidOrder();
         address outToken = address(order.outputs[0].token);
+        uint256 outAmount = order.outputs[0].amount;
         address recipient = order.outputs[0].recipient;
+        _outputReactor(outToken, outAmount);
         if (minAmountOutRecipient > outAmount) _transfer(outToken, recipient, minAmountOutRecipient - outAmount);
 
         address ref = abi.decode(order.info.additionalValidationData, (address));
@@ -88,20 +89,11 @@ contract Executor is IReactorCallback, IValidationCallback {
         Address.functionDelegateCall(multicall, abi.encodeWithSelector(IMulticall3.aggregate.selector, calls));
     }
 
-    function _handleOrderOutputs(ResolvedOrder memory order) private returns (uint256 outAmount) {
-        if (order.outputs.length != 1) revert InvalidOrder();
-
-        address token = address(order.outputs[0].token);
-        uint256 amount = order.outputs[0].amount;
-        if (amount > 0) _outputReactor(token, amount);
-        outAmount = amount;
-    }
-
-    function _surplus(address ref, address swapper, address token, uint8 share) private {
-        uint256 balance = _balanceOf(token, address(this));
+    function _surplus(address ref, address swapper, address token, uint16 share) private {
+        uint256 balance = (token == address(0)) ? address(this).balance : IERC20(token).balanceOf(address(this));
         if (balance == 0) return;
 
-        uint256 refshare = (ref != address(0)) ? balance * share / 100 : 0;
+        uint256 refshare = balance * share / Constants.BPS;
 
         if (refshare > 0) _transfer(token, ref, refshare);
         _transfer(token, swapper, balance - refshare);
@@ -124,12 +116,8 @@ contract Executor is IReactorCallback, IValidationCallback {
         else IERC20(token).safeTransfer(to, amount);
     }
 
-    function _balanceOf(address token, address who) private view returns (uint256) {
-        return (token == address(0)) ? who.balance : IERC20(token).balanceOf(who);
-    }
-
     function validate(address filler, ResolvedOrder calldata) external view override {
-        if (filler != address(this)) revert InvalidSender(filler);
+        if (filler != address(this)) revert InvalidSender();
     }
 
     receive() external payable {}
