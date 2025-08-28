@@ -9,7 +9,6 @@ import {IMulticall3} from "forge-std/interfaces/IMulticall3.sol";
 
 contract RefineryTest is BaseTest {
     Refinery internal refinery;
-    address internal bob = address(2);
 
     event Refined(address indexed token, address indexed recipient, uint256 amount);
 
@@ -28,7 +27,7 @@ contract RefineryTest is BaseTest {
     function test_cant_transfer_if_not_allowed() public {
         disallowThis();
         vm.expectRevert(Refinery.NotAllowed.selector);
-        refinery.transfer(address(token), bob, 100);
+        refinery.transfer(address(token), other, 100);
     }
 
     function test_execute() public {
@@ -37,10 +36,10 @@ contract RefineryTest is BaseTest {
         calls[0] = IMulticall3.Call3({
             target: address(token),
             allowFailure: false,
-            callData: abi.encodeWithSignature("mint(address,uint256)", bob, 1e18)
+            callData: abi.encodeWithSignature("mint(address,uint256)", other, 1e18)
         });
         refinery.execute(calls);
-        assertEq(token.balanceOf(bob), 1e18);
+        assertEq(token.balanceOf(other), 1e18);
     }
 
     function test_execute_empty_calls_ok() public {
@@ -57,7 +56,7 @@ contract RefineryTest is BaseTest {
         calls[0] = IMulticall3.Call3({
             target: address(token),
             allowFailure: true,
-            callData: abi.encodeWithSignature("transfer(address,uint256)", bob, 1e18)
+            callData: abi.encodeWithSignature("transfer(address,uint256)", other, 1e18)
         });
         refinery.execute(calls);
     }
@@ -68,7 +67,7 @@ contract RefineryTest is BaseTest {
         calls[0] = IMulticall3.Call3({
             target: address(token),
             allowFailure: false,
-            callData: abi.encodeWithSignature("transfer(address,uint256)", bob, 1e18)
+            callData: abi.encodeWithSignature("transfer(address,uint256)", other, 1e18)
         });
         vm.expectRevert();
         refinery.execute(calls);
@@ -77,55 +76,55 @@ contract RefineryTest is BaseTest {
     function test_transfer_eth() public {
         allowThis();
         vm.deal(address(refinery), 1e18);
-        refinery.transfer(address(0), bob, 5_000); // 50%
-        assertEq(bob.balance, 0.5e18);
+        refinery.transfer(address(0), other, 5_000); // 50%
+        assertEq(other.balance, 0.5e18);
     }
 
     function test_transfer_eth_bps_zero_noop() public {
         allowThis();
         vm.deal(address(refinery), 1e18);
-        refinery.transfer(address(0), bob, 0); // 0%
-        assertEq(bob.balance, 0);
+        refinery.transfer(address(0), other, 0); // 0%
+        assertEq(other.balance, 0);
     }
 
     function test_transfer_eth_bps_full() public {
         allowThis();
         vm.deal(address(refinery), 1e18);
-        refinery.transfer(address(0), bob, 10_000); // 100%
-        assertEq(bob.balance, 1e18);
+        refinery.transfer(address(0), other, 10_000); // 100%
+        assertEq(other.balance, 1e18);
     }
 
     function test_transfer_eth_zero_balance() public {
         allowThis();
-        refinery.transfer(address(0), bob, 5_000); // 50%
-        assertEq(bob.balance, 0);
+        refinery.transfer(address(0), other, 5_000); // 50%
+        assertEq(other.balance, 0);
     }
 
     function test_transfer_erc20() public {
         allowThis();
         token.mint(address(refinery), 1e18);
-        refinery.transfer(address(token), bob, 5_000); // 50%
-        assertEq(token.balanceOf(bob), 0.5e18);
+        refinery.transfer(address(token), other, 5_000); // 50%
+        assertEq(token.balanceOf(other), 0.5e18);
     }
 
     function test_transfer_erc20_bps_zero_noop() public {
         allowThis();
         token.mint(address(refinery), 1e18);
-        refinery.transfer(address(token), bob, 0); // 0%
-        assertEq(token.balanceOf(bob), 0);
+        refinery.transfer(address(token), other, 0); // 0%
+        assertEq(token.balanceOf(other), 0);
     }
 
     function test_transfer_erc20_bps_full() public {
         allowThis();
         token.mint(address(refinery), 1e18);
-        refinery.transfer(address(token), bob, 10_000); // 100%
-        assertEq(token.balanceOf(bob), 1e18);
+        refinery.transfer(address(token), other, 10_000); // 100%
+        assertEq(token.balanceOf(other), 1e18);
     }
 
     function test_transfer_erc20_zero_balance() public {
         allowThis();
-        refinery.transfer(address(token), bob, 5_000); // 50%
-        assertEq(token.balanceOf(bob), 0);
+        refinery.transfer(address(token), other, 5_000); // 50%
+        assertEq(token.balanceOf(other), 0);
     }
 
     function test_receive() public {
@@ -138,14 +137,14 @@ contract RefineryTest is BaseTest {
         allowThis();
         vm.deal(address(refinery), 1e18);
         vm.expectEmit(true, true, true, true);
-        emit Refined(address(0), bob, 0.5e18);
-        refinery.transfer(address(0), bob, 5_000); // 50%
+        emit Refined(address(0), other, 0.5e18);
+        refinery.transfer(address(0), other, 5_000); // 50%
     }
 
     function test_no_event_when_amount_zero_eth() public {
         allowThis();
         vm.recordLogs();
-        refinery.transfer(address(0), bob, 0); // 0%
+        refinery.transfer(address(0), other, 0); // 0%
         Vm.Log[] memory entries = vm.getRecordedLogs();
         // No Refined event should be emitted
         assertEq(entries.length, 0);
@@ -155,14 +154,14 @@ contract RefineryTest is BaseTest {
         allowThis();
         token.mint(address(refinery), 1e18);
         vm.expectEmit(true, true, true, true);
-        emit Refined(address(token), bob, 0.5e18);
-        refinery.transfer(address(token), bob, 5_000); // 50%
+        emit Refined(address(token), other, 0.5e18);
+        refinery.transfer(address(token), other, 5_000); // 50%
     }
 
     function test_no_event_when_amount_zero_erc20() public {
         allowThis();
         vm.recordLogs();
-        refinery.transfer(address(token), bob, 0); // 0%
+        refinery.transfer(address(token), other, 0); // 0%
         Vm.Log[] memory entries = vm.getRecordedLogs();
         assertEq(entries.length, 0);
     }

@@ -17,14 +17,7 @@ contract RePermit is EIP712, IEIP712 {
     error Canceled();
     error InsufficientAllowance();
 
-    event Spend(
-        address indexed signer,
-        bytes32 indexed permitHash,
-        address indexed token,
-        address to,
-        uint256 amount,
-        uint256 totalSpent
-    );
+    
 
     // signer => hash => spent
     mapping(address => mapping(bytes32 => uint256)) public spent;
@@ -66,6 +59,6 @@ contract RePermit is EIP712, IEIP712 {
         if (_spent > permit.permitted.amount) revert InsufficientAllowance();
 
         IERC20(permit.permitted.token).safeTransferFrom(signer, request.to, request.amount);
-        emit Spend(signer, hash, permit.permitted.token, request.to, request.amount, _spent);
+        emit RePermitLib.Spend(signer, hash, permit.permitted.token, request.to, request.amount, _spent);
     }
 }
