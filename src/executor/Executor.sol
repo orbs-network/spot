@@ -3,19 +3,18 @@ pragma solidity 0.8.20;
 
 import {IMulticall3} from "forge-std/interfaces/IMulticall3.sol";
 
-import {Address} from "@openzeppelin/contracts/utils/Address.sol";
-import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import {IReactor} from "uniswapx/src/interfaces/IReactor.sol";
 import {IReactorCallback} from "uniswapx/src/interfaces/IReactorCallback.sol";
 import {IValidationCallback} from "uniswapx/src/interfaces/IValidationCallback.sol";
 import {ResolvedOrder, SignedOrder} from "uniswapx/src/base/ReactorStructs.sol";
 import {OrderLib} from "src/reactor/OrderLib.sol";
-import {Constants} from "src/reactor/Constants.sol";
 import {IWM} from "src/interface/IWM.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
+import {TokenLib} from "src/executor/lib/TokenLib.sol";
+import {SurplusLib} from "src/executor/lib/SurplusLib.sol";
 
 contract Executor is IReactorCallback, IValidationCallback {
-    using SafeERC20 for IERC20;
 
     error InvalidSender();
     error InvalidOrder();
@@ -30,7 +29,6 @@ contract Executor is IReactorCallback, IValidationCallback {
         uint256 outAmount
     );
 
-    event Surplus(address indexed ref, address swapper, address token, uint256 amount, uint256 refshare);
 
     address public immutable multicall;
     address public immutable reactor;
@@ -60,8 +58,8 @@ contract Executor is IReactorCallback, IValidationCallback {
 
         OrderLib.CosignedOrder memory co = abi.decode(order.order, (OrderLib.CosignedOrder));
         (address ref, uint16 share) = abi.decode(co.order.info.additionalValidationData, (address, uint16));
-        _surplus(ref, co.order.info.swapper, address(co.order.input.token), share);
-        _surplus(ref, co.order.info.swapper, address(co.order.output.token), share);
+        SurplusLib.distribute(ref, co.order.info.swapper, address(co.order.input.token), share);
+        SurplusLib.distribute(ref, co.order.info.swapper, address(co.order.output.token), share);
     }
 
     function reactorCallback(ResolvedOrder[] memory orders, bytes memory callbackData) external override onlyReactor {
@@ -69,51 +67,20 @@ contract Executor is IReactorCallback, IValidationCallback {
         (IMulticall3.Call[] memory calls, uint256 minAmountOutRecipient) =
             abi.decode(callbackData, (IMulticall3.Call[], uint256));
 
-        _executeMulticall(calls);
+        Address.functionDelegateCall(multicall, abi.encodeWithSelector(IMulticall3.aggregate.selector, calls));
 
         if (order.outputs.length != 1) revert InvalidOrder();
         address outToken = address(order.outputs[0].token);
         uint256 outAmount = order.outputs[0].amount;
         address recipient = order.outputs[0].recipient;
-        _outputReactor(outToken, outAmount);
-        if (minAmountOutRecipient > outAmount) _transfer(outToken, recipient, minAmountOutRecipient - outAmount);
+        TokenLib.prepareFor(outToken, reactor, outAmount);
+        if (minAmountOutRecipient > outAmount) TokenLib.transfer(outToken, recipient, minAmountOutRecipient - outAmount);
 
         address ref = abi.decode(order.info.additionalValidationData, (address));
 
         emit Resolved(
             order.hash, order.info.swapper, ref, address(order.input.token), outToken, order.input.amount, outAmount
         );
-    }
-
-    function _executeMulticall(IMulticall3.Call[] memory calls) private {
-        Address.functionDelegateCall(multicall, abi.encodeWithSelector(IMulticall3.aggregate.selector, calls));
-    }
-
-    function _surplus(address ref, address swapper, address token, uint16 share) private {
-        uint256 balance = (token == address(0)) ? address(this).balance : IERC20(token).balanceOf(address(this));
-        if (balance == 0) return;
-
-        uint256 refshare = balance * share / Constants.BPS;
-
-        if (refshare > 0) _transfer(token, ref, refshare);
-        _transfer(token, swapper, balance - refshare);
-
-        emit Surplus(ref, swapper, token, balance, refshare);
-    }
-
-    function _outputReactor(address token, uint256 amount) private {
-        if (token == address(0)) {
-            _transfer(token, address(reactor), amount);
-        } else {
-            uint256 allowance = IERC20(token).allowance(address(this), address(reactor));
-            IERC20(token).safeApprove(address(reactor), 0);
-            IERC20(token).safeApprove(address(reactor), allowance + amount);
-        }
-    }
-
-    function _transfer(address token, address to, uint256 amount) private {
-        if (token == address(0)) Address.sendValue(payable(to), amount);
-        else IERC20(token).safeTransfer(to, amount);
     }
 
     function validate(address filler, ResolvedOrder calldata) external view override {
