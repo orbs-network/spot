@@ -21,13 +21,15 @@ import {EpochLib} from "src/reactor/lib/EpochLib.sol";
 import {ResolutionLib} from "src/reactor/lib/ResolutionLib.sol";
 
 contract OrderReactor is BaseReactor {
+    error MissingValidationContract();
+
     address public immutable cosigner;
     address public immutable repermit;
 
     // order hash => next epoch
     mapping(bytes32 => uint256) public epochs;
 
-    constructor(address _repermit, address _cosigner) BaseReactor(address(0), address(0)) {
+    constructor(address _repermit, address _cosigner) {
         cosigner = _cosigner;
         repermit = _repermit;
     }
@@ -47,6 +49,11 @@ contract OrderReactor is BaseReactor {
 
         uint256 outAmount = ResolutionLib.resolveOutAmount(cosigned);
         resolvedOrder = _resolveStruct(cosigned, outAmount, orderHash);
+        
+        // Strict exclusivity check - all orders must have validation contract
+        if (address(cosigned.order.info.additionalValidationContract) == address(0)) {
+            revert MissingValidationContract();
+        }
     }
 
     function _transferInputTokens(ResolvedOrder memory order, address to) internal override {
