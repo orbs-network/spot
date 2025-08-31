@@ -12,8 +12,6 @@ import {
     OrderInfo
 } from "src/lib/uniswapx/base/ReactorStructs.sol";
 import {BaseReactor} from "src/lib/uniswapx/reactors/BaseReactor.sol";
-import {IPermit2} from "src/lib/permit2/IPermit2.sol";
-import {ExclusivityLib} from "src/lib/uniswapx/lib/ExclusivityLib.sol";
 
 import {RePermit} from "src/repermit/RePermit.sol";
 import {RePermitLib} from "src/repermit/RePermitLib.sol";
@@ -29,7 +27,7 @@ contract OrderReactor is BaseReactor {
     // order hash => next epoch
     mapping(bytes32 => uint256) public epochs;
 
-    constructor(address _repermit, address _cosigner) BaseReactor(IPermit2(_repermit), address(0)) {
+    constructor(address _repermit, address _cosigner) BaseReactor(_repermit, address(0)) {
         cosigner = _cosigner;
     }
 
@@ -48,13 +46,6 @@ contract OrderReactor is BaseReactor {
 
         uint256 outAmount = ResolutionLib.resolveOutAmount(cosigned);
         resolvedOrder = _resolveStruct(cosigned, outAmount, orderHash);
-
-        ExclusivityLib.handleExclusiveOverride(
-            resolvedOrder,
-            cosigned.order.exclusiveFiller,
-            cosigned.order.info.deadline,
-            cosigned.order.exclusivityOverrideBps
-        );
     }
 
     function _transferInputTokens(ResolvedOrder memory order, address to) internal override {

@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import {IPermit2} from "../../../lib/permit2/IPermit2.sol";
 import {ReactorEvents} from "../base/ReactorEvents.sol";
 import {ResolvedOrderLib} from "../lib/ResolvedOrderLib.sol";
 import {CurrencyLibrary} from "../lib/CurrencyLibrary.sol";
@@ -16,10 +15,10 @@ abstract contract BaseReactor is IReactor, ReactorEvents, ReentrancyGuard {
     using ResolvedOrderLib for ResolvedOrder;
     using CurrencyLibrary for address;
 
-    /// @notice permit2 address used for token transfers and signature verification
-    IPermit2 public immutable permit2;
+    /// @notice permit2-like address used for token transfers and signature verification
+    address public immutable permit2;
 
-    constructor(IPermit2 _permit2, address /* _protocolFeeOwner */) {
+    constructor(address _permit2, address /* _protocolFeeOwner */ ) {
         permit2 = _permit2;
     }
 

@@ -13,7 +13,14 @@ import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 import {IReactor} from "src/lib/uniswapx/interfaces/IReactor.sol";
 import {IReactorCallback} from "src/lib/uniswapx/interfaces/IReactorCallback.sol";
 import {IValidationCallback} from "src/lib/uniswapx/interfaces/IValidationCallback.sol";
-import {ResolvedOrder, SignedOrder, OrderInfo, InputToken, OutputToken, ERC20} from "src/lib/uniswapx/base/ReactorStructs.sol";
+import {
+    ResolvedOrder,
+    SignedOrder,
+    OrderInfo,
+    InputToken,
+    OutputToken,
+    ERC20
+} from "src/lib/uniswapx/base/ReactorStructs.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {USDTMock} from "test/mocks/USDTMock.sol";
 import {MockReactor} from "test/mocks/MockReactor.sol";
@@ -198,8 +205,6 @@ contract ExecutorTest is BaseTest {
             additionalValidationContract: address(0),
             additionalValidationData: abi.encode(ref, refShare)
         });
-        co.order.exclusiveFiller = address(exec);
-        co.order.exclusivityOverrideBps = 0;
         co.order.epoch = 0;
         co.order.slippage = 0;
         co.order.input = OrderLib.Input({token: address(token), amount: 100, maxAmount: 100});
@@ -232,8 +237,6 @@ contract ExecutorTest is BaseTest {
             additionalValidationContract: address(0),
             additionalValidationData: abi.encode(address(0), uint16(0))
         });
-        co.order.exclusiveFiller = address(exec);
-        co.order.exclusivityOverrideBps = 0;
         co.order.epoch = 0;
         co.order.slippage = 0;
         co.order.input = OrderLib.Input({token: address(token), amount: 0, maxAmount: 0});

@@ -15,7 +15,7 @@ library OrderLib {
     bytes32 internal constant OUTPUT_TYPE_HASH = keccak256(bytes(OUTPUT_TYPE));
 
     string internal constant ORDER_TYPE =
-        "Order(OrderInfo info,address exclusiveFiller,uint32 exclusivityOverrideBps,uint32 epoch,uint32 slippage,uint32 freshness,Input input,Output output)";
+        "Order(OrderInfo info,uint32 epoch,uint32 slippage,uint32 freshness,Input input,Output output)";
     bytes32 internal constant ORDER_TYPE_HASH =
         keccak256(abi.encodePacked(ORDER_TYPE, INPUT_TYPE, ORDER_INFO_TYPE, OUTPUT_TYPE));
 
@@ -56,8 +56,6 @@ library OrderLib {
 
     struct Order {
         OrderInfo info;
-        address exclusiveFiller; // executor
-        uint32 exclusivityOverrideBps;
         uint32 epoch; // seconds per chunk; 0 = single-use
         uint32 slippage; // bps
         uint32 freshness; // seconds, must be > 0
@@ -103,8 +101,6 @@ library OrderLib {
             abi.encode(
                 ORDER_TYPE_HASH,
                 hash(order.info),
-                order.exclusiveFiller,
-                order.exclusivityOverrideBps,
                 order.epoch,
                 order.slippage,
                 order.freshness,
