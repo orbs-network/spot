@@ -12,7 +12,7 @@ import {
     OrderInfo
 } from "src/lib/uniswapx/base/ReactorStructs.sol";
 import {BaseReactor} from "src/lib/uniswapx/reactors/BaseReactor.sol";
-import {IPermit2} from "permit2/src/interfaces/IPermit2.sol";
+import {IPermit2} from "src/lib/permit2/IPermit2.sol";
 import {ExclusivityLib} from "src/lib/uniswapx/lib/ExclusivityLib.sol";
 
 import {RePermit} from "src/repermit/RePermit.sol";

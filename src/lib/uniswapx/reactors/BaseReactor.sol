@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import {IPermit2} from "permit2/src/interfaces/IPermit2.sol";
+import {IPermit2} from "../../../lib/permit2/IPermit2.sol";
 import {ReactorEvents} from "../base/ReactorEvents.sol";
 import {ResolvedOrderLib} from "../lib/ResolvedOrderLib.sol";
 import {CurrencyLibrary} from "../lib/CurrencyLibrary.sol";
