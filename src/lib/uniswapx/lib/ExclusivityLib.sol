@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {ResolvedOrder, OutputToken} from "../base/ReactorStructs.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 /// @title ExclusiveOverride
 /// @dev This library handles order exclusivity
@@ -39,8 +40,8 @@ library ExclusivityLib {
         OutputToken[] memory outputs = order.outputs;
         for (uint256 i = 0; i < outputs.length;) {
             OutputToken memory output = outputs[i];
-            // Inline mulDivUp implementation to replace solmate dependency
-            output.amount = _mulDivUp(output.amount, BPS + exclusivityOverrideBps, BPS);
+            // Use OpenZeppelin's Math library for secure mulDiv with rounding up
+            output.amount = Math.mulDiv(output.amount, BPS + exclusivityOverrideBps, BPS, Math.Rounding.Up);
 
             unchecked {
                 i++;
@@ -54,11 +55,5 @@ library ExclusivityLib {
     /// @dev if the order has active exclusivity and the current filler is not the exclusive address, returns false
     function hasFillingRights(address exclusive, uint256 exclusivityEndTime) internal view returns (bool) {
         return exclusive == address(0) || block.timestamp > exclusivityEndTime || exclusive == msg.sender;
-    }
-
-    /// @notice Internal function to multiply and divide with rounding up
-    /// @dev Replaces solmate's FixedPointMathLib.mulDivUp
-    function _mulDivUp(uint256 x, uint256 y, uint256 denominator) private pure returns (uint256 result) {
-        result = (x * y + denominator - 1) / denominator;
     }
 }
