@@ -3,8 +3,8 @@ pragma solidity 0.8.20;
 
 import "forge-std/Test.sol";
 
-import {ResolutionLib} from "src/reactor/ResolutionLib.sol";
-import {OrderLib} from "src/reactor/OrderLib.sol";
+import {ResolutionLib} from "src/reactor/lib/ResolutionLib.sol";
+import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {Constants} from "src/reactor/Constants.sol";
 
 contract ResolutionLibFuzzTest is Test {

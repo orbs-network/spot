@@ -3,8 +3,8 @@ pragma solidity 0.8.20;
 
 import "forge-std/Test.sol";
 
-import {ResolutionLib} from "src/reactor/ResolutionLib.sol";
-import {OrderLib} from "src/reactor/OrderLib.sol";
+import {ResolutionLib} from "src/reactor/lib/ResolutionLib.sol";
+import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 
 contract ResolutionLibTest is Test {
     function callResolve(OrderLib.CosignedOrder memory co) external pure returns (uint256) {

@@ -5,7 +5,6 @@ import {Constants} from "src/reactor/Constants.sol";
 import {TokenLib} from "src/executor/lib/TokenLib.sol";
 
 library SurplusLib {
-
     event Surplus(address indexed ref, address swapper, address token, uint256 amount, uint256 refshare);
 
     function distribute(address ref, address swapper, address token, uint16 shareBps) internal {

@@ -3,8 +3,8 @@ pragma solidity 0.8.20;
 
 import "forge-std/Test.sol";
 
-import {OrderValidationLib} from "src/reactor/OrderValidationLib.sol";
-import {OrderLib} from "src/reactor/OrderLib.sol";
+import {OrderValidationLib} from "src/reactor/lib/OrderValidationLib.sol";
+import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {Constants} from "src/reactor/Constants.sol";
 
 contract OrderValidationLibFuzzTest is Test {

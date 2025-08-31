@@ -16,11 +16,11 @@ import {ExclusivityLib} from "uniswapx/src/lib/ExclusivityLib.sol";
 
 import {RePermit} from "src/repermit/RePermit.sol";
 import {RePermitLib} from "src/repermit/RePermitLib.sol";
-import {OrderLib} from "src/reactor/OrderLib.sol";
-import {OrderValidationLib} from "src/reactor/OrderValidationLib.sol";
-import {CosignatureLib} from "src/reactor/CosignatureLib.sol";
-import {EpochLib} from "src/reactor/EpochLib.sol";
-import {ResolutionLib} from "src/reactor/ResolutionLib.sol";
+import {OrderLib} from "src/reactor/lib/OrderLib.sol";
+import {OrderValidationLib} from "src/reactor/lib/OrderValidationLib.sol";
+import {CosignatureLib} from "src/reactor/lib/CosignatureLib.sol";
+import {EpochLib} from "src/reactor/lib/EpochLib.sol";
+import {ResolutionLib} from "src/reactor/lib/ResolutionLib.sol";
 
 contract OrderReactor is BaseReactor {
     address public immutable cosigner;

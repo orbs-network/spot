@@ -14,7 +14,7 @@ import {IReactor} from "uniswapx/src/interfaces/IReactor.sol";
 import {IReactorCallback} from "uniswapx/src/interfaces/IReactorCallback.sol";
 import {IValidationCallback} from "uniswapx/src/interfaces/IValidationCallback.sol";
 import {ResolvedOrder, SignedOrder, OrderInfo, InputToken, OutputToken} from "uniswapx/src/base/ReactorStructs.sol";
-import {OrderLib} from "src/reactor/OrderLib.sol";
+import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {ERC20} from "solmate/src/tokens/ERC20.sol";
 import {USDTMock} from "test/mocks/USDTMock.sol";
 import {MockReactor} from "test/mocks/MockReactor.sol";

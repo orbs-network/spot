@@ -18,7 +18,7 @@ library RePermitLib {
         uint256 amount;
     }
 
-    event Cancel(address indexed signer, uint256 nonce);
+    event Cancel(address indexed signer, bytes32 digest);
     event Spend(
         address indexed signer,
         bytes32 indexed permitHash,
@@ -27,6 +27,10 @@ library RePermitLib {
         uint256 amount,
         uint256 totalSpent
     );
+
+    error InvalidSignature();
+    error Expired();
+    error InsufficientAllowance();
 
     string internal constant TOKEN_PERMISSIONS_TYPE = "TokenPermissions(address token,uint256 amount)";
     bytes32 internal constant TOKEN_PERMISSIONS_TYPE_HASH = keccak256(bytes(TOKEN_PERMISSIONS_TYPE));

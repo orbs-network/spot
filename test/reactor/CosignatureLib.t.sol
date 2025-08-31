@@ -3,8 +3,8 @@ pragma solidity 0.8.20;
 
 import "forge-std/Test.sol";
 
-import {CosignatureLib} from "src/reactor/CosignatureLib.sol";
-import {OrderLib} from "src/reactor/OrderLib.sol";
+import {CosignatureLib} from "src/reactor/lib/CosignatureLib.sol";
+import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {RePermit} from "src/repermit/RePermit.sol";
 
 contract CosignatureLibTest is Test {

@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import {SignatureChecker} from "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 import {IEIP712} from "src/interface/IEIP712.sol";
-import {OrderLib} from "src/reactor/OrderLib.sol";
+import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 
 library CosignatureLib {
     error InvalidCosignature();

@@ -107,23 +107,6 @@ contract RePermitTest is BaseTest {
         uut.repermitWitnessTransferFrom(permit, request, signer, witness, witnessTypeString, signature);
     }
 
-    function test_cancel() public {
-        permit.deadline = 1_000_000;
-        permit.nonce = 1234;
-
-        bytes memory signature = _sign(witness);
-        vm.expectEmit(address(uut));
-        emit RePermitLib.Cancel(signer, permit.nonce);
-
-        hoax(signer);
-        uint256[] memory nonces = new uint256[](1);
-        nonces[0] = permit.nonce;
-        uut.cancel(nonces);
-
-        vm.expectRevert(RePermit.Canceled.selector);
-        uut.repermitWitnessTransferFrom(permit, request, signer, witness, witnessTypeString, signature);
-    }
-
     function test_fill() public {
         token.mint(signer, 1 ether);
         hoax(signer);
@@ -286,5 +269,112 @@ contract RePermitTest is BaseTest {
         string memory otherSuffix = "bytes32 other)";
         vm.expectRevert(RePermit.InvalidSignature.selector);
         uut.repermitWitnessTransferFrom(permit, request, signer, witness, otherSuffix, signature);
+    }
+
+    function test_cancel_by_structHash_sets_spent_max_and_blocks() public {
+        token.mint(signer, 1 ether);
+        hoax(signer);
+        token.approve(address(uut), 1 ether);
+
+        permit.deadline = 1_000_000;
+        permit.permitted.amount = 1 ether;
+        permit.permitted.token = address(token);
+        request.amount = 0.1 ether;
+        request.to = other;
+
+        bytes32 structHash = _structHash(witness);
+        bytes32 digest = uut.hashTypedData(structHash);
+
+        vm.expectEmit(address(uut));
+        emit RePermitLib.Cancel(signer, digest);
+        bytes32[] memory arr = new bytes32[](1);
+        arr[0] = digest;
+        hoax(signer);
+        uut.cancel(arr);
+
+        assertEq(uut.spent(signer, digest), type(uint256).max, "spent set to max");
+
+        bytes memory signature = signEIP712(repermit, signerPK, structHash);
+        vm.expectRevert(RePermit.Canceled.selector);
+        uut.repermitWitnessTransferFrom(permit, request, signer, witness, witnessTypeString, signature);
+    }
+
+    function test_cancel_multiple_structHashes_sets_spent_max_for_each() public {
+        permit.deadline = 1_000_000;
+        permit.permitted.token = address(token);
+        permit.permitted.amount = 1 ether;
+
+        bytes32 s1 = _structHash(witness);
+        permit.permitted.amount = 2 ether; // change to get different struct hash
+        bytes32 s2 = _structHash(witness);
+        bytes32 d1 = uut.hashTypedData(s1);
+        bytes32 d2 = uut.hashTypedData(s2);
+
+        bytes32[] memory arr = new bytes32[](2);
+        arr[0] = d1;
+        arr[1] = d2;
+
+        hoax(signer);
+        uut.cancel(arr);
+
+        assertEq(uut.spent(signer, d1), type(uint256).max, "s1 canceled");
+        assertEq(uut.spent(signer, d2), type(uint256).max, "s2 canceled");
+    }
+
+    function test_cancel_blocks_even_zero_amount() public {
+        permit.deadline = 1_000_000;
+        permit.permitted.token = address(token);
+        permit.permitted.amount = 1 ether;
+        request.to = other;
+        request.amount = 0;
+
+        bytes32 structHash = _structHash(witness);
+        bytes32[] memory arr = new bytes32[](1);
+        arr[0] = uut.hashTypedData(structHash);
+
+        hoax(signer);
+        uut.cancel(arr);
+
+        bytes memory signature = signEIP712(repermit, signerPK, structHash);
+        vm.expectRevert(RePermit.Canceled.selector);
+        uut.repermitWitnessTransferFrom(permit, request, signer, witness, witnessTypeString, signature);
+    }
+
+    function test_cancel_does_not_block_different_structHash() public {
+        token.mint(signer, 3 ether);
+        hoax(signer);
+        token.approve(address(uut), 3 ether);
+
+        permit.deadline = 1_000_000;
+        permit.permitted.token = address(token);
+        request.to = other;
+
+        // s1 config
+        permit.permitted.amount = 1 ether;
+        bytes32 s1 = _structHash(witness);
+        bytes memory sig1 = signEIP712(repermit, signerPK, s1);
+
+        // s2 config (different amount -> different hash)
+        permit.permitted.amount = 2 ether;
+        bytes32 s2 = _structHash(witness);
+        bytes memory sig2 = signEIP712(repermit, signerPK, s2);
+
+        // cancel s1
+        bytes32[] memory arr = new bytes32[](1);
+        arr[0] = uut.hashTypedData(s1);
+        hoax(signer);
+        uut.cancel(arr);
+
+        // s1 should fail
+        permit.permitted.amount = 1 ether; // match sig1 struct
+        request.amount = 0.5 ether;
+        vm.expectRevert(RePermit.Canceled.selector);
+        uut.repermitWitnessTransferFrom(permit, request, signer, witness, witnessTypeString, sig1);
+
+        // s2 should still work
+        permit.permitted.amount = 2 ether; // restore s2 struct
+        request.amount = 1.5 ether;
+        uut.repermitWitnessTransferFrom(permit, request, signer, witness, witnessTypeString, sig2);
+        assertEq(token.balanceOf(other), 1.5 ether, "s2 transferred");
     }
 }

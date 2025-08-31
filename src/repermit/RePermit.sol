@@ -14,13 +14,11 @@ contract RePermit is EIP712, IEIP712 {
 
     error InvalidSignature();
     error Expired();
-    error Canceled();
     error InsufficientAllowance();
+    error Canceled();
 
     // signer => hash => spent
     mapping(address => mapping(bytes32 => uint256)) public spent;
-    // signer => nonce => canceled
-    mapping(address => mapping(uint256 => bool)) public canceled;
 
     constructor() EIP712("RePermit", "1") {}
 
@@ -28,14 +26,14 @@ contract RePermit is EIP712, IEIP712 {
         return _domainSeparatorV4();
     }
 
-    function hashTypedData(bytes32 structHash) external view returns (bytes32 digest) {
+    function hashTypedData(bytes32 structHash) public view returns (bytes32 digest) {
         return _hashTypedDataV4(structHash);
     }
 
-    function cancel(uint256[] memory nonces) external {
-        for (uint256 i = 0; i < nonces.length; i++) {
-            canceled[msg.sender][nonces[i]] = true;
-            emit RePermitLib.Cancel(msg.sender, nonces[i]);
+    function cancel(bytes32[] calldata digests) external {
+        for (uint256 i = 0; i < digests.length; i++) {
+            spent[msg.sender][digests[i]] = type(uint256).max;
+            emit RePermitLib.Cancel(msg.sender, digests[i]);
         }
     }
 
@@ -48,11 +46,13 @@ contract RePermit is EIP712, IEIP712 {
         bytes calldata signature
     ) external {
         if (block.timestamp > permit.deadline) revert Expired();
-        if (canceled[signer][permit.nonce]) revert Canceled();
 
-        bytes32 hash = _hashTypedDataV4(RePermitLib.hashWithWitness(permit, witness, witnessTypeString, msg.sender));
+        bytes32 hash = hashTypedData(RePermitLib.hashWithWitness(permit, witness, witnessTypeString, msg.sender));
         if (!SignatureChecker.isValidSignatureNow(signer, hash, signature)) revert InvalidSignature();
 
+        if (spent[signer][hash] == type(uint256).max) revert Canceled();
+
+        if (request.amount == 0) return;
         uint256 _spent = (spent[signer][hash] += request.amount); // increment and get
         if (_spent > permit.permitted.amount) revert InsufficientAllowance();
 

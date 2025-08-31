@@ -8,7 +8,7 @@ import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 import {IEIP712} from "src/interface/IEIP712.sol";
 import {RePermitLib} from "src/repermit/RePermitLib.sol";
-import {OrderLib} from "src/reactor/OrderLib.sol";
+import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 
 abstract contract BaseScript is Script {
     function setUp() public virtual {}
