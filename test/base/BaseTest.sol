@@ -17,7 +17,6 @@ import {RePermit} from "src/repermit/RePermit.sol";
 
 abstract contract BaseTest is Test, BaseScript, DeployTestInfra {
     address public multicall;
-    address public permit2;
 
     address public wm;
     address public repermit;
@@ -29,7 +28,7 @@ abstract contract BaseTest is Test, BaseScript, DeployTestInfra {
 
     function setUp() public virtual override {
         super.setUp();
-        (permit2, multicall) = deployTestInfra();
+        multicall = deployTestInfra();
 
         wm = address(new WM(address(this)));
         vm.label(wm, "wm");

@@ -26,7 +26,7 @@ contract OrderReactorTest is BaseTest {
 
     function test_strictExclusivity_reverts_wrong_executor() public {
         address wrongExecutor = makeAddr("wrongExecutor");
-        
+
         // Create an order with different executor
         OrderLib.CosignedOrder memory co = _createCosignedOrder(wrongExecutor);
         SignedOrder memory so = _signedOrderFrom(co);
@@ -53,7 +53,7 @@ contract OrderReactorTest is BaseTest {
 
         co.order = o;
         co.signature = hex""; // Empty signature for test
-        
+
         // Create cosignature data
         OrderLib.Cosignature memory c;
         c.timestamp = 1_000_000;

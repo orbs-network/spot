@@ -15,8 +15,6 @@ abstract contract BaseReactor is IReactor, ReactorEvents, ReentrancyGuard {
     using ResolvedOrderLib for ResolvedOrder;
     using CurrencyLibrary for address;
 
-
-
     /// @inheritdoc IReactor
     function execute(SignedOrder calldata order) external payable override nonReentrant {
         ResolvedOrder[] memory resolvedOrders = new ResolvedOrder[](1);

@@ -5,11 +5,7 @@ import {IReactor} from "src/lib/uniswapx/interfaces/IReactor.sol";
 import {IReactorCallback} from "src/lib/uniswapx/interfaces/IReactorCallback.sol";
 import {IValidationCallback} from "src/lib/uniswapx/interfaces/IValidationCallback.sol";
 import {
-    ResolvedOrder,
-    OrderInfo,
-    InputToken,
-    OutputToken,
-    SignedOrder
+    ResolvedOrder, OrderInfo, InputToken, OutputToken, SignedOrder
 } from "src/lib/uniswapx/base/ReactorStructs.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 

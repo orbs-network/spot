@@ -49,7 +49,7 @@ contract OrderReactor is BaseReactor {
 
         uint256 outAmount = ResolutionLib.resolveOutAmount(cosigned);
         resolvedOrder = _resolveStruct(cosigned, outAmount, orderHash);
-        
+
         // Strict exclusivity check - msg.sender must match the executor in the order
         if (msg.sender != cosigned.order.executor) {
             revert StrictExclusivityViolation();
