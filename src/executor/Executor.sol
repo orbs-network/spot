@@ -27,12 +27,10 @@ contract Executor is IReactorCallback, IValidationCallback {
         uint256 outAmount
     );
 
-    address public immutable multicall;
     address public immutable reactor;
     address public immutable allowed;
 
-    constructor(address _multicall, address _reactor, address _allowed) {
-        multicall = _multicall;
+    constructor(address _reactor, address _allowed) {
         reactor = _reactor;
         allowed = _allowed;
     }
@@ -60,12 +58,12 @@ contract Executor is IReactorCallback, IValidationCallback {
     }
 
     function reactorCallback(ResolvedOrder[] memory orders, bytes memory callbackData) external override onlyReactor {
-        ResolvedOrder memory order = orders[0];
-        (IMulticall3.Call[] memory calls, uint256 minAmountOutRecipient) =
-            abi.decode(callbackData, (IMulticall3.Call[], uint256));
+        for (uint256 i = 1; i < orders.length; i++) {
+            _swap(orders[i], 0); // TODO
+        }
+    }
 
-        Address.functionDelegateCall(multicall, abi.encodeWithSelector(IMulticall3.aggregate.selector, calls));
-
+    function _swap(ResolvedOrder memory order, uint256 minAmountOutRecipient) private {
         if (order.outputs.length != 1) revert InvalidOrder();
         address outToken = address(order.outputs[0].token);
         uint256 outAmount = order.outputs[0].amount;

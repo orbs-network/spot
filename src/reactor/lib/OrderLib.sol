@@ -14,14 +14,23 @@ library OrderLib {
     string internal constant OUTPUT_TYPE = "Output(address token,uint256 amount,uint256 maxAmount,address recipient)";
     bytes32 internal constant OUTPUT_TYPE_HASH = keccak256(bytes(OUTPUT_TYPE));
 
+    string internal constant EXCHANGE_TYPE = "Exchange(address adapter,address ref,uint32 share)";
+    bytes32 internal constant EXCHANGE_TYPE_HASH = keccak256(bytes(EXCHANGE_TYPE));
+
     string internal constant ORDER_TYPE =
-        "Order(OrderInfo info,address exclusiveFiller,uint32 exclusivityOverrideBps,uint32 epoch,uint32 slippage,uint32 freshness,Input input,Output output)";
+        "Order(OrderInfo info,address executor,Exchange exchange,uint32 exclusivity,uint32 epoch,uint32 slippage,uint32 freshness,Input input,Output output)";
     bytes32 internal constant ORDER_TYPE_HASH =
-        keccak256(abi.encodePacked(ORDER_TYPE, INPUT_TYPE, ORDER_INFO_TYPE, OUTPUT_TYPE));
+        keccak256(abi.encodePacked(ORDER_TYPE, INPUT_TYPE, ORDER_INFO_TYPE, OUTPUT_TYPE, EXCHANGE_TYPE));
 
     string internal constant WITNESS_TYPE_SUFFIX = string(
         abi.encodePacked(
-            "Order witness)", INPUT_TYPE, ORDER_TYPE, ORDER_INFO_TYPE, OUTPUT_TYPE, RePermitLib.TOKEN_PERMISSIONS_TYPE
+            "Order witness)",
+            EXCHANGE_TYPE,
+            INPUT_TYPE,
+            ORDER_TYPE,
+            ORDER_INFO_TYPE,
+            OUTPUT_TYPE,
+            RePermitLib.TOKEN_PERMISSIONS_TYPE
         )
     );
 
@@ -54,10 +63,17 @@ library OrderLib {
         address recipient;
     }
 
+    struct Exchange {
+        address adapter;
+        address ref;
+        uint32 share; // bps, for referrer
+    }
+
     struct Order {
         OrderInfo info;
-        address exclusiveFiller; // executor
-        uint32 exclusivityOverrideBps;
+        address executor;
+        Exchange exchange;
+        uint32 exclusivity; // bps, 0 = strict
         uint32 epoch; // seconds per chunk; 0 = single-use
         uint32 slippage; // bps
         uint32 freshness; // seconds, must be > 0
@@ -103,15 +119,28 @@ library OrderLib {
             abi.encode(
                 ORDER_TYPE_HASH,
                 hash(order.info),
-                order.exclusiveFiller,
-                order.exclusivityOverrideBps,
+                order.executor,
+                hash(order.exchange),
+                order.exclusivity,
                 order.epoch,
                 order.slippage,
                 order.freshness,
-                keccak256(abi.encode(INPUT_TYPE_HASH, order.input)),
-                keccak256(abi.encode(OUTPUT_TYPE_HASH, order.output))
+                hash(order.input),
+                hash(order.output)
             )
         );
+    }
+
+    function hash(Input memory input) internal pure returns (bytes32) {
+        return keccak256(abi.encode(INPUT_TYPE_HASH, input.token, input.amount, input.maxAmount));
+    }
+
+    function hash(Output memory output) internal pure returns (bytes32) {
+        return keccak256(abi.encode(OUTPUT_TYPE_HASH, output.token, output.amount, output.maxAmount, output.recipient));
+    }
+
+    function hash(Exchange memory exchange) internal pure returns (bytes32) {
+        return keccak256(abi.encode(EXCHANGE_TYPE_HASH, exchange.adapter, exchange.ref, exchange.share));
     }
 
     function hash(Cosignature memory cosignature) internal pure returns (bytes32) {
