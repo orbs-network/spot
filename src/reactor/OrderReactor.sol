@@ -10,9 +10,10 @@ import {
     ERC20,
     OutputToken,
     OrderInfo
-} from "uniswapx/src/base/ReactorStructs.sol";
-import {BaseReactor, IPermit2} from "uniswapx/src/reactors/BaseReactor.sol";
-import {ExclusivityLib} from "uniswapx/src/lib/ExclusivityLib.sol";
+} from "src/lib/uniswapx/base/ReactorStructs.sol";
+import {BaseReactor} from "src/lib/uniswapx/reactors/BaseReactor.sol";
+import {IPermit2} from "permit2/src/interfaces/IPermit2.sol";
+import {ExclusivityLib} from "src/lib/uniswapx/lib/ExclusivityLib.sol";
 
 import {RePermit} from "src/repermit/RePermit.sol";
 import {RePermitLib} from "src/repermit/RePermitLib.sol";

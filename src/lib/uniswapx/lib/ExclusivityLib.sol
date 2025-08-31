@@ -1,0 +1,64 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+pragma solidity ^0.8.0;
+
+import {ResolvedOrder, OutputToken} from "../base/ReactorStructs.sol";
+
+/// @title ExclusiveOverride
+/// @dev This library handles order exclusivity
+///  giving the configured filler exclusive rights to fill the order before exclusivityEndTime
+///  or enforcing an override price improvement by non-exclusive fillers
+library ExclusivityLib {
+    /// @notice thrown when an order has strict exclusivity and the filler does not have it
+    error NoExclusiveOverride();
+
+    uint256 private constant STRICT_EXCLUSIVITY = 0;
+    uint256 private constant BPS = 10_000;
+
+    /// @notice Applies exclusivity override to the resolved order if necessary
+    /// @param order The order to apply exclusivity override to
+    /// @param exclusive The exclusive address
+    /// @param exclusivityEndTime The exclusivity end time
+    /// @param exclusivityOverrideBps The exclusivity override BPS
+    function handleExclusiveOverride(
+        ResolvedOrder memory order,
+        address exclusive,
+        uint256 exclusivityEndTime,
+        uint256 exclusivityOverrideBps
+    ) internal view {
+        // if the filler has fill right, we proceed with the order as-is
+        if (hasFillingRights(exclusive, exclusivityEndTime)) {
+            return;
+        }
+
+        // if override is 0, then assume strict exclusivity so the order cannot be filled
+        if (exclusivityOverrideBps == STRICT_EXCLUSIVITY) {
+            revert NoExclusiveOverride();
+        }
+
+        // scale outputs by override amount
+        OutputToken[] memory outputs = order.outputs;
+        for (uint256 i = 0; i < outputs.length;) {
+            OutputToken memory output = outputs[i];
+            // Inline mulDivUp implementation to replace solmate dependency
+            output.amount = _mulDivUp(output.amount, BPS + exclusivityOverrideBps, BPS);
+
+            unchecked {
+                i++;
+            }
+        }
+    }
+
+    /// @notice checks if the caller currently has filling rights on the order
+    /// @dev if the order has no exclusivity, always returns true
+    /// @dev if the order has active exclusivity and the current filler is the exclusive address, returns true
+    /// @dev if the order has active exclusivity and the current filler is not the exclusive address, returns false
+    function hasFillingRights(address exclusive, uint256 exclusivityEndTime) internal view returns (bool) {
+        return exclusive == address(0) || block.timestamp > exclusivityEndTime || exclusive == msg.sender;
+    }
+
+    /// @notice Internal function to multiply and divide with rounding up
+    /// @dev Replaces solmate's FixedPointMathLib.mulDivUp
+    function _mulDivUp(uint256 x, uint256 y, uint256 denominator) private pure returns (uint256 result) {
+        result = (x * y + denominator - 1) / denominator;
+    }
+}

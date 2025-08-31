@@ -10,12 +10,11 @@ import {Executor, IMulticall3} from "src/executor/Executor.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 
-import {IReactor} from "uniswapx/src/interfaces/IReactor.sol";
-import {IReactorCallback} from "uniswapx/src/interfaces/IReactorCallback.sol";
-import {IValidationCallback} from "uniswapx/src/interfaces/IValidationCallback.sol";
-import {ResolvedOrder, SignedOrder, OrderInfo, InputToken, OutputToken} from "uniswapx/src/base/ReactorStructs.sol";
+import {IReactor} from "src/lib/uniswapx/interfaces/IReactor.sol";
+import {IReactorCallback} from "src/lib/uniswapx/interfaces/IReactorCallback.sol";
+import {IValidationCallback} from "src/lib/uniswapx/interfaces/IValidationCallback.sol";
+import {ResolvedOrder, SignedOrder, OrderInfo, InputToken, OutputToken, ERC20} from "src/lib/uniswapx/base/ReactorStructs.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
-import {ERC20} from "solmate/src/tokens/ERC20.sol";
 import {USDTMock} from "test/mocks/USDTMock.sol";
 import {MockReactor} from "test/mocks/MockReactor.sol";
 

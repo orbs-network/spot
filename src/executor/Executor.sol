@@ -3,10 +3,10 @@ pragma solidity 0.8.20;
 
 import {IMulticall3} from "forge-std/interfaces/IMulticall3.sol";
 
-import {IReactor} from "uniswapx/src/interfaces/IReactor.sol";
-import {IReactorCallback} from "uniswapx/src/interfaces/IReactorCallback.sol";
-import {IValidationCallback} from "uniswapx/src/interfaces/IValidationCallback.sol";
-import {ResolvedOrder, SignedOrder} from "uniswapx/src/base/ReactorStructs.sol";
+import {IReactor} from "src/lib/uniswapx/interfaces/IReactor.sol";
+import {IReactorCallback} from "src/lib/uniswapx/interfaces/IReactorCallback.sol";
+import {IValidationCallback} from "src/lib/uniswapx/interfaces/IValidationCallback.sol";
+import {ResolvedOrder, SignedOrder} from "src/lib/uniswapx/base/ReactorStructs.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {IWM} from "src/interface/IWM.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
