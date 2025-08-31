@@ -206,6 +206,7 @@ contract ExecutorTest is BaseTest {
         });
         co.order.epoch = 0;
         co.order.slippage = 0;
+        co.order.executor = address(exec);
         co.order.input = OrderLib.Input({token: address(token), amount: 100, maxAmount: 100});
         co.order.output = OrderLib.Output({token: address(tokenOut), amount: 500, maxAmount: 500, recipient: signer});
 
@@ -238,6 +239,7 @@ contract ExecutorTest is BaseTest {
         });
         co.order.epoch = 0;
         co.order.slippage = 0;
+        co.order.executor = address(exec);
         co.order.input = OrderLib.Input({token: address(token), amount: 0, maxAmount: 0});
         co.order.output = OrderLib.Output({token: address(token), amount: 0, maxAmount: 0, recipient: signer});
 

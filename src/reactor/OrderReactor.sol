@@ -21,7 +21,7 @@ import {EpochLib} from "src/reactor/lib/EpochLib.sol";
 import {ResolutionLib} from "src/reactor/lib/ResolutionLib.sol";
 
 contract OrderReactor is BaseReactor {
-    error MissingValidationContract();
+    error StrictExclusivityViolation();
 
     address public immutable cosigner;
     address public immutable repermit;
@@ -50,9 +50,9 @@ contract OrderReactor is BaseReactor {
         uint256 outAmount = ResolutionLib.resolveOutAmount(cosigned);
         resolvedOrder = _resolveStruct(cosigned, outAmount, orderHash);
         
-        // Strict exclusivity check - all orders must have validation contract
-        if (address(cosigned.order.info.additionalValidationContract) == address(0)) {
-            revert MissingValidationContract();
+        // Strict exclusivity check - msg.sender must match the executor in the order
+        if (msg.sender != cosigned.order.executor) {
+            revert StrictExclusivityViolation();
         }
     }
 
