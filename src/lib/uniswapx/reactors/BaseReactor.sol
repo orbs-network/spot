@@ -15,11 +15,7 @@ abstract contract BaseReactor is IReactor, ReactorEvents, ReentrancyGuard {
     using ResolvedOrderLib for ResolvedOrder;
     using CurrencyLibrary for address;
 
-    /// @notice permit2-like address used for token transfers and signature verification
-    address public immutable permit2;
-
-    constructor(address _permit2, address /* _protocolFeeOwner */ ) {
-        permit2 = _permit2;
+    constructor(address /* _permit2 */, address /* _protocolFeeOwner */ ) {
     }
 
     /// @inheritdoc IReactor

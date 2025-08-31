@@ -18,8 +18,7 @@ import {
     SignedOrder,
     OrderInfo,
     InputToken,
-    OutputToken,
-    ERC20
+    OutputToken
 } from "src/lib/uniswapx/base/ReactorStructs.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {USDTMock} from "test/mocks/USDTMock.sol";
@@ -248,14 +247,14 @@ contract ExecutorTest is BaseTest {
 
     function _dummyResolvedOrder(address outToken, uint256 outAmount) public view returns (ResolvedOrder memory ro) {
         OrderInfo memory info = OrderInfo({
-            reactor: IReactor(address(reactor)),
+            reactor: address(reactor),
             swapper: signer,
             nonce: 0,
             deadline: 1_086_400,
             additionalValidationContract: IValidationCallback(address(0)),
             additionalValidationData: abi.encode(address(0))
         });
-        InputToken memory input = InputToken({token: ERC20(address(token)), amount: 0, maxAmount: 0});
+        InputToken memory input = InputToken({token: address(token), amount: 0, maxAmount: 0});
 
         OutputToken[] memory outputs = new OutputToken[](1);
         outputs[0] = OutputToken({token: outToken, amount: outAmount, recipient: signer});

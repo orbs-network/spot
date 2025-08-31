@@ -3,22 +3,13 @@ pragma solidity 0.8.20;
 
 import "forge-std/Test.sol";
 
-abstract contract DeployPermit2 is Test {
-    /// @dev Address of deployed permit2 contract
+contract DeployTestInfra is Test {
+    /// @dev Address of deployed permit2 contract (for compatibility)
     address public constant PERMIT2_ADDRESS = 0x000000000022D473030F116dDEE9F6B43aC78BA3;
 
-    function deployPermit2() internal {
-        // Mock deployment - in real tests, the permit2 contract would be deployed here
-        // For our simplified version, we'll just use a mock address
-        vm.label(PERMIT2_ADDRESS, "Permit2");
-    }
-}
-
-contract DeployTestInfra is DeployPermit2 {
     function deployTestInfra() public returns (address permit2, address multicall) {
         permit2 = PERMIT2_ADDRESS;
         vm.label(permit2, "Permit2");
-        deployPermit2();
         multicall = _deployMulticall3();
     }
 

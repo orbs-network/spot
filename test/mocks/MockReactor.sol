@@ -9,8 +9,7 @@ import {
     OrderInfo,
     InputToken,
     OutputToken,
-    SignedOrder,
-    ERC20
+    SignedOrder
 } from "src/lib/uniswapx/base/ReactorStructs.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 
@@ -38,14 +37,14 @@ contract MockReactor is IReactor {
 
         ros[0] = ResolvedOrder({
             info: OrderInfo({
-                reactor: IReactor(address(this)),
+                reactor: address(this),
                 swapper: co.order.info.swapper,
                 nonce: 1,
                 deadline: 1_086_400,
                 additionalValidationContract: IValidationCallback(address(0)),
                 additionalValidationData: abi.encode(r)
             }),
-            input: InputToken({token: ERC20(address(co.order.input.token)), amount: 100, maxAmount: 100}),
+            input: InputToken({token: address(co.order.input.token), amount: 100, maxAmount: 100}),
             outputs: outs,
             sig: bytes(""),
             hash: bytes32(uint256(123))

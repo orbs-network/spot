@@ -2,15 +2,14 @@
 pragma solidity 0.8.20;
 
 import {
-    IReactor,
     IValidationCallback,
     ResolvedOrder,
     SignedOrder,
     InputToken,
-    ERC20,
     OutputToken,
     OrderInfo
 } from "src/lib/uniswapx/base/ReactorStructs.sol";
+import {IReactor} from "src/lib/uniswapx/interfaces/IReactor.sol";
 import {BaseReactor} from "src/lib/uniswapx/reactors/BaseReactor.sol";
 
 import {RePermit} from "src/repermit/RePermit.sol";
@@ -23,12 +22,14 @@ import {ResolutionLib} from "src/reactor/lib/ResolutionLib.sol";
 
 contract OrderReactor is BaseReactor {
     address public immutable cosigner;
+    address public immutable repermit;
 
     // order hash => next epoch
     mapping(bytes32 => uint256) public epochs;
 
-    constructor(address _repermit, address _cosigner) BaseReactor(_repermit, address(0)) {
+    constructor(address _repermit, address _cosigner) BaseReactor(address(0), address(0)) {
         cosigner = _cosigner;
+        repermit = _repermit;
     }
 
     function _resolve(SignedOrder calldata signedOrder)
@@ -40,7 +41,7 @@ contract OrderReactor is BaseReactor {
         bytes32 orderHash = OrderLib.hash(cosigned.order);
 
         OrderValidationLib.validate(cosigned.order);
-        CosignatureLib.validate(cosigned, cosigner, address(permit2));
+        CosignatureLib.validate(cosigned, cosigner, address(repermit));
 
         EpochLib.update(epochs, orderHash, cosigned.order.epoch);
 
@@ -49,7 +50,7 @@ contract OrderReactor is BaseReactor {
     }
 
     function _transferInputTokens(ResolvedOrder memory order, address to) internal override {
-        RePermit(address(permit2)).repermitWitnessTransferFrom(
+        RePermit(address(repermit)).repermitWitnessTransferFrom(
             RePermitLib.RePermitTransferFrom(
                 RePermitLib.TokenPermissions(address(order.input.token), order.input.maxAmount),
                 order.info.nonce,
@@ -69,7 +70,7 @@ contract OrderReactor is BaseReactor {
         returns (ResolvedOrder memory resolvedOrder)
     {
         resolvedOrder.info = OrderInfo(
-            IReactor(cosigned.order.info.reactor),
+            cosigned.order.info.reactor,
             cosigned.order.info.swapper,
             cosigned.order.info.nonce,
             cosigned.order.info.deadline,
@@ -77,7 +78,7 @@ contract OrderReactor is BaseReactor {
             cosigned.order.info.additionalValidationData
         );
         resolvedOrder.input =
-            InputToken(ERC20(cosigned.order.input.token), cosigned.order.input.amount, cosigned.order.input.maxAmount);
+            InputToken(cosigned.order.input.token, cosigned.order.input.amount, cosigned.order.input.maxAmount);
         resolvedOrder.outputs = new OutputToken[](1);
         resolvedOrder.outputs[0] = OutputToken(cosigned.order.output.token, outAmount, cosigned.order.output.recipient);
         resolvedOrder.sig = cosigned.signature;
