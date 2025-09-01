@@ -13,6 +13,7 @@ contract OrderValidationLibFuzzTest is Test {
         address inToken,
         address outToken,
         address recipient,
+        address executor,
         uint256 inAmount,
         uint256 maxAmount,
         uint256 minOut,
@@ -37,6 +38,7 @@ contract OrderValidationLibFuzzTest is Test {
         o.output.maxAmount = maxOut;
         o.output.recipient = recipient;
         o.slippage = uint32(slippage);
+        o.executor = executor;
 
         OrderValidationLib.validate(o);
     }

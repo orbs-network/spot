@@ -22,6 +22,7 @@ contract OrderValidationLibTest is Test {
         o.output.maxAmount = 100;
         o.output.recipient = makeAddr("recipient");
         o.slippage = 100; // 1%
+        o.executor = makeAddr("executor");
     }
 
     function test_validate_ok() public {

@@ -2,17 +2,15 @@
 pragma solidity 0.8.20;
 
 import {
-    IReactor,
     IValidationCallback,
     ResolvedOrder,
     SignedOrder,
     InputToken,
-    ERC20,
     OutputToken,
     OrderInfo
-} from "uniswapx/src/base/ReactorStructs.sol";
-import {BaseReactor, IPermit2} from "uniswapx/src/reactors/BaseReactor.sol";
-import {ExclusivityLib} from "uniswapx/src/lib/ExclusivityLib.sol";
+} from "src/lib/uniswapx/base/ReactorStructs.sol";
+import {IReactor} from "src/lib/uniswapx/interfaces/IReactor.sol";
+import {BaseReactor} from "src/lib/uniswapx/reactors/BaseReactor.sol";
 
 import {RePermit} from "src/repermit/RePermit.sol";
 import {RePermitLib} from "src/repermit/RePermitLib.sol";
@@ -23,13 +21,17 @@ import {EpochLib} from "src/reactor/lib/EpochLib.sol";
 import {ResolutionLib} from "src/reactor/lib/ResolutionLib.sol";
 
 contract OrderReactor is BaseReactor {
+    error StrictExclusivityViolation();
+
     address public immutable cosigner;
+    address public immutable repermit;
 
     // order hash => next epoch
     mapping(bytes32 => uint256) public epochs;
 
-    constructor(address _repermit, address _cosigner) BaseReactor(IPermit2(_repermit), address(0)) {
+    constructor(address _repermit, address _cosigner) {
         cosigner = _cosigner;
+        repermit = _repermit;
     }
 
     function _resolve(SignedOrder calldata signedOrder)
@@ -41,23 +43,21 @@ contract OrderReactor is BaseReactor {
         bytes32 orderHash = OrderLib.hash(cosigned.order);
 
         OrderValidationLib.validate(cosigned.order);
-        CosignatureLib.validate(cosigned, cosigner, address(permit2));
+        CosignatureLib.validate(cosigned, cosigner, address(repermit));
 
         EpochLib.update(epochs, orderHash, cosigned.order.epoch);
 
         uint256 outAmount = ResolutionLib.resolveOutAmount(cosigned);
         resolvedOrder = _resolveStruct(cosigned, outAmount, orderHash);
 
-        ExclusivityLib.handleExclusiveOverride(
-            resolvedOrder,
-            cosigned.order.exclusiveFiller,
-            cosigned.order.info.deadline,
-            cosigned.order.exclusivityOverrideBps
-        );
+        // Strict exclusivity check - msg.sender must match the executor in the order
+        if (msg.sender != cosigned.order.executor) {
+            revert StrictExclusivityViolation();
+        }
     }
 
     function _transferInputTokens(ResolvedOrder memory order, address to) internal override {
-        RePermit(address(permit2)).repermitWitnessTransferFrom(
+        RePermit(address(repermit)).repermitWitnessTransferFrom(
             RePermitLib.RePermitTransferFrom(
                 RePermitLib.TokenPermissions(address(order.input.token), order.input.maxAmount),
                 order.info.nonce,
@@ -77,7 +77,7 @@ contract OrderReactor is BaseReactor {
         returns (ResolvedOrder memory resolvedOrder)
     {
         resolvedOrder.info = OrderInfo(
-            IReactor(cosigned.order.info.reactor),
+            cosigned.order.info.reactor,
             cosigned.order.info.swapper,
             cosigned.order.info.nonce,
             cosigned.order.info.deadline,
@@ -85,7 +85,7 @@ contract OrderReactor is BaseReactor {
             cosigned.order.info.additionalValidationData
         );
         resolvedOrder.input =
-            InputToken(ERC20(cosigned.order.input.token), cosigned.order.input.amount, cosigned.order.input.maxAmount);
+            InputToken(cosigned.order.input.token, cosigned.order.input.amount, cosigned.order.input.maxAmount);
         resolvedOrder.outputs = new OutputToken[](1);
         resolvedOrder.outputs[0] = OutputToken(cosigned.order.output.token, outAmount, cosigned.order.output.recipient);
         resolvedOrder.sig = cosigned.signature;

@@ -3,13 +3,8 @@ pragma solidity 0.8.20;
 
 import "forge-std/Test.sol";
 
-import {DeployPermit2} from "permit2/test/utils/DeployPermit2.sol";
-
-contract DeployTestInfra is DeployPermit2 {
-    function deployTestInfra() public returns (address permit2, address multicall) {
-        permit2 = PERMIT2_ADDRESS;
-        vm.label(permit2, "Permit2");
-        deployPermit2();
+contract DeployTestInfra is Test {
+    function deployTestInfra() public returns (address multicall) {
         multicall = _deployMulticall3();
     }
 
