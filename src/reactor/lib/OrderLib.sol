@@ -102,10 +102,10 @@ library OrderLib {
             abi.encode(
                 ORDER_TYPE_HASH,
                 hash(order.info),
+                order.executor,
                 order.epoch,
                 order.slippage,
                 order.freshness,
-                order.executor,
                 keccak256(abi.encode(INPUT_TYPE_HASH, order.input)),
                 keccak256(abi.encode(OUTPUT_TYPE_HASH, order.output))
             )

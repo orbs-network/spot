@@ -33,7 +33,7 @@ contract OrderReactorTest is BaseTest {
 
         // Should revert since msg.sender (this) doesn't match executor (wrongExecutor)
         vm.expectRevert(OrderReactor.StrictExclusivityViolation.selector);
-        reactor.execute(so);
+        reactor.executeWithCallback(so, "");
     }
 
     function _createCosignedOrder(address executor) internal view returns (OrderLib.CosignedOrder memory co) {

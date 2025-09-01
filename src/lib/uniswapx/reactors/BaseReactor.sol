@@ -16,15 +16,6 @@ abstract contract BaseReactor is IReactor, ReactorEvents, ReentrancyGuard {
     using CurrencyLibrary for address;
 
     /// @inheritdoc IReactor
-    function execute(SignedOrder calldata order) external payable override nonReentrant {
-        ResolvedOrder[] memory resolvedOrders = new ResolvedOrder[](1);
-        resolvedOrders[0] = _resolve(order);
-
-        _prepare(resolvedOrders);
-        _fill(resolvedOrders);
-    }
-
-    /// @inheritdoc IReactor
     function executeWithCallback(SignedOrder calldata order, bytes calldata callbackData)
         external
         payable
@@ -33,42 +24,6 @@ abstract contract BaseReactor is IReactor, ReactorEvents, ReentrancyGuard {
     {
         ResolvedOrder[] memory resolvedOrders = new ResolvedOrder[](1);
         resolvedOrders[0] = _resolve(order);
-
-        _prepare(resolvedOrders);
-        IReactorCallback(msg.sender).reactorCallback(resolvedOrders, callbackData);
-        _fill(resolvedOrders);
-    }
-
-    /// @inheritdoc IReactor
-    function executeBatch(SignedOrder[] calldata orders) external payable override nonReentrant {
-        uint256 ordersLength = orders.length;
-        ResolvedOrder[] memory resolvedOrders = new ResolvedOrder[](ordersLength);
-
-        unchecked {
-            for (uint256 i = 0; i < ordersLength; i++) {
-                resolvedOrders[i] = _resolve(orders[i]);
-            }
-        }
-
-        _prepare(resolvedOrders);
-        _fill(resolvedOrders);
-    }
-
-    /// @inheritdoc IReactor
-    function executeBatchWithCallback(SignedOrder[] calldata orders, bytes calldata callbackData)
-        external
-        payable
-        override
-        nonReentrant
-    {
-        uint256 ordersLength = orders.length;
-        ResolvedOrder[] memory resolvedOrders = new ResolvedOrder[](ordersLength);
-
-        unchecked {
-            for (uint256 i = 0; i < ordersLength; i++) {
-                resolvedOrders[i] = _resolve(orders[i]);
-            }
-        }
 
         _prepare(resolvedOrders);
         IReactorCallback(msg.sender).reactorCallback(resolvedOrders, callbackData);
