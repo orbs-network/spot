@@ -23,15 +23,16 @@ Architecture (At a Glance)
 
 - 🧠 Reactor (`OrderReactor`): validates order, checks epoch, computes min-out from cosigned price, settles via inlined implementation.
 - ✍️ RePermit (`RePermit`): Permit2-style EIP-712 with witness tying spend to the exact order hash.
-- 🧾 Cosigner: signs current input/output price; enforced freshness window.
-- 🛠️ Executor (`Executor`): whitelisted fillers run venue logic via Multicall, return outputs, handle surplus.
-- 🔐 WM (`WM`): allowlist gate for executors/admin functions.
-- 🏭 Refinery (`Refinery`): ops utility to batch and sweep balances by bps.
+- 🧾 Cosigner: signs current input/output price; enforced freshness window. Cosignatures are reusable within the freshness window; spending is bound via RePermit’s witness.
+ - 🛠️ Executor (`Executor`): whitelisted fillers run venue logic via Multicall (delegatecall to adapter), ensures min-out, and handles surplus.
+  - 🔐 WM (`WM`): allowlist gate for executors/admin functions.
+  - 🏭 Refinery (`Refinery`): ops utility to batch and sweep balances by bps.
+  - 🧰 Approvals: exact allowances set to the reactor using SafeERC20.forceApprove (USDT‑safe; avoids allowance accumulation).
 
 Flow (Plain English)
 
 1) User signs one EIP-712 order (chunk, total, limit, stop, slippage, epoch, deadline).
-2) Cosigner attests to price (input/output, decimals, timestamp, nonce=order hash).
+2) Cosigner attests to price (input/output, decimals, timestamp). Spending is bound to the exact order hash via RePermit’s witness, not the cosignature itself.
 3) Allowed executor runs a Multicall strategy and calls the reactor.
 4) Reactor checks signatures, epoch window, slippage, limit/stop, then settles.
 5) Outputs and surplus are distributed (swapper + optional ref share).
@@ -54,10 +55,11 @@ Supported Strategies
 
 Integration Checklist
 
-- Define the order in backend (EIP-712 struct per `OrderLib`).
-- Run a cosigner service that emits fresh EIP-712 price payloads.
-- Allowlist executors in `WM`; wire venue logic via Multicall calls.
-- Submit to reactor using `executeWithCallback`.
+- Define the order in backend (EIP‑712 struct per `OrderLib`).
+- Run a cosigner service that emits fresh EIP‑712 price payloads (in/out tokens, values, timestamp).
+- Implement an exchange adapter conforming to `IExchangeAdapter.swap(bytes)`. It executes via delegatecall inside `Executor`.
+- Allowlist the `Executor` in `WM` for your filler.
+- Invoke `Executor.execute(co, Execution{minAmountOut, data})`; executor forwards to the reactor, then distributes any surplus including ref share.
 
 Security Model
 
@@ -65,10 +67,14 @@ Security Model
 - 📉 Slippage cap: orders with extreme slippage are rejected.
 - ⏱️ Epoch: prevents early/duplicate fills within a window.
 - 🔐 Allowlist: only approved executors/admins can act.
+- 🔑 Approvals: exact allowance set via SafeERC20.forceApprove (USDT-safe), avoiding allowance accumulation.
+- 🧩 Adapter sandbox: adapters run by delegatecall in `Executor`; adapter addresses are authorized by the swapper within the signed order.
+ - 👤 Sender binding: only `order.executor` may call the reactor for a given order; `Executor` also enforces WM allowlist on `execute`.
+ - ⛔ Cancellation: RePermit supports per-digest cancel; canceled digests set spent to max and block further spending.
 
 Limits & Defaults
 
-- Max slippage: 50% (in bps).
+- Max slippage: strictly less than 50% (0–4,999 bps).
 - Cosign freshness: configurable per order (> 0; must be < epoch when epoch != 0).
 - Epoch=0 means single execution.
 
@@ -82,6 +88,6 @@ Repo Map
 Glossary
 
 - Reactor: verifies orders and settles internally.
-- Executor: runs swap strategy, returns outputs, manages surplus/refshare.
+- Executor: runs swap strategy via delegatecall to adapter, ensures min-out, manages surplus/refshare.
 - Cosigner: price attester used to derive min-out.
 - Epoch: time bucket controlling TWAP cadence.

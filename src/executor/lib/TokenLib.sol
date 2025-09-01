@@ -22,9 +22,9 @@ library TokenLib {
         if (token == address(0)) {
             transfer(token, spenderOrRecipient, amount);
         } else {
-            uint256 allowance = IERC20(token).allowance(address(this), spenderOrRecipient);
-            IERC20(token).safeApprove(spenderOrRecipient, 0);
-            IERC20(token).safeApprove(spenderOrRecipient, allowance + amount);
+            // Set exact allowance using forceApprove to support tokens that
+            // revert on non-zero -> non-zero approvals (e.g., USDT-like).
+            IERC20(token).forceApprove(spenderOrRecipient, amount);
         }
     }
 }

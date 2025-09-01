@@ -131,7 +131,7 @@ contract ExecutorTest is BaseTest {
         assertEq(IERC20(address(token)).allowance(address(exec), address(reactor)), 1234);
     }
 
-    function test_reactorCallback_handles_usdt_like_tokens_approve_zero_first() public {
+    function test_reactorCallback_handles_usdt_like_tokens_forceApprove_exact() public {
         // deploy USDT-like token that reverts on non-zero->non-zero approvals
         USDTMock usdt = new USDTMock();
 
@@ -146,12 +146,12 @@ contract ExecutorTest is BaseTest {
         ResolvedOrder[] memory ros = new ResolvedOrder[](1);
         ros[0] = _dummyResolvedOrder(address(usdt), 1234);
 
-        // call from reactor; should internally approve(0) then approve(1+1234)
+        // call from reactor; should internally forceApprove to exact amount (approve(0) then approve(1234))
         vm.prank(address(reactor));
         exec.reactorCallback(ros, abi.encode(address(adapter), Executor.Execution({minAmountOut: 0, data: hex""})));
 
-        // final allowance == previous (1) + amount (1234)
-        assertEq(IERC20(address(usdt)).allowance(address(exec), address(reactor)), 1235);
+        // final allowance set to exact amount
+        assertEq(IERC20(address(usdt)).allowance(address(exec), address(reactor)), 1234);
     }
 
     function test_reactorCallback_handles_eth_output_and_sends_to_reactor() public {
