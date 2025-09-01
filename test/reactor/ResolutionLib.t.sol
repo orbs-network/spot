@@ -21,6 +21,7 @@ contract ResolutionLibTest is Test {
         o.output.amount = 1_200; // limit
         o.output.maxAmount = 10_000; // trigger
         o.slippage = 100; // 1%
+        o.executor = makeAddr("executor");
 
         co.order = o;
         co.cosignatureData.input = OrderLib.CosignedValue({token: o.input.token, value: 100, decimals: 18});

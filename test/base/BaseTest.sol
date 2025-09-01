@@ -3,11 +3,11 @@ pragma solidity 0.8.20;
 
 import "forge-std/Test.sol";
 
+import "forge-std/Test.sol";
+
 import {IMulticall3} from "forge-std/interfaces/IMulticall3.sol";
 
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
-
-import {PermitSignature} from "uniswapx/test/util/PermitSignature.sol";
 
 import {BaseScript} from "script/base/BaseScript.sol";
 import {DeployTestInfra} from "./DeployTestInfra.sol";
@@ -15,9 +15,8 @@ import {DeployTestInfra} from "./DeployTestInfra.sol";
 import {WM} from "src/WM.sol";
 import {RePermit} from "src/repermit/RePermit.sol";
 
-abstract contract BaseTest is BaseScript, PermitSignature, DeployTestInfra {
+abstract contract BaseTest is Test, BaseScript, DeployTestInfra {
     address public multicall;
-    address public permit2;
 
     address public wm;
     address public repermit;
@@ -29,7 +28,7 @@ abstract contract BaseTest is BaseScript, PermitSignature, DeployTestInfra {
 
     function setUp() public virtual override {
         super.setUp();
-        (permit2, multicall) = deployTestInfra();
+        multicall = deployTestInfra();
 
         wm = address(new WM(address(this)));
         vm.label(wm, "wm");

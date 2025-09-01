@@ -11,12 +11,13 @@ import {Executor} from "src/executor/Executor.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 
-import {IReactor} from "uniswapx/src/interfaces/IReactor.sol";
-import {IReactorCallback} from "uniswapx/src/interfaces/IReactorCallback.sol";
-import {IValidationCallback} from "uniswapx/src/interfaces/IValidationCallback.sol";
-import {ResolvedOrder, SignedOrder, OrderInfo, InputToken, OutputToken} from "uniswapx/src/base/ReactorStructs.sol";
+import {IReactor} from "src/lib/uniswapx/interfaces/IReactor.sol";
+import {IReactorCallback} from "src/lib/uniswapx/interfaces/IReactorCallback.sol";
+import {IValidationCallback} from "src/lib/uniswapx/interfaces/IValidationCallback.sol";
+import {
+    ResolvedOrder, SignedOrder, OrderInfo, InputToken, OutputToken
+} from "src/lib/uniswapx/base/ReactorStructs.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
-import {ERC20} from "solmate/src/tokens/ERC20.sol";
 import {USDTMock} from "test/mocks/USDTMock.sol";
 import {MockReactor} from "test/mocks/MockReactor.sol";
 import {SwapAdapterMock} from "test/mocks/SwapAdapter.sol";
@@ -277,14 +278,14 @@ contract ExecutorTest is BaseTest {
 
     function _dummyResolvedOrder(address outToken, uint256 outAmount) public view returns (ResolvedOrder memory ro) {
         OrderInfo memory info = OrderInfo({
-            reactor: IReactor(address(reactor)),
+            reactor: address(reactor),
             swapper: signer,
             nonce: 0,
             deadline: 1_086_400,
             additionalValidationContract: IValidationCallback(address(0)),
             additionalValidationData: abi.encode(address(0))
         });
-        InputToken memory input = InputToken({token: ERC20(address(token)), amount: 0, maxAmount: 0});
+        InputToken memory input = InputToken({token: address(token), amount: 0, maxAmount: 0});
 
         OutputToken[] memory outputs = new OutputToken[](1);
         outputs[0] = OutputToken({token: outToken, amount: outAmount, recipient: signer});
