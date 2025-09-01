@@ -28,7 +28,7 @@ contract MockReactor is IReactor {
         OutputToken[] memory outs = new OutputToken[](1);
         outs[0] = OutputToken({token: address(co.order.output.token), amount: 500, recipient: co.order.info.swapper});
 
-        (address r,) = abi.decode(co.order.info.additionalValidationData, (address, uint16));
+        address adapter = co.order.exchange.adapter;
 
         ros[0] = ResolvedOrder({
             info: OrderInfo({
@@ -37,7 +37,7 @@ contract MockReactor is IReactor {
                 nonce: 1,
                 deadline: 1_086_400,
                 additionalValidationContract: IValidationCallback(address(0)),
-                additionalValidationData: abi.encode(r)
+                additionalValidationData: abi.encode(adapter)
             }),
             input: InputToken({token: ERC20(address(co.order.input.token)), amount: 100, maxAmount: 100}),
             outputs: outs,

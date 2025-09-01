@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import {IMulticall3} from "forge-std/interfaces/IMulticall3.sol";
 
 import {IReactor} from "uniswapx/src/interfaces/IReactor.sol";
 import {IReactorCallback} from "uniswapx/src/interfaces/IReactorCallback.sol";
@@ -12,15 +11,17 @@ import {IWM} from "src/interface/IWM.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {TokenLib} from "src/executor/lib/TokenLib.sol";
 import {SurplusLib} from "src/executor/lib/SurplusLib.sol";
+import {IExchangeAdapter} from "src/interface/IExchangeAdapter.sol";
+
 
 contract Executor is IReactorCallback, IValidationCallback {
     error InvalidSender();
     error InvalidOrder();
 
-    event Resolved(
+    event Settled(
         bytes32 indexed orderHash,
         address indexed swapper,
-        address indexed ref,
+        address indexed exchange,
         address inToken,
         address outToken,
         uint256 inAmount,
@@ -45,38 +46,53 @@ contract Executor is IReactorCallback, IValidationCallback {
         _;
     }
 
-    function execute(SignedOrder calldata order, IMulticall3.Call[] calldata calls, uint256 minAmountOutRecipient)
+    struct Execution {
+        uint256 minAmountOut;
+        bytes data;
+    }
+
+    function execute(
+        OrderLib.CosignedOrder calldata co,
+        Execution calldata x
+    )
         external
         onlyAllowed
     {
-        IReactor(reactor).executeWithCallback(order, abi.encode(calls, minAmountOutRecipient));
+        address exchange = co.order.exchange.adapter;
+        address ref = co.order.exchange.ref;
+        SignedOrder memory so;
+        so.order = abi.encode(co);
+        so.sig = co.signature;
+        IReactor(reactor).executeWithCallback(so, abi.encode(co.order.exchange.adapter, x));
 
-        OrderLib.CosignedOrder memory co = abi.decode(order.order, (OrderLib.CosignedOrder));
-        (address ref, uint16 share) = abi.decode(co.order.info.additionalValidationData, (address, uint16));
-        SurplusLib.distribute(ref, co.order.info.swapper, address(co.order.input.token), share);
-        SurplusLib.distribute(ref, co.order.info.swapper, address(co.order.output.token), share);
+        SurplusLib.distribute(co.order.exchange.ref, co.order.info.swapper, address(co.order.input.token), uint32(co.order.exchange.share));
+        SurplusLib.distribute(co.order.exchange.ref, co.order.info.swapper, address(co.order.output.token), uint32(co.order.exchange.share));
     }
 
     function reactorCallback(ResolvedOrder[] memory orders, bytes memory callbackData) external override onlyReactor {
-        for (uint256 i = 1; i < orders.length; i++) {
-            _swap(orders[i], 0); // TODO
-        }
+        if (orders.length != 1) revert InvalidOrder();
+        (address exchange, Execution memory x) = abi.decode(callbackData, (address, Execution));
+        Address.functionDelegateCall(exchange, abi.encodeWithSelector(IExchangeAdapter.swap.selector, orders[0], x.data));
+        _settle(orders[0], x.minAmountOut, exchange);
     }
 
-    function _swap(ResolvedOrder memory order, uint256 minAmountOutRecipient) private {
+    function _settle(ResolvedOrder memory order, uint256 minAmountOut, address exchange) private {
         if (order.outputs.length != 1) revert InvalidOrder();
         address outToken = address(order.outputs[0].token);
         uint256 outAmount = order.outputs[0].amount;
         address recipient = order.outputs[0].recipient;
         TokenLib.prepareFor(outToken, reactor, outAmount);
-        if (minAmountOutRecipient > outAmount) {
-            TokenLib.transfer(outToken, recipient, minAmountOutRecipient - outAmount);
+        if (minAmountOut > outAmount) {
+            TokenLib.transfer(outToken, recipient, minAmountOut - outAmount);
         }
-
-        address ref = abi.decode(order.info.additionalValidationData, (address));
-
-        emit Resolved(
-            order.hash, order.info.swapper, ref, address(order.input.token), outToken, order.input.amount, outAmount
+        emit Settled(
+            order.hash,
+            order.info.swapper,
+            exchange,
+            address(order.input.token),
+            outToken,
+            order.input.amount,
+            outAmount
         );
     }
 

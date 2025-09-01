@@ -5,7 +5,8 @@ import "forge-std/Test.sol";
 
 import {BaseTest} from "test/base/BaseTest.sol";
 
-import {Executor, IMulticall3} from "src/executor/Executor.sol";
+import {Executor} from "src/executor/Executor.sol";
+// no multicall usage
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
@@ -18,10 +19,12 @@ import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {ERC20} from "solmate/src/tokens/ERC20.sol";
 import {USDTMock} from "test/mocks/USDTMock.sol";
 import {MockReactor} from "test/mocks/MockReactor.sol";
+import {SwapAdapterMock} from "test/mocks/SwapAdapter.sol";
 
 contract ExecutorTest is BaseTest {
     Executor public exec;
     MockReactor public reactor;
+    SwapAdapterMock public adapter;
     ERC20Mock public tokenOut;
     address public ref;
     uint16 public refShare = 1000; // 10% in bps
@@ -31,7 +34,8 @@ contract ExecutorTest is BaseTest {
         vm.warp(1_000_000);
 
         reactor = new MockReactor();
-        exec = new Executor(multicall, address(reactor), wm);
+        exec = new Executor(address(reactor), wm);
+        adapter = new SwapAdapterMock();
 
         tokenOut = new ERC20Mock();
         ref = makeAddr("ref");
@@ -40,8 +44,8 @@ contract ExecutorTest is BaseTest {
         allowThis();
     }
 
-    function _mintCall(address tkn, address to, uint256 amt) internal pure returns (IMulticall3.Call memory c) {
-        return IMulticall3.Call({target: tkn, callData: abi.encodeWithSignature("mint(address,uint256)", to, amt)});
+    function _mint(address tkn, address to, uint256 amt) internal {
+        ERC20Mock(tkn).mint(to, amt);
     }
 
     function _soFrom(OrderLib.CosignedOrder memory co) internal pure returns (SignedOrder memory so) {
@@ -50,47 +54,76 @@ contract ExecutorTest is BaseTest {
     }
 
     function test_execute_forwards_to_reactor_with_callback() public {
-        SignedOrder memory so = _dummySignedOrder();
-        IMulticall3.Call[] memory calls = new IMulticall3.Call[](0);
-
-        exec.execute(so, calls, 0);
+        OrderLib.CosignedOrder memory co;
+        co.order.info = OrderLib.OrderInfo({
+            reactor: address(reactor),
+            swapper: signer,
+            nonce: 0,
+            deadline: 1_086_400,
+            additionalValidationContract: address(0),
+            additionalValidationData: abi.encode(address(0), uint16(0))
+        });
+        co.order.exchange = OrderLib.Exchange({adapter: address(adapter), ref: address(0), share: 0});
+        co.order.executor = address(exec);
+        co.order.exclusivity = 0;
+        co.order.epoch = 0;
+        co.order.slippage = 0;
+        co.order.input = OrderLib.Input({token: address(token), amount: 0, maxAmount: 0});
+        co.order.output = OrderLib.Output({token: address(token), amount: 0, maxAmount: 0, recipient: signer});
+        Executor.Execution memory ex = Executor.Execution({minAmountOut: 0, data: hex""});
+        exec.execute(co, ex);
 
         assertEq(reactor.lastSender(), address(exec));
         (bytes memory lastOrderBytes,) = reactor.lastOrder();
-        assertEq(keccak256(lastOrderBytes), keccak256(so.order));
-        assertEq(keccak256(reactor.lastCallbackData()), keccak256(abi.encode(calls, 0)));
+        assertEq(keccak256(lastOrderBytes), keccak256(abi.encode(co)));
+        assertEq(
+            keccak256(reactor.lastCallbackData()),
+            keccak256(abi.encode(address(adapter), Executor.Execution({minAmountOut: 0, data: hex""})))
+        );
     }
 
     function test_execute_reverts_when_not_allowed() public {
         disallowThis();
 
-        SignedOrder memory so = _dummySignedOrder();
-        IMulticall3.Call[] memory calls = new IMulticall3.Call[](0);
-
+        OrderLib.CosignedOrder memory co;
+        co.order.info = OrderLib.OrderInfo({
+            reactor: address(reactor),
+            swapper: signer,
+            nonce: 0,
+            deadline: 1_086_400,
+            additionalValidationContract: address(0),
+            additionalValidationData: abi.encode(address(0), uint16(0))
+        });
+        co.order.exchange = OrderLib.Exchange({adapter: address(adapter), ref: address(0), share: 0});
+        co.order.executor = address(exec);
+        co.order.exclusivity = 0;
+        co.order.epoch = 0;
+        co.order.slippage = 0;
+        co.order.input = OrderLib.Input({token: address(token), amount: 0, maxAmount: 0});
+        co.order.output = OrderLib.Output({token: address(token), amount: 0, maxAmount: 0, recipient: signer});
+        Executor.Execution memory ex = Executor.Execution({minAmountOut: 0, data: hex""});
         vm.expectRevert(abi.encodeWithSelector(Executor.InvalidSender.selector));
-        exec.execute(so, calls, 0);
+        exec.execute(co, ex);
     }
 
     function test_reactorCallback_onlyReactor() public {
         ResolvedOrder[] memory ros = new ResolvedOrder[](1);
         ros[0] = _dummyResolvedOrder(address(token), 0);
-        IMulticall3.Call[] memory calls = new IMulticall3.Call[](0);
 
         vm.expectRevert(abi.encodeWithSelector(Executor.InvalidSender.selector));
-        exec.reactorCallback(ros, abi.encode(calls, 0));
+        exec.reactorCallback(ros, abi.encode(address(adapter), Executor.Execution({minAmountOut: 0, data: hex""}))) ;
     }
 
     function test_reactorCallback_executes_multicall_and_sets_erc20_approval() public {
-        // prepare multicall to mint to executor
-        IMulticall3.Call[] memory calls = new IMulticall3.Call[](1);
-        calls[0] = _mintCall(address(token), address(exec), 1e18);
+        // mint to executor
+        _mint(address(token), address(exec), 1e18);
 
         ResolvedOrder[] memory ros = new ResolvedOrder[](1);
         ros[0] = _dummyResolvedOrder(address(token), 1234);
 
         // call from reactor
         vm.prank(address(reactor));
-        exec.reactorCallback(ros, abi.encode(calls, 0));
+        exec.reactorCallback(ros, abi.encode(address(adapter), Executor.Execution({minAmountOut: 0, data: hex""}))) ;
 
         // multicall executed: executor now holds minted tokens
         assertEq(ERC20Mock(address(token)).balanceOf(address(exec)), 1e18);
@@ -107,9 +140,8 @@ contract ExecutorTest is BaseTest {
         vm.prank(address(exec));
         usdt.approve(address(reactor), 1);
 
-        // mint to executor via multicall
-        IMulticall3.Call[] memory calls = new IMulticall3.Call[](1);
-        calls[0] = _mintCall(address(usdt), address(exec), 1e18);
+        // mint to executor
+        _mint(address(usdt), address(exec), 1e18);
 
         // resolved order outputs USDT to reactor via approval path
         ResolvedOrder[] memory ros = new ResolvedOrder[](1);
@@ -117,7 +149,7 @@ contract ExecutorTest is BaseTest {
 
         // call from reactor; should internally approve(0) then approve(1+1234)
         vm.prank(address(reactor));
-        exec.reactorCallback(ros, abi.encode(calls, 0));
+        exec.reactorCallback(ros, abi.encode(address(adapter), Executor.Execution({minAmountOut: 0, data: hex""}))) ;
 
         // final allowance == previous (1) + amount (1234)
         assertEq(IERC20(address(usdt)).allowance(address(exec), address(reactor)), 1235);
@@ -127,13 +159,12 @@ contract ExecutorTest is BaseTest {
         // fund executor to cover sendValue
         vm.deal(address(exec), 1 ether);
 
-        IMulticall3.Call[] memory calls = new IMulticall3.Call[](0);
         ResolvedOrder[] memory ros = new ResolvedOrder[](1);
         ros[0] = _dummyResolvedOrder(address(0), 987);
 
         uint256 beforeBal = address(reactor).balance;
         vm.prank(address(reactor));
-        exec.reactorCallback(ros, abi.encode(calls, 0));
+        exec.reactorCallback(ros, abi.encode(address(adapter), Executor.Execution({minAmountOut: 0, data: hex""}))) ;
         assertEq(address(reactor).balance, beforeBal + 987);
     }
 
@@ -156,7 +187,7 @@ contract ExecutorTest is BaseTest {
 
         // should not revert; also sets approval for reactor
         vm.prank(address(reactor));
-        exec.reactorCallback(ros, abi.encode(new IMulticall3.Call[](0), 0));
+        exec.reactorCallback(ros, abi.encode(address(adapter), Executor.Execution({minAmountOut: 0, data: hex""}))) ;
         assertEq(IERC20(address(token)).allowance(address(exec), address(reactor)), 100);
     }
 
@@ -172,20 +203,19 @@ contract ExecutorTest is BaseTest {
 
         vm.prank(address(reactor));
         vm.expectRevert(Executor.InvalidOrder.selector);
-        exec.reactorCallback(ros, abi.encode(new IMulticall3.Call[](0), 0));
+        exec.reactorCallback(ros, abi.encode(address(adapter), Executor.Execution({minAmountOut: 0, data: hex""}))) ;
     }
 
     function test_reactorCallback_transfers_delta_to_swapper_when_outAmountSwapper_greater() public {
         ERC20Mock out = new ERC20Mock();
-        IMulticall3.Call[] memory calls = new IMulticall3.Call[](1);
-        calls[0] = _mintCall(address(out), address(exec), 100);
+        _mint(address(out), address(exec), 100);
 
         ResolvedOrder[] memory ros = new ResolvedOrder[](1);
         ros[0] = _dummyResolvedOrder(address(out), 500);
 
         uint256 before = out.balanceOf(signer);
         vm.prank(address(reactor));
-        exec.reactorCallback(ros, abi.encode(calls, 600));
+        exec.reactorCallback(ros, abi.encode(address(adapter), Executor.Execution({minAmountOut: 600, data: hex""}))) ;
         assertEq(out.balanceOf(signer), before + 100);
     }
 
@@ -199,20 +229,21 @@ contract ExecutorTest is BaseTest {
             additionalValidationContract: address(0),
             additionalValidationData: abi.encode(ref, refShare)
         });
-        co.order.exclusiveFiller = address(exec);
-        co.order.exclusivityOverrideBps = 0;
+        co.order.exchange = OrderLib.Exchange({adapter: address(adapter), ref: ref, share: refShare});
+        co.order.executor = address(exec);
+        co.order.exclusivity = 0;
         co.order.epoch = 0;
         co.order.slippage = 0;
         co.order.input = OrderLib.Input({token: address(token), amount: 100, maxAmount: 100});
         co.order.output = OrderLib.Output({token: address(tokenOut), amount: 500, maxAmount: 500, recipient: signer});
 
-        SignedOrder memory so = _soFrom(co);
+        // use CosignedOrder directly in execute
+        
+        _mint(address(tokenOut), address(exec), 1000);
+        _mint(address(token), address(exec), 200);
 
-        IMulticall3.Call[] memory calls = new IMulticall3.Call[](2);
-        calls[0] = _mintCall(address(tokenOut), address(exec), 1000);
-        calls[1] = _mintCall(address(token), address(exec), 200);
-
-        exec.execute(so, calls, 600);
+        Executor.Execution memory ex2 = Executor.Execution({minAmountOut: 600, data: hex""});
+        exec.execute(co, ex2) ;
 
         assertEq(IERC20(address(tokenOut)).allowance(address(exec), address(reactor)), 500);
         assertEq(tokenOut.balanceOf(ref), 90);
@@ -233,8 +264,8 @@ contract ExecutorTest is BaseTest {
             additionalValidationContract: address(0),
             additionalValidationData: abi.encode(address(0), uint16(0))
         });
-        co.order.exclusiveFiller = address(exec);
-        co.order.exclusivityOverrideBps = 0;
+        co.order.executor = address(exec);
+        co.order.exclusivity = 0;
         co.order.epoch = 0;
         co.order.slippage = 0;
         co.order.input = OrderLib.Input({token: address(token), amount: 0, maxAmount: 0});

@@ -49,10 +49,7 @@ contract OrderReactor is BaseReactor {
         resolvedOrder = _resolveStruct(cosigned, outAmount, orderHash);
 
         ExclusivityLib.handleExclusiveOverride(
-            resolvedOrder,
-            cosigned.order.exclusiveFiller,
-            cosigned.order.info.deadline,
-            cosigned.order.exclusivityOverrideBps
+            resolvedOrder, cosigned.order.executor, cosigned.order.info.deadline, cosigned.order.exclusivity
         );
     }
 

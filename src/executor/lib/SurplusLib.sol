@@ -7,7 +7,7 @@ import {TokenLib} from "src/executor/lib/TokenLib.sol";
 library SurplusLib {
     event Surplus(address indexed ref, address swapper, address token, uint256 amount, uint256 refshare);
 
-    function distribute(address ref, address swapper, address token, uint16 shareBps) internal {
+    function distribute(address ref, address swapper, address token, uint32 shareBps) internal {
         uint256 total = TokenLib.balanceOf(token);
         uint256 refshare = (total * shareBps) / Constants.BPS;
         if (refshare > 0) TokenLib.transfer(token, ref, refshare);

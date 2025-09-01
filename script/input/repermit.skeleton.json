@@ -29,6 +29,20 @@
                 "type": "Order"
             }
         ],
+        "Exchange": [
+            {
+                "name": "adapter",
+                "type": "address"
+            },
+            {
+                "name": "ref",
+                "type": "address"
+            },
+            {
+                "name": "share",
+                "type": "uint32"
+            }
+        ],
         "Input": [
             {
                 "name": "token",
@@ -49,20 +63,28 @@
                 "type": "OrderInfo"
             },
             {
-                "name": "exclusiveFiller",
+                "name": "executor",
                 "type": "address"
             },
             {
-                "name": "exclusivityOverrideBps",
-                "type": "uint256"
+                "name": "exchange",
+                "type": "Exchange"
+            },
+            {
+                "name": "exclusivity",
+                "type": "uint32"
             },
             {
                 "name": "epoch",
-                "type": "uint256"
+                "type": "uint32"
             },
             {
                 "name": "slippage",
-                "type": "uint256"
+                "type": "uint32"
+            },
+            {
+                "name": "freshness",
+                "type": "uint32"
             },
             {
                 "name": "input",
@@ -145,10 +167,16 @@
                 "additionalValidationContract": "<EXECUTOR>",
                 "additionalValidationData": "<EXECUTORDATA>"
             },
-            "exclusiveFiller": "<EXECUTOR>",
-            "exclusivityOverrideBps": "<EXCLUSIVITYBPS>",
+            "executor": "<EXECUTOR>",
+            "exchange": {
+                "adapter": "<ADAPTER>",
+                "ref": "<REFERRER>",
+                "share": "<REFSHAREBPS>"
+            },
+            "exclusivity": "<EXCLUSIVITYBPS>",
             "epoch": "<EPOCHSECONDS>",
             "slippage": "<SLIPPAGE>",
+            "freshness": "<FRESHNESSSECONDS>",
             "input": {
                 "token": "<INTOKEN>",
                 "amount": "<INCHUNKAMOUNT>",
