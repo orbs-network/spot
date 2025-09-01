@@ -18,7 +18,7 @@ library OrderLib {
     bytes32 internal constant EXCHANGE_TYPE_HASH = keccak256(bytes(EXCHANGE_TYPE));
 
     string internal constant ORDER_TYPE =
-        "Order(OrderInfo info,address executor,Exchange exchange,uint32 exclusivity,uint32 epoch,uint32 slippage,uint32 freshness,Input input,Output output)";
+        "Order(OrderInfo info,address executor,Exchange exchange,uint32 epoch,uint32 slippage,uint32 freshness,Input input,Output output)";
     bytes32 internal constant ORDER_TYPE_HASH =
         keccak256(abi.encodePacked(ORDER_TYPE, INPUT_TYPE, ORDER_INFO_TYPE, OUTPUT_TYPE, EXCHANGE_TYPE));
 
@@ -73,7 +73,6 @@ library OrderLib {
         OrderInfo info;
         address executor;
         Exchange exchange;
-        uint32 exclusivity; // bps, 0 = strict
         uint32 epoch; // seconds per chunk; 0 = single-use
         uint32 slippage; // bps
         uint32 freshness; // seconds, must be > 0
@@ -121,7 +120,6 @@ library OrderLib {
                 hash(order.info),
                 order.executor,
                 hash(order.exchange),
-                order.exclusivity,
                 order.epoch,
                 order.slippage,
                 order.freshness,

@@ -8,7 +8,7 @@ import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {Constants} from "src/reactor/Constants.sol";
 
 contract OrderValidationLibTest is Test {
-    function callValidate(OrderLib.Order memory order) external pure {
+    function callValidate(OrderLib.Order memory order) external view {
         OrderValidationLib.validate(order);
     }
 
@@ -22,7 +22,7 @@ contract OrderValidationLibTest is Test {
         o.output.maxAmount = 100;
         o.output.recipient = makeAddr("recipient");
         o.slippage = 100; // 1%
-        o.executor = makeAddr("executor");
+        o.executor = address(this);
     }
 
     function test_validate_ok() public {

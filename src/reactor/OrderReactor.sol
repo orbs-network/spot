@@ -21,8 +21,6 @@ import {EpochLib} from "src/reactor/lib/EpochLib.sol";
 import {ResolutionLib} from "src/reactor/lib/ResolutionLib.sol";
 
 contract OrderReactor is BaseReactor {
-    error StrictExclusivityViolation();
-
     address public immutable cosigner;
     address public immutable repermit;
 
@@ -49,11 +47,6 @@ contract OrderReactor is BaseReactor {
 
         uint256 outAmount = ResolutionLib.resolveOutAmount(cosigned);
         resolvedOrder = _resolveStruct(cosigned, outAmount, orderHash);
-
-        // Strict exclusivity check - msg.sender must match the executor in the order
-        if (msg.sender != cosigned.order.executor) {
-            revert StrictExclusivityViolation();
-        }
     }
 
     function _transferInputTokens(ResolvedOrder memory order, address to) internal override {

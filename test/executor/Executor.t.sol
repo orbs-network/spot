@@ -66,7 +66,6 @@ contract ExecutorTest is BaseTest {
         });
         co.order.exchange = OrderLib.Exchange({adapter: address(adapter), ref: address(0), share: 0});
         co.order.executor = address(exec);
-        co.order.exclusivity = 0;
         co.order.epoch = 0;
         co.order.slippage = 0;
         co.order.input = OrderLib.Input({token: address(token), amount: 0, maxAmount: 0});
@@ -97,7 +96,6 @@ contract ExecutorTest is BaseTest {
         });
         co.order.exchange = OrderLib.Exchange({adapter: address(adapter), ref: address(0), share: 0});
         co.order.executor = address(exec);
-        co.order.exclusivity = 0;
         co.order.epoch = 0;
         co.order.slippage = 0;
         co.order.input = OrderLib.Input({token: address(token), amount: 0, maxAmount: 0});
@@ -112,7 +110,7 @@ contract ExecutorTest is BaseTest {
         ros[0] = _dummyResolvedOrder(address(token), 0);
 
         vm.expectRevert(abi.encodeWithSelector(Executor.InvalidSender.selector));
-        exec.reactorCallback(ros, abi.encode(address(adapter), Executor.Execution({minAmountOut: 0, data: hex""}))) ;
+        exec.reactorCallback(ros, abi.encode(address(adapter), Executor.Execution({minAmountOut: 0, data: hex""})));
     }
 
     function test_reactorCallback_executes_multicall_and_sets_erc20_approval() public {
@@ -124,7 +122,7 @@ contract ExecutorTest is BaseTest {
 
         // call from reactor
         vm.prank(address(reactor));
-        exec.reactorCallback(ros, abi.encode(address(adapter), Executor.Execution({minAmountOut: 0, data: hex""}))) ;
+        exec.reactorCallback(ros, abi.encode(address(adapter), Executor.Execution({minAmountOut: 0, data: hex""})));
 
         // multicall executed: executor now holds minted tokens
         assertEq(ERC20Mock(address(token)).balanceOf(address(exec)), 1e18);
@@ -150,7 +148,7 @@ contract ExecutorTest is BaseTest {
 
         // call from reactor; should internally approve(0) then approve(1+1234)
         vm.prank(address(reactor));
-        exec.reactorCallback(ros, abi.encode(address(adapter), Executor.Execution({minAmountOut: 0, data: hex""}))) ;
+        exec.reactorCallback(ros, abi.encode(address(adapter), Executor.Execution({minAmountOut: 0, data: hex""})));
 
         // final allowance == previous (1) + amount (1234)
         assertEq(IERC20(address(usdt)).allowance(address(exec), address(reactor)), 1235);
@@ -165,7 +163,7 @@ contract ExecutorTest is BaseTest {
 
         uint256 beforeBal = address(reactor).balance;
         vm.prank(address(reactor));
-        exec.reactorCallback(ros, abi.encode(address(adapter), Executor.Execution({minAmountOut: 0, data: hex""}))) ;
+        exec.reactorCallback(ros, abi.encode(address(adapter), Executor.Execution({minAmountOut: 0, data: hex""})));
         assertEq(address(reactor).balance, beforeBal + 987);
     }
 
@@ -188,7 +186,7 @@ contract ExecutorTest is BaseTest {
 
         // should not revert; also sets approval for reactor
         vm.prank(address(reactor));
-        exec.reactorCallback(ros, abi.encode(address(adapter), Executor.Execution({minAmountOut: 0, data: hex""}))) ;
+        exec.reactorCallback(ros, abi.encode(address(adapter), Executor.Execution({minAmountOut: 0, data: hex""})));
         assertEq(IERC20(address(token)).allowance(address(exec), address(reactor)), 100);
     }
 
@@ -204,7 +202,7 @@ contract ExecutorTest is BaseTest {
 
         vm.prank(address(reactor));
         vm.expectRevert(Executor.InvalidOrder.selector);
-        exec.reactorCallback(ros, abi.encode(address(adapter), Executor.Execution({minAmountOut: 0, data: hex""}))) ;
+        exec.reactorCallback(ros, abi.encode(address(adapter), Executor.Execution({minAmountOut: 0, data: hex""})));
     }
 
     function test_reactorCallback_transfers_delta_to_swapper_when_outAmountSwapper_greater() public {
@@ -216,7 +214,7 @@ contract ExecutorTest is BaseTest {
 
         uint256 before = out.balanceOf(signer);
         vm.prank(address(reactor));
-        exec.reactorCallback(ros, abi.encode(address(adapter), Executor.Execution({minAmountOut: 600, data: hex""}))) ;
+        exec.reactorCallback(ros, abi.encode(address(adapter), Executor.Execution({minAmountOut: 600, data: hex""})));
         assertEq(out.balanceOf(signer), before + 100);
     }
 
@@ -232,19 +230,18 @@ contract ExecutorTest is BaseTest {
         });
         co.order.exchange = OrderLib.Exchange({adapter: address(adapter), ref: ref, share: refShare});
         co.order.executor = address(exec);
-        co.order.exclusivity = 0;
         co.order.epoch = 0;
         co.order.slippage = 0;
         co.order.input = OrderLib.Input({token: address(token), amount: 100, maxAmount: 100});
         co.order.output = OrderLib.Output({token: address(tokenOut), amount: 500, maxAmount: 500, recipient: signer});
 
         // use CosignedOrder directly in execute
-        
+
         _mint(address(tokenOut), address(exec), 1000);
         _mint(address(token), address(exec), 200);
 
         Executor.Execution memory ex2 = Executor.Execution({minAmountOut: 600, data: hex""});
-        exec.execute(co, ex2) ;
+        exec.execute(co, ex2);
 
         assertEq(IERC20(address(tokenOut)).allowance(address(exec), address(reactor)), 500);
         assertEq(tokenOut.balanceOf(ref), 90);
@@ -266,7 +263,6 @@ contract ExecutorTest is BaseTest {
             additionalValidationData: abi.encode(address(0), uint16(0))
         });
         co.order.executor = address(exec);
-        co.order.exclusivity = 0;
         co.order.epoch = 0;
         co.order.slippage = 0;
         co.order.input = OrderLib.Input({token: address(token), amount: 0, maxAmount: 0});

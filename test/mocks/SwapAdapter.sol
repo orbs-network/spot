@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import {ResolvedOrder} from "uniswapx/src/base/ReactorStructs.sol";
+import {ResolvedOrder} from "src/lib/uniswapx/base/ReactorStructs.sol";
 // no-op adapter for tests
 
 contract SwapAdapterMock {
