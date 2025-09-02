@@ -32,6 +32,7 @@ contract CosignatureLibTest is Test {
 
     function _baseCosignedWithSig() internal returns (OrderLib.CosignedOrder memory co, bytes32 orderHash) {
         OrderLib.Order memory o;
+        o.info.reactor = makeAddr("reactor");
         o.info.swapper = signer;
         o.input.token = makeAddr("in");
         o.input.amount = 1_000;
@@ -48,6 +49,7 @@ contract CosignatureLibTest is Test {
 
         OrderLib.Cosignature memory c;
         c.timestamp = 1_000_000;
+        c.reactor = o.info.reactor;
         c.input = OrderLib.CosignedValue({token: o.input.token, value: 100, decimals: 18});
         c.output = OrderLib.CosignedValue({token: o.output.token, value: 200, decimals: 18});
         co.cosignatureData = c;
@@ -98,6 +100,13 @@ contract CosignatureLibTest is Test {
         (OrderLib.CosignedOrder memory co,) = _baseCosignedWithSig();
         vm.expectRevert(CosignatureLib.InvalidCosignature.selector);
         this.callValidateCosignature(co, other);
+    }
+
+    function test_validateCosignature_reverts_invalidReactor() public {
+        (OrderLib.CosignedOrder memory co,) = _baseCosignedWithSig();
+        co.cosignatureData.reactor = makeAddr("wrongReactor");
+        vm.expectRevert(CosignatureLib.InvalidCosignatureReactor.selector);
+        this.callValidateCosignature(co, signer);
     }
 
     function test_validateCosignature_reverts_futureTimestamp() public {

@@ -13,6 +13,10 @@
                 "type": "uint256"
             },
             {
+                "name": "reactor",
+                "type": "address"
+            },
+            {
                 "name": "input",
                 "type": "CosignedValue"
             },
@@ -38,6 +42,7 @@
     },
     "message": {
         "timestamp": "<TIMESTAMP>",
+        "reactor": "<REACTOR_ADDRESS>",
         "input": {
             "token": "<INTOKEN>",
             "value": "<INVALUE_INDECIMALS>",
