@@ -52,7 +52,6 @@ contract RePermit is EIP712, IEIP712 {
 
         if (spent[signer][hash] == type(uint256).max) revert Canceled();
 
-        if (request.amount == 0) return;
         uint256 _spent = (spent[signer][hash] += request.amount); // increment and get
         if (_spent > permit.permitted.amount) revert InsufficientAllowance();
 

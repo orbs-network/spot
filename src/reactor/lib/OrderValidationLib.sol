@@ -11,15 +11,13 @@ library OrderValidationLib {
     error InvalidOrderSlippageTooHigh();
     error InvalidOrderInputTokenZero();
     error InvalidOrderOutputRecipientZero();
-    error InvalidSender();
 
-    function validate(OrderLib.Order memory order) internal view {
+    function validate(OrderLib.Order memory order) internal pure {
         if (order.input.amount == 0) revert InvalidOrderInputAmountZero();
         if (order.input.amount > order.input.maxAmount) revert InvalidOrderInputAmountGtMax();
         if (order.output.amount > order.output.maxAmount) revert InvalidOrderOutputAmountGtMax();
         if (order.slippage >= Constants.MAX_SLIPPAGE) revert InvalidOrderSlippageTooHigh();
         if (order.input.token == address(0)) revert InvalidOrderInputTokenZero();
         if (order.output.recipient == address(0)) revert InvalidOrderOutputRecipientZero();
-        if (msg.sender != order.executor) revert InvalidSender();
     }
 }

@@ -71,4 +71,13 @@ contract OrderValidationLibTest is Test {
         vm.expectRevert(OrderValidationLib.InvalidOrderOutputRecipientZero.selector);
         this.callValidate(o);
     }
+
+
+    function test_validate_allows_override_when_exclusivity_set() public {
+        OrderLib.Order memory o = _baseOrder();
+        o.exclusivity = 100; // 1%
+        address notExecutor = makeAddr("notExecutor");
+        vm.prank(notExecutor);
+        this.callValidate(o);
+    }
 }

@@ -11,6 +11,7 @@ contract OrderValidationLibFuzzTest is Test {
     function callValidate(OrderLib.Order memory order) external view {
         OrderValidationLib.validate(order);
     }
+
     function testFuzz_validate_ok(
         address swapper,
         address inToken,
@@ -41,7 +42,6 @@ contract OrderValidationLibFuzzTest is Test {
         o.output.maxAmount = maxOut;
         o.output.recipient = recipient;
         o.slippage = uint32(slippage);
-        // must match msg.sender (this contract) due to strict exclusivity
         o.executor = address(this);
 
         this.callValidate(o);

@@ -19,6 +19,7 @@ import {OrderValidationLib} from "src/reactor/lib/OrderValidationLib.sol";
 import {CosignatureLib} from "src/reactor/lib/CosignatureLib.sol";
 import {EpochLib} from "src/reactor/lib/EpochLib.sol";
 import {ResolutionLib} from "src/reactor/lib/ResolutionLib.sol";
+import {ExclusivityOverrideLib} from "src/lib/uniswapx/lib/ExclusivityOverrideLib.sol";
 
 contract OrderReactor is BaseReactor {
     address public immutable cosigner;
@@ -46,6 +47,7 @@ contract OrderReactor is BaseReactor {
         EpochLib.update(epochs, orderHash, cosigned.order.epoch);
 
         uint256 outAmount = ResolutionLib.resolveOutAmount(cosigned);
+        outAmount = ExclusivityOverrideLib.applyOverride(outAmount, cosigned.order.executor, cosigned.order.exclusivity);
         resolvedOrder = _resolveStruct(cosigned, outAmount, orderHash);
     }
 
