@@ -71,7 +71,7 @@ contract ExecutorTest is BaseTest {
         co.order.input = OrderLib.Input({token: address(token), amount: 0, maxAmount: 0});
         co.order.output = OrderLib.Output({token: address(token), amount: 0, maxAmount: 0, recipient: signer});
         Executor.Execution memory ex =
-            Executor.Execution({minAmountOut: 0, data: hex"", gasFeeToken: address(0), gasFeeAmount: 0});
+            Executor.Execution({minAmountOut: 0, data: hex"", gasFee: OutputToken({token: address(0), amount: 0, recipient: address(0)})});
         exec.execute(co, ex);
 
         assertEq(reactor.lastSender(), address(exec));
@@ -82,7 +82,7 @@ contract ExecutorTest is BaseTest {
             keccak256(
                 abi.encode(
                     address(adapter),
-                    Executor.Execution({minAmountOut: 0, data: hex"", gasFeeToken: address(0), gasFeeAmount: 0})
+                    Executor.Execution({minAmountOut: 0, data: hex"", gasFee: OutputToken({token: address(0), amount: 0, recipient: address(0)})})
                 )
             )
         );
@@ -107,7 +107,7 @@ contract ExecutorTest is BaseTest {
         co.order.input = OrderLib.Input({token: address(token), amount: 0, maxAmount: 0});
         co.order.output = OrderLib.Output({token: address(token), amount: 0, maxAmount: 0, recipient: signer});
         Executor.Execution memory ex =
-            Executor.Execution({minAmountOut: 0, data: hex"", gasFeeToken: address(0), gasFeeAmount: 0});
+            Executor.Execution({minAmountOut: 0, data: hex"", gasFee: OutputToken({token: address(0), amount: 0, recipient: address(0)})});
         vm.expectRevert(abi.encodeWithSelector(Executor.InvalidSender.selector));
         exec.execute(co, ex);
     }
@@ -121,7 +121,7 @@ contract ExecutorTest is BaseTest {
             ros,
             abi.encode(
                 address(adapter),
-                Executor.Execution({minAmountOut: 0, data: hex"", gasFeeToken: address(0), gasFeeAmount: 0})
+                Executor.Execution({minAmountOut: 0, data: hex"", gasFee: OutputToken({token: address(0), amount: 0, recipient: address(0)})})
             )
         );
     }
@@ -139,7 +139,7 @@ contract ExecutorTest is BaseTest {
             ros,
             abi.encode(
                 address(adapter),
-                Executor.Execution({minAmountOut: 0, data: hex"", gasFeeToken: address(0), gasFeeAmount: 0})
+                Executor.Execution({minAmountOut: 0, data: hex"", gasFee: OutputToken({token: address(0), amount: 0, recipient: address(0)})})
             )
         );
 
@@ -171,7 +171,7 @@ contract ExecutorTest is BaseTest {
             ros,
             abi.encode(
                 address(adapter),
-                Executor.Execution({minAmountOut: 0, data: hex"", gasFeeToken: address(0), gasFeeAmount: 0})
+                Executor.Execution({minAmountOut: 0, data: hex"", gasFee: OutputToken({token: address(0), amount: 0, recipient: address(0)})})
             )
         );
 
@@ -192,7 +192,7 @@ contract ExecutorTest is BaseTest {
             ros,
             abi.encode(
                 address(adapter),
-                Executor.Execution({minAmountOut: 0, data: hex"", gasFeeToken: address(0), gasFeeAmount: 0})
+                Executor.Execution({minAmountOut: 0, data: hex"", gasFee: OutputToken({token: address(0), amount: 0, recipient: address(0)})})
             )
         );
         assertEq(address(reactor).balance, beforeBal + 987);
@@ -221,7 +221,7 @@ contract ExecutorTest is BaseTest {
             ros,
             abi.encode(
                 address(adapter),
-                Executor.Execution({minAmountOut: 0, data: hex"", gasFeeToken: address(0), gasFeeAmount: 0})
+                Executor.Execution({minAmountOut: 0, data: hex"", gasFee: OutputToken({token: address(0), amount: 0, recipient: address(0)})})
             )
         );
         assertEq(IERC20(address(token)).allowance(address(exec), address(reactor)), 100);
@@ -243,7 +243,7 @@ contract ExecutorTest is BaseTest {
             ros,
             abi.encode(
                 address(adapter),
-                Executor.Execution({minAmountOut: 0, data: hex"", gasFeeToken: address(0), gasFeeAmount: 0})
+                Executor.Execution({minAmountOut: 0, data: hex"", gasFee: OutputToken({token: address(0), amount: 0, recipient: address(0)})})
             )
         );
     }
@@ -261,7 +261,7 @@ contract ExecutorTest is BaseTest {
             ros,
             abi.encode(
                 address(adapter),
-                Executor.Execution({minAmountOut: 600, data: hex"", gasFeeToken: address(0), gasFeeAmount: 0})
+                Executor.Execution({minAmountOut: 600, data: hex"", gasFee: OutputToken({token: address(0), amount: 0, recipient: address(0)})})
             )
         );
         assertEq(out.balanceOf(signer), before + 100);
@@ -290,7 +290,7 @@ contract ExecutorTest is BaseTest {
         _mint(address(token), address(exec), 200);
 
         Executor.Execution memory ex2 =
-            Executor.Execution({minAmountOut: 600, data: hex"", gasFeeToken: address(0), gasFeeAmount: 0});
+            Executor.Execution({minAmountOut: 600, data: hex"", gasFee: OutputToken({token: address(0), amount: 0, recipient: address(0)})});
         exec.execute(co, ex2);
 
         assertEq(IERC20(address(tokenOut)).allowance(address(exec), address(reactor)), 500);
@@ -341,8 +341,12 @@ contract ExecutorTest is BaseTest {
 
     function test_execution_with_gas_fee_fields() public {
         // Test that the new gas fee fields can be set and used
-        address gasFeeToken = address(0x1234); // Example token address
+        address gasFeeToken = address(token); // Use actual token for gas fee
         uint256 gasFeeAmount = 1000;
+        address gasFeeRecipient = makeAddr("gasFeeRecipient");
+
+        // Mint gas fee tokens to the executor
+        _mint(gasFeeToken, address(exec), gasFeeAmount);
 
         OrderLib.CosignedOrder memory co;
         co.order.info = OrderLib.OrderInfo({
@@ -360,9 +364,13 @@ contract ExecutorTest is BaseTest {
         co.order.input = OrderLib.Input({token: address(token), amount: 0, maxAmount: 0});
         co.order.output = OrderLib.Output({token: address(token), amount: 0, maxAmount: 0, recipient: signer});
 
-        Executor.Execution memory ex =
-            Executor.Execution({minAmountOut: 0, data: hex"", gasFeeToken: gasFeeToken, gasFeeAmount: gasFeeAmount});
+        Executor.Execution memory ex = Executor.Execution({
+            minAmountOut: 0,
+            data: hex"",
+            gasFee: OutputToken({token: gasFeeToken, amount: gasFeeAmount, recipient: gasFeeRecipient})
+        });
 
+        uint256 beforeBalance = IERC20(gasFeeToken).balanceOf(gasFeeRecipient);
         exec.execute(co, ex);
 
         // Verify that the gas fee fields are properly encoded in the callback data
@@ -373,5 +381,9 @@ contract ExecutorTest is BaseTest {
         // The callback data should include our gas fee fields
         bytes memory expectedCallbackData = abi.encode(address(adapter), ex);
         assertEq(keccak256(reactor.lastCallbackData()), keccak256(expectedCallbackData));
+
+        // Verify that gas fee was transferred to the recipient
+        uint256 afterBalance = IERC20(gasFeeToken).balanceOf(gasFeeRecipient);
+        assertEq(afterBalance, beforeBalance + gasFeeAmount);
     }
 }

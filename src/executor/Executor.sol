@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import {IReactor} from "src/lib/uniswapx/interfaces/IReactor.sol";
 import {IReactorCallback} from "src/lib/uniswapx/interfaces/IReactorCallback.sol";
 import {IValidationCallback} from "src/lib/uniswapx/interfaces/IValidationCallback.sol";
-import {ResolvedOrder, SignedOrder} from "src/lib/uniswapx/base/ReactorStructs.sol";
+import {ResolvedOrder, SignedOrder, OutputToken} from "src/lib/uniswapx/base/ReactorStructs.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {IWM} from "src/interface/IWM.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
@@ -47,8 +47,7 @@ contract Executor is IReactorCallback, IValidationCallback {
     struct Execution {
         uint256 minAmountOut;
         bytes data;
-        address gasFeeToken;
-        uint256 gasFeeAmount;
+        OutputToken gasFee;
     }
 
     function execute(OrderLib.CosignedOrder calldata co, Execution calldata x) external onlyAllowed {
@@ -71,10 +70,10 @@ contract Executor is IReactorCallback, IValidationCallback {
         Address.functionDelegateCall(
             exchange, abi.encodeWithSelector(IExchangeAdapter.swap.selector, orders[0], x.data)
         );
-        _settle(orders[0], x.minAmountOut, exchange);
+        _settle(orders[0], x.minAmountOut, exchange, x.gasFee);
     }
 
-    function _settle(ResolvedOrder memory order, uint256 minAmountOut, address exchange) private {
+    function _settle(ResolvedOrder memory order, uint256 minAmountOut, address exchange, OutputToken memory gasFee) private {
         if (order.outputs.length != 1) revert InvalidOrder();
         address outToken = address(order.outputs[0].token);
         uint256 outAmount = order.outputs[0].amount;
@@ -83,6 +82,12 @@ contract Executor is IReactorCallback, IValidationCallback {
         if (minAmountOut > outAmount) {
             TokenLib.transfer(outToken, recipient, minAmountOut - outAmount);
         }
+        
+        // Send gas fee to specified recipient if amount > 0
+        if (gasFee.amount > 0) {
+            TokenLib.transfer(gasFee.token, gasFee.recipient, gasFee.amount);
+        }
+        
         emit Settled(
             order.hash,
             order.info.swapper,
