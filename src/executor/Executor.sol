@@ -47,6 +47,8 @@ contract Executor is IReactorCallback, IValidationCallback {
     struct Execution {
         uint256 minAmountOut;
         bytes data;
+        address gasFeeToken;
+        uint256 gasFeeAmount;
     }
 
     function execute(OrderLib.CosignedOrder calldata co, Execution calldata x) external onlyAllowed {
