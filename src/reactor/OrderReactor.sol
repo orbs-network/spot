@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 import {BaseReactor} from "src/base/BaseReactor.sol";
-import {TokenLib} from "src/executor/lib/TokenLib.sol";
+import {SignedOrder} from "src/lib/uniswapx/base/ReactorStructs.sol";
 
 import {RePermit} from "src/repermit/RePermit.sol";
 import {RePermitLib} from "src/repermit/RePermitLib.sol";
@@ -25,6 +25,26 @@ contract OrderReactor is BaseReactor {
         repermit = _repermit;
     }
 
+    /// @notice Execute a SignedOrder (compatibility wrapper)
+    /// @param signedOrder The signed order containing encoded CosignedOrder  
+    function executeWithCallback(SignedOrder calldata signedOrder, bytes calldata /* callbackData */)
+        external
+        payable
+        nonReentrant
+    {
+        // Decode SignedOrder to CosignedOrder and execute directly
+        OrderLib.CosignedOrder memory cosignedOrder = abi.decode(signedOrder.order, (OrderLib.CosignedOrder));
+        
+        // Resolve the order and get the essential parameters
+        (uint256 resolvedAmountOut, bytes32 orderHash) = _resolve(cosignedOrder);
+
+        // Prepare for order execution (validate and transfer input tokens)
+        _prepare(cosignedOrder, orderHash);
+
+        // Fill the order (handle output transfers)
+        _fill(cosignedOrder, resolvedAmountOut, orderHash);
+    }
+
     function _resolve(OrderLib.CosignedOrder memory cosignedOrder)
         internal
         override
@@ -42,7 +62,7 @@ contract OrderReactor is BaseReactor {
             ExclusivityOverrideLib.applyOverride(outAmount, cosignedOrder.order.executor, cosignedOrder.order.exclusivity);
     }
 
-    function _prepare(OrderLib.CosignedOrder memory cosignedOrder, bytes32 orderHash) internal override {
+    function _handleInputTokens(OrderLib.CosignedOrder memory cosignedOrder, bytes32 orderHash) internal override {
         // Transfer input tokens via RePermit
         RePermit(address(repermit)).repermitWitnessTransferFrom(
             RePermitLib.RePermitTransferFrom(
@@ -56,17 +76,5 @@ contract OrderReactor is BaseReactor {
             OrderLib.WITNESS_TYPE_SUFFIX,
             cosignedOrder.signature
         );
-    }
-
-    function _fill(OrderLib.CosignedOrder memory cosignedOrder, uint256 resolvedAmountOut, bytes32 orderHash) internal override {
-        // Transfer output token to recipient
-        TokenLib.transfer(cosignedOrder.order.output.token, cosignedOrder.order.output.recipient, resolvedAmountOut);
-
-        emit Fill(orderHash, msg.sender, cosignedOrder.order.info.swapper, cosignedOrder.order.info.nonce);
-
-        // Refund any remaining ETH to the filler
-        if (address(this).balance > 0) {
-            TokenLib.transfer(address(0), msg.sender, address(this).balance);
-        }
     }
 }
