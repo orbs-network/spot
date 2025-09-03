@@ -8,12 +8,11 @@ library ExclusivityOverrideLib {
     using Math for uint256;
 
     error InvalidSender();
-
-    function applyOverride(uint256 minOut, address exclusiveExecutor, uint32 exclusivityBps)
-        internal
-        view
-        returns (uint256)
-    {
+    function applyOverride(
+        uint256 minOut,
+        address exclusiveExecutor,
+        uint32 exclusivityBps
+    ) internal view returns (uint256) {
         if (msg.sender != exclusiveExecutor && exclusivityBps == 0) revert InvalidSender();
         if (msg.sender == exclusiveExecutor) return minOut;
         uint256 bps = Constants.BPS + uint256(exclusivityBps);

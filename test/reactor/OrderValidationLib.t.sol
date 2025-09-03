@@ -72,6 +72,7 @@ contract OrderValidationLibTest is Test {
         this.callValidate(o);
     }
 
+
     function test_validate_allows_override_when_exclusivity_set() public {
         OrderLib.Order memory o = _baseOrder();
         o.exclusivity = 100; // 1%
