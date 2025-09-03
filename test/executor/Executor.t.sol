@@ -6,6 +6,7 @@ import "forge-std/Test.sol";
 import {BaseTest} from "test/base/BaseTest.sol";
 
 import {Executor} from "src/executor/Executor.sol";
+import {SettlementLib} from "src/executor/lib/SettlementLib.sol";
 // no multicall usage
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -70,7 +71,7 @@ contract ExecutorTest is BaseTest {
         co.order.slippage = 0;
         co.order.input = OrderLib.Input({token: address(token), amount: 0, maxAmount: 0});
         co.order.output = OrderLib.Output({token: address(token), amount: 0, maxAmount: 0, recipient: signer});
-        Executor.Execution memory ex = Executor.Execution({
+        SettlementLib.Execution memory ex = SettlementLib.Execution({
             fee: OutputToken({token: address(0), amount: 0, recipient: address(0)}),
             minAmountOut: 0,
             data: hex""
@@ -85,7 +86,7 @@ contract ExecutorTest is BaseTest {
             keccak256(
                 abi.encode(
                     address(adapter),
-                    Executor.Execution({
+                    SettlementLib.Execution({
                         fee: OutputToken({token: address(0), amount: 0, recipient: address(0)}),
                         minAmountOut: 0,
                         data: hex""
@@ -113,7 +114,7 @@ contract ExecutorTest is BaseTest {
         co.order.slippage = 0;
         co.order.input = OrderLib.Input({token: address(token), amount: 0, maxAmount: 0});
         co.order.output = OrderLib.Output({token: address(token), amount: 0, maxAmount: 0, recipient: signer});
-        Executor.Execution memory ex = Executor.Execution({
+        SettlementLib.Execution memory ex = SettlementLib.Execution({
             fee: OutputToken({token: address(0), amount: 0, recipient: address(0)}),
             minAmountOut: 0,
             data: hex""
@@ -131,7 +132,7 @@ contract ExecutorTest is BaseTest {
             ros,
             abi.encode(
                 address(adapter),
-                Executor.Execution({
+                SettlementLib.Execution({
                     fee: OutputToken({token: address(0), amount: 0, recipient: address(0)}),
                     minAmountOut: 0,
                     data: hex""
@@ -153,7 +154,7 @@ contract ExecutorTest is BaseTest {
             ros,
             abi.encode(
                 address(adapter),
-                Executor.Execution({
+                SettlementLib.Execution({
                     fee: OutputToken({token: address(0), amount: 0, recipient: address(0)}),
                     minAmountOut: 0,
                     data: hex""
@@ -189,7 +190,7 @@ contract ExecutorTest is BaseTest {
             ros,
             abi.encode(
                 address(adapter),
-                Executor.Execution({
+                SettlementLib.Execution({
                     fee: OutputToken({token: address(0), amount: 0, recipient: address(0)}),
                     minAmountOut: 0,
                     data: hex""
@@ -214,7 +215,7 @@ contract ExecutorTest is BaseTest {
             ros,
             abi.encode(
                 address(adapter),
-                Executor.Execution({
+                SettlementLib.Execution({
                     fee: OutputToken({token: address(0), amount: 0, recipient: address(0)}),
                     minAmountOut: 0,
                     data: hex""
@@ -247,7 +248,7 @@ contract ExecutorTest is BaseTest {
             ros,
             abi.encode(
                 address(adapter),
-                Executor.Execution({
+                SettlementLib.Execution({
                     fee: OutputToken({token: address(0), amount: 0, recipient: address(0)}),
                     minAmountOut: 0,
                     data: hex""
@@ -273,7 +274,7 @@ contract ExecutorTest is BaseTest {
             ros,
             abi.encode(
                 address(adapter),
-                Executor.Execution({
+                SettlementLib.Execution({
                     fee: OutputToken({token: address(0), amount: 0, recipient: address(0)}),
                     minAmountOut: 0,
                     data: hex""
@@ -295,7 +296,7 @@ contract ExecutorTest is BaseTest {
             ros,
             abi.encode(
                 address(adapter),
-                Executor.Execution({
+                SettlementLib.Execution({
                     fee: OutputToken({token: address(0), amount: 0, recipient: address(0)}),
                     minAmountOut: 600,
                     data: hex""
@@ -327,7 +328,7 @@ contract ExecutorTest is BaseTest {
         _mint(address(tokenOut), address(exec), 1000);
         _mint(address(token), address(exec), 200);
 
-        Executor.Execution memory ex2 = Executor.Execution({
+        SettlementLib.Execution memory ex2 = SettlementLib.Execution({
             fee: OutputToken({token: address(0), amount: 0, recipient: address(0)}),
             minAmountOut: 600,
             data: hex""
@@ -405,7 +406,7 @@ contract ExecutorTest is BaseTest {
         co.order.input = OrderLib.Input({token: address(token), amount: 0, maxAmount: 0});
         co.order.output = OrderLib.Output({token: address(token), amount: 0, maxAmount: 0, recipient: signer});
 
-        Executor.Execution memory ex = Executor.Execution({
+        SettlementLib.Execution memory ex = SettlementLib.Execution({
             fee: OutputToken({token: gasFeeToken, amount: gasFeeAmount, recipient: gasFeeRecipient}),
             minAmountOut: 0,
             data: hex""

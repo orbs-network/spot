@@ -8,9 +8,9 @@ import {ResolvedOrder, SignedOrder, OutputToken} from "src/lib/uniswapx/base/Rea
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {IWM} from "src/interface/IWM.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
-import {TokenLib} from "src/executor/lib/TokenLib.sol";
 import {SurplusLib} from "src/executor/lib/SurplusLib.sol";
 import {IExchangeAdapter} from "src/interface/IExchangeAdapter.sol";
+import {SettlementLib} from "src/executor/lib/SettlementLib.sol";
 
 contract Executor is IReactorCallback, IValidationCallback {
     error InvalidSender();
@@ -44,13 +44,7 @@ contract Executor is IReactorCallback, IValidationCallback {
         _;
     }
 
-    struct Execution {
-        OutputToken fee;
-        uint256 minAmountOut;
-        bytes data;
-    }
-
-    function execute(OrderLib.CosignedOrder calldata co, Execution calldata x) external onlyAllowed {
+    function execute(OrderLib.CosignedOrder calldata co, SettlementLib.Execution calldata x) external onlyAllowed {
         SignedOrder memory so;
         so.order = abi.encode(co);
         so.sig = co.signature;
@@ -66,38 +60,26 @@ contract Executor is IReactorCallback, IValidationCallback {
 
     function reactorCallback(ResolvedOrder[] memory orders, bytes memory callbackData) external override onlyReactor {
         if (orders.length != 1) revert InvalidOrder();
-        (address exchange, Execution memory x) = abi.decode(callbackData, (address, Execution));
+        (address exchange, SettlementLib.Execution memory x) = abi.decode(callbackData, (address, SettlementLib.Execution));
         Address.functionDelegateCall(
             exchange, abi.encodeWithSelector(IExchangeAdapter.swap.selector, orders[0], x.data)
         );
-        _settle(orders[0], x.minAmountOut, exchange, x.fee);
+        _settle(orders[0], x, exchange);
     }
 
-    function _settle(ResolvedOrder memory order, uint256 minAmountOut, address exchange, OutputToken memory fee)
+    function _settle(ResolvedOrder memory order, SettlementLib.Execution memory execution, address exchange)
         private
     {
-        if (order.outputs.length != 1) revert InvalidOrder();
-        address outToken = address(order.outputs[0].token);
-        uint256 outAmount = order.outputs[0].amount;
-        address recipient = order.outputs[0].recipient;
-        TokenLib.prepareFor(outToken, reactor, outAmount);
-        if (minAmountOut > outAmount) {
-            TokenLib.transfer(outToken, recipient, minAmountOut - outAmount);
-        }
-
-        // Send gas fee to specified recipient if amount > 0
-        if (fee.amount > 0) {
-            TokenLib.transfer(fee.token, fee.recipient, fee.amount);
-        }
+        SettlementLib.SettlementResult memory result = SettlementLib.settle(order, execution, reactor);
 
         emit Settled(
-            order.hash,
-            order.info.swapper,
+            result.orderHash,
+            result.swapper,
             exchange,
-            address(order.input.token),
-            outToken,
-            order.input.amount,
-            outAmount
+            result.inToken,
+            result.outToken,
+            result.inAmount,
+            result.outAmount
         );
     }
 
