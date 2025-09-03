@@ -83,6 +83,8 @@ Repo Map
 - `src/reactor`: Order validation, epoch/slippage/price resolution.
 - `src/repermit`: Witnessed Permit2-style spending (EIP-712).
 - `src/executor`: Multicall-based swap executors and callbacks.
+- `src/interface`: Interface definitions (IEIP712, IWM, IExchangeAdapter).
+- `src/lib`: External libraries including UniswapX components.
 - `src`: `WM.sol` (allowlist), `Refinery.sol` (ops tools).
 
 Glossary
