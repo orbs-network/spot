@@ -51,30 +51,6 @@ contract SimpleRouter {
         amounts[0] = amountIn;
         amounts[1] = amountOut;
     }
-
-    function swapExactETHForTokens(uint256 amountOutMin, address[] calldata path, address to, uint256 /* deadline */ )
-        external
-        payable
-        returns (uint256[] memory amounts)
-    {
-        require(path.length == 1, "SimpleRouter: invalid path");
-
-        address tokenOut = path[0];
-
-        // Calculate output amount based on exchange rate (ETH = address(0))
-        uint256 rate = exchangeRates[address(0)][tokenOut];
-        require(rate > 0, "SimpleRouter: no rate set");
-
-        uint256 amountOut = (msg.value * rate) / 1e18;
-        require(amountOut >= amountOutMin, "SimpleRouter: insufficient output amount");
-
-        // Mint output tokens to recipient (simulate swap)
-        ERC20Mock(tokenOut).mint(to, amountOut);
-
-        amounts = new uint256[](2);
-        amounts[0] = msg.value;
-        amounts[1] = amountOut;
-    }
 }
 
 contract DefaultDexAdapterIntegrationTest is BaseTest {
@@ -94,8 +70,8 @@ contract DefaultDexAdapterIntegrationTest is BaseTest {
 
         reactor = new MockReactor();
         exec = new Executor(address(reactor), wm);
-        adapter = new DefaultDexAdapter();
         router = new SimpleRouter();
+        adapter = new DefaultDexAdapter(address(router));
 
         tokenA = new ERC20Mock();
         tokenB = new ERC20Mock();
@@ -140,7 +116,7 @@ contract DefaultDexAdapterIntegrationTest is BaseTest {
         path[0] = address(tokenA);
         path[1] = address(tokenB);
 
-        bytes memory swapCall = abi.encodeWithSelector(
+        bytes memory data = abi.encodeWithSelector(
             SimpleRouter.swapExactTokensForTokens.selector,
             1000e18, // amountIn
             1800e18, // amountOutMin
@@ -149,7 +125,7 @@ contract DefaultDexAdapterIntegrationTest is BaseTest {
             block.timestamp + 1000
         );
 
-        Executor.Execution memory execution = Executor.Execution({minAmountOut: 1800e18, data: abi.encode(address(router), swapCall)});
+        Executor.Execution memory execution = Executor.Execution({minAmountOut: 1800e18, data: data});
 
         bytes memory callbackData = abi.encode(address(adapter), execution);
 
@@ -173,65 +149,8 @@ contract DefaultDexAdapterIntegrationTest is BaseTest {
         );
     }
 
-    function test_integration_ETH_swap_via_executor() public {
-        // Create a resolved order for ETH -> Token
-        ResolvedOrder[] memory orders = new ResolvedOrder[](1);
-        orders[0] = ResolvedOrder({
-            info: OrderInfo({
-                reactor: address(reactor),
-                swapper: swapper,
-                nonce: 1,
-                deadline: block.timestamp + 1000,
-                additionalValidationContract: IValidationCallback(address(0)),
-                additionalValidationData: ""
-            }),
-            input: InputToken({
-                token: address(0), // ETH
-                amount: 1 ether,
-                maxAmount: 1 ether
-            }),
-            outputs: new OutputToken[](1),
-            sig: "",
-            hash: bytes32(0)
-        });
-
-        orders[0].outputs[0] = OutputToken({
-            token: address(tokenB),
-            amount: 900e18, // expect at least 900 tokenB
-            recipient: recipient
-        });
-
-        // Prepare ETH swap parameters
-        address[] memory path = new address[](1);
-        path[0] = address(tokenB);
-
-        bytes memory swapCall = abi.encodeWithSelector(
-            SimpleRouter.swapExactETHForTokens.selector,
-            900e18, // amountOutMin
-            path,
-            recipient,
-            block.timestamp + 1000
-        );
-
-        Executor.Execution memory execution = Executor.Execution({minAmountOut: 900e18, data: abi.encode(address(router), swapCall)});
-
-        bytes memory callbackData = abi.encode(address(adapter), execution);
-
-        // Check initial balances
-        uint256 initialETH = address(exec).balance;
-        uint256 initialTokenB = tokenB.balanceOf(recipient);
-
-        // Execute the callback
-        vm.prank(address(reactor));
-        exec.reactorCallback(orders, callbackData);
-
-        // Verify the swap occurred
-        assertEq(address(exec).balance, initialETH - 1 ether, "ETH should be spent");
-        assertEq(tokenB.balanceOf(recipient), initialTokenB + 1000e18, "Output tokens should be received");
-    }
-
-    function test_integration_adapter_resets_approval() public {
-        // Test that approvals are reset to 0 after swap for security
+    function test_integration_adapter_approval_consumed() public {
+        // Test that approvals are consumed after swap (normal behavior)
         ResolvedOrder[] memory orders = new ResolvedOrder[](1);
         orders[0] = ResolvedOrder({
             info: OrderInfo({
@@ -250,7 +169,7 @@ contract DefaultDexAdapterIntegrationTest is BaseTest {
 
         orders[0].outputs[0] = OutputToken({token: address(tokenB), amount: 180e18, recipient: recipient});
 
-        // Pre-set a non-zero allowance to verify it gets reset
+        // Pre-set a non-zero allowance to verify it doesn't interfere
         vm.prank(address(exec));
         tokenA.approve(address(router), 999);
         assertEq(tokenA.allowance(address(exec), address(router)), 999, "Pre-condition: non-zero allowance");
@@ -259,18 +178,18 @@ contract DefaultDexAdapterIntegrationTest is BaseTest {
         path[0] = address(tokenA);
         path[1] = address(tokenB);
 
-        bytes memory swapCall = abi.encodeWithSelector(
+        bytes memory data = abi.encodeWithSelector(
             SimpleRouter.swapExactTokensForTokens.selector, 100e18, 180e18, path, recipient, block.timestamp + 1000
         );
 
-        Executor.Execution memory execution = Executor.Execution({minAmountOut: 180e18, data: abi.encode(address(router), swapCall)});
+        Executor.Execution memory execution = Executor.Execution({minAmountOut: 180e18, data: data});
 
         bytes memory callbackData = abi.encode(address(adapter), execution);
 
         vm.prank(address(reactor));
         exec.reactorCallback(orders, callbackData);
 
-        // Verify approval was reset to 0
-        assertEq(tokenA.allowance(address(exec), address(router)), 0, "Approval should be reset to 0");
+        // Verify approval was consumed (set to 0 after swap)
+        assertEq(tokenA.allowance(address(exec), address(router)), 0, "Approval should be consumed after swap");
     }
 }

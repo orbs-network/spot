@@ -16,30 +16,24 @@ import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 contract DefaultDexAdapter is IExchangeAdapter {
     using SafeERC20 for IERC20;
 
+    address public immutable router;
+
+    constructor(address _router) {
+        router = _router;
+    }
+
     /**
      * @notice Executes a token swap through a DEX router
      * @param order The resolved order containing input/output token information
-     * @param data ABI-encoded router address and call data: abi.encode(router, callData)
+     * @param data Call data to pass directly to the router
      */
     function swap(ResolvedOrder memory order, bytes calldata data) external override {
-        (address router, bytes memory callData) = abi.decode(data, (address, bytes));
-
         address inputToken = address(order.input.token);
         uint256 inputAmount = order.input.amount;
-
-        // Handle ETH input - no approval needed
-        if (inputToken == address(0)) {
-            // For ETH swaps, call router with value
-            Address.functionCallWithValue(router, callData, inputAmount);
-            return;
-        }
 
         // For ERC20 tokens, approve router then call swap
         IERC20(inputToken).forceApprove(router, inputAmount);
 
-        Address.functionCall(router, callData);
-
-        // Reset approval to 0 for security (USDT-safe)
-        IERC20(inputToken).forceApprove(router, 0);
+        Address.functionCall(router, data);
     }
 }
