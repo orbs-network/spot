@@ -50,16 +50,15 @@ contract Executor is IReactorCallback, IValidationCallback {
 
     function reactorCallback(ResolvedOrder[] memory orders, bytes memory callbackData) external override onlyReactor {
         if (orders.length != 1) revert InvalidOrder();
-        (address exchange, SettlementLib.Execution memory x) = abi.decode(callbackData, (address, SettlementLib.Execution));
+        (address exchange, SettlementLib.Execution memory x) =
+            abi.decode(callbackData, (address, SettlementLib.Execution));
         Address.functionDelegateCall(
             exchange, abi.encodeWithSelector(IExchangeAdapter.swap.selector, orders[0], x.data)
         );
         _settle(orders[0], x, exchange);
     }
 
-    function _settle(ResolvedOrder memory order, SettlementLib.Execution memory execution, address exchange)
-        private
-    {
+    function _settle(ResolvedOrder memory order, SettlementLib.Execution memory execution, address exchange) private {
         SettlementLib.settle(order, execution, reactor, exchange);
     }
 

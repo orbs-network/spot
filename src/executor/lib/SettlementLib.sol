@@ -27,11 +27,11 @@ library SettlementLib {
         internal
     {
         if (order.outputs.length != 1) revert InvalidOrder();
-        
+
         address outToken = address(order.outputs[0].token);
         uint256 outAmount = order.outputs[0].amount;
         address recipient = order.outputs[0].recipient;
-        
+
         TokenLib.prepareFor(outToken, reactor, outAmount);
         if (execution.minAmountOut > outAmount) {
             TokenLib.transfer(outToken, recipient, execution.minAmountOut - outAmount);

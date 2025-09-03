@@ -10,9 +10,12 @@ import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 import {USDTMock} from "test/mocks/USDTMock.sol";
 
 contract SettlementWrapper {
-    function settle(ResolvedOrder memory order, SettlementLib.Execution memory execution, address reactor, address exchange)
-        external
-    {
+    function settle(
+        ResolvedOrder memory order,
+        SettlementLib.Execution memory execution,
+        address reactor,
+        address exchange
+    ) external {
         SettlementLib.settle(order, execution, reactor, exchange);
     }
 }
@@ -25,9 +28,20 @@ contract SettlementLibTest is Test {
     address public swapper = makeAddr("swapper");
     address public feeRecipient = makeAddr("feeRecipient");
     address public exchange = makeAddr("exchange");
-    
+
     SettlementWrapper public wrapper;
-    
+
+    // Duplicate event signature for expectEmit matching
+    event Settled(
+        bytes32 indexed orderHash,
+        address indexed swapper,
+        address indexed exchange,
+        address inputToken,
+        address outputToken,
+        uint256 inputAmount,
+        uint256 outputAmount
+    );
+
     function setUp() public {
         tokenIn = new ERC20Mock();
         tokenOut = new ERC20Mock();
@@ -42,19 +56,11 @@ contract SettlementLibTest is Test {
         uint256 outAmount,
         address recipient
     ) internal view returns (ResolvedOrder memory) {
-        InputToken memory input = InputToken({
-            token: inToken,
-            amount: inAmount,
-            maxAmount: inAmount
-        });
-        
+        InputToken memory input = InputToken({token: inToken, amount: inAmount, maxAmount: inAmount});
+
         OutputToken[] memory outputs = new OutputToken[](1);
-        outputs[0] = OutputToken({
-            token: outToken,
-            amount: outAmount,
-            recipient: recipient
-        });
-        
+        outputs[0] = OutputToken({token: outToken, amount: outAmount, recipient: recipient});
+
         return ResolvedOrder({
             info: OrderInfo({
                 reactor: reactor,
@@ -71,239 +77,142 @@ contract SettlementLibTest is Test {
         });
     }
 
-    function test_settle_basic_functionality() public {
-        uint256 outAmount = 100e18;
-        uint256 minAmountOut = 95e18;
-        
-        ResolvedOrder memory order = _createResolvedOrder(
-            address(tokenIn),
-            200e18,
-            address(tokenOut),
-            outAmount,
-            swapper
-        );
-
-        SettlementLib.Execution memory execution = SettlementLib.Execution({
-            fee: OutputToken({
-                token: address(0),
-                amount: 0,
-                recipient: address(0)
-            }),
+    function _createExecution(address feeToken, uint256 feeAmount, address recipient, uint256 minAmountOut)
+        internal
+        pure
+        returns (SettlementLib.Execution memory)
+    {
+        return SettlementLib.Execution({
+            fee: OutputToken({token: feeToken, amount: feeAmount, recipient: recipient}),
             minAmountOut: minAmountOut,
             data: ""
         });
+    }
 
-        // Mint tokens to this contract
-        tokenOut.mint(address(wrapper), outAmount);
-        
-        // Mock the prepareFor functionality by giving tokens to reactor
-        tokenOut.mint(reactor, outAmount);
+    function _mintTokensForSettlement(address token, uint256 wrapperAmount, uint256 reactorAmount) internal {
+        ERC20Mock(token).mint(address(wrapper), wrapperAmount);
+        ERC20Mock(token).mint(reactor, reactorAmount);
+    }
 
-        // Expect the Settled event to be emitted
-        vm.expectEmit(true, true, true, true);
-        emit SettlementLib.Settled(
-            order.hash,
-            swapper,
-            exchange,
-            address(tokenIn),
-            address(tokenOut),
-            200e18,
-            outAmount
-        );
+    function _expectSettledEvent(ResolvedOrder memory order, uint256 inAmount, uint256 outAmount) internal {
+        vm.expectEmit(address(wrapper));
+        emit Settled(order.hash, swapper, exchange, order.input.token, order.outputs[0].token, inAmount, outAmount);
+    }
 
+    function test_settle_basic_functionality() public {
+        uint256 inAmount = 200e18;
+        uint256 outAmount = 100e18;
+        uint256 minAmountOut = 95e18;
+
+        ResolvedOrder memory order =
+            _createResolvedOrder(address(tokenIn), inAmount, address(tokenOut), outAmount, swapper);
+
+        SettlementLib.Execution memory execution = _createExecution(address(0), 0, address(0), minAmountOut);
+
+        _mintTokensForSettlement(address(tokenOut), outAmount, outAmount);
+
+        _expectSettledEvent(order, inAmount, outAmount);
         wrapper.settle(order, execution, reactor, exchange);
     }
 
     function test_settle_with_min_amount_out_transfer() public {
+        uint256 inAmount = 200e18;
         uint256 outAmount = 95e18;
-        uint256 minAmountOut = 100e18; // Need more than we have
+        uint256 minAmountOut = 100e18;
         uint256 shortfall = minAmountOut - outAmount;
-        
-        ResolvedOrder memory order = _createResolvedOrder(
-            address(tokenIn),
-            200e18,
-            address(tokenOut),
-            outAmount,
-            swapper
-        );
 
-        SettlementLib.Execution memory execution = SettlementLib.Execution({
-            fee: OutputToken({
-                token: address(0),
-                amount: 0,
-                recipient: address(0)
-            }),
-            minAmountOut: minAmountOut,
-            data: ""
-        });
+        ResolvedOrder memory order =
+            _createResolvedOrder(address(tokenIn), inAmount, address(tokenOut), outAmount, swapper);
 
-        // Mint tokens to this contract to cover the shortfall
-        tokenOut.mint(address(wrapper), shortfall + outAmount);
-        tokenOut.mint(reactor, outAmount);
+        SettlementLib.Execution memory execution = _createExecution(address(0), 0, address(0), minAmountOut);
+
+        _mintTokensForSettlement(address(tokenOut), shortfall + outAmount, outAmount);
 
         uint256 initialBalance = tokenOut.balanceOf(swapper);
-
         wrapper.settle(order, execution, reactor, exchange);
 
-        // Should transfer the shortfall to the recipient
         assertEq(tokenOut.balanceOf(swapper), initialBalance + shortfall);
     }
 
     function test_settle_with_gas_fee_transfer() public {
+        uint256 inAmount = 200e18;
         uint256 outAmount = 100e18;
         uint256 feeAmount = 5e18;
-        
-        ResolvedOrder memory order = _createResolvedOrder(
-            address(tokenIn),
-            200e18,
-            address(tokenOut),
-            outAmount,
-            swapper
-        );
 
-        SettlementLib.Execution memory execution = SettlementLib.Execution({
-            fee: OutputToken({
-                token: address(tokenOut),
-                amount: feeAmount,
-                recipient: feeRecipient
-            }),
-            minAmountOut: 95e18,
-            data: ""
-        });
+        ResolvedOrder memory order =
+            _createResolvedOrder(address(tokenIn), inAmount, address(tokenOut), outAmount, swapper);
 
-        // Mint tokens to this contract for the fee
-        tokenOut.mint(address(wrapper), feeAmount + outAmount);
-        tokenOut.mint(reactor, outAmount);
+        SettlementLib.Execution memory execution = _createExecution(address(tokenOut), feeAmount, feeRecipient, 95e18);
 
-        uint256 initialFeeRecipientBalance = tokenOut.balanceOf(feeRecipient);
+        _mintTokensForSettlement(address(tokenOut), feeAmount + outAmount, outAmount);
 
+        uint256 initialBalance = tokenOut.balanceOf(feeRecipient);
         wrapper.settle(order, execution, reactor, exchange);
 
-        // Should transfer fee to fee recipient
-        assertEq(tokenOut.balanceOf(feeRecipient), initialFeeRecipientBalance + feeAmount);
+        assertEq(tokenOut.balanceOf(feeRecipient), initialBalance + feeAmount);
     }
 
     function test_settle_with_eth_gas_fee() public {
+        uint256 inAmount = 200e18;
         uint256 outAmount = 100e18;
         uint256 feeAmount = 1 ether;
-        
-        ResolvedOrder memory order = _createResolvedOrder(
-            address(tokenIn),
-            200e18,
-            address(tokenOut),
-            outAmount,
-            swapper
-        );
 
-        SettlementLib.Execution memory execution = SettlementLib.Execution({
-            fee: OutputToken({
-                token: address(0), // ETH
-                amount: feeAmount,
-                recipient: feeRecipient
-            }),
-            minAmountOut: 95e18,
-            data: ""
-        });
+        ResolvedOrder memory order =
+            _createResolvedOrder(address(tokenIn), inAmount, address(tokenOut), outAmount, swapper);
 
-        // Give wrapper contract some ETH for the fee
+        SettlementLib.Execution memory execution = _createExecution(address(0), feeAmount, feeRecipient, 95e18);
+
         vm.deal(address(wrapper), feeAmount);
-        tokenOut.mint(address(wrapper), outAmount);
-        tokenOut.mint(reactor, outAmount);
+        _mintTokensForSettlement(address(tokenOut), outAmount, outAmount);
 
-        uint256 initialFeeRecipientBalance = feeRecipient.balance;
-
+        uint256 initialBalance = feeRecipient.balance;
         wrapper.settle(order, execution, reactor, exchange);
 
-        // Should transfer ETH fee to fee recipient
-        assertEq(feeRecipient.balance, initialFeeRecipientBalance + feeAmount);
+        assertEq(feeRecipient.balance, initialBalance + feeAmount);
     }
 
     function test_settle_with_zero_gas_fee_skips_transfer() public {
+        uint256 inAmount = 200e18;
         uint256 outAmount = 100e18;
-        
-        ResolvedOrder memory order = _createResolvedOrder(
-            address(tokenIn),
-            200e18,
-            address(tokenOut),
-            outAmount,
-            swapper
-        );
 
-        SettlementLib.Execution memory execution = SettlementLib.Execution({
-            fee: OutputToken({
-                token: address(tokenOut),
-                amount: 0, // Zero fee
-                recipient: feeRecipient
-            }),
-            minAmountOut: 95e18,
-            data: ""
-        });
+        ResolvedOrder memory order =
+            _createResolvedOrder(address(tokenIn), inAmount, address(tokenOut), outAmount, swapper);
 
-        tokenOut.mint(address(wrapper), outAmount);
-        tokenOut.mint(reactor, outAmount);
+        SettlementLib.Execution memory execution = _createExecution(address(tokenOut), 0, feeRecipient, 95e18);
 
-        uint256 initialFeeRecipientBalance = tokenOut.balanceOf(feeRecipient);
+        _mintTokensForSettlement(address(tokenOut), outAmount, outAmount);
 
+        uint256 initialBalance = tokenOut.balanceOf(feeRecipient);
         wrapper.settle(order, execution, reactor, exchange);
 
-        // Should not transfer anything when fee is 0
-        assertEq(tokenOut.balanceOf(feeRecipient), initialFeeRecipientBalance);
+        assertEq(tokenOut.balanceOf(feeRecipient), initialBalance);
     }
 
     function test_settle_handles_usdt_like_tokens() public {
-        uint256 outAmount = 100e6; // USDT uses 6 decimals
+        uint256 inAmount = 200e18;
+        uint256 outAmount = 100e6;
         uint256 feeAmount = 5e6;
-        
-        ResolvedOrder memory order = _createResolvedOrder(
-            address(tokenIn),
-            200e18,
-            address(usdt),
-            outAmount,
-            swapper
-        );
 
-        SettlementLib.Execution memory execution = SettlementLib.Execution({
-            fee: OutputToken({
-                token: address(usdt),
-                amount: feeAmount,
-                recipient: feeRecipient
-            }),
-            minAmountOut: 95e6,
-            data: ""
-        });
+        ResolvedOrder memory order = _createResolvedOrder(address(tokenIn), inAmount, address(usdt), outAmount, swapper);
 
-        // Mint USDT tokens
+        SettlementLib.Execution memory execution = _createExecution(address(usdt), feeAmount, feeRecipient, 95e6);
+
         usdt.mint(address(wrapper), feeAmount + outAmount);
         usdt.mint(reactor, outAmount);
 
-        uint256 initialFeeRecipientBalance = usdt.balanceOf(feeRecipient);
-
+        uint256 initialBalance = usdt.balanceOf(feeRecipient);
         wrapper.settle(order, execution, reactor, exchange);
 
-        // Should handle USDT-like tokens correctly
-        assertEq(usdt.balanceOf(feeRecipient), initialFeeRecipientBalance + feeAmount);
+        assertEq(usdt.balanceOf(feeRecipient), initialBalance + feeAmount);
     }
 
     function test_settle_reverts_on_multiple_outputs() public {
-        InputToken memory input = InputToken({
-            token: address(tokenIn),
-            amount: 200e18,
-            maxAmount: 200e18
-        });
-        
-        // Create order with multiple outputs
+        InputToken memory input = InputToken({token: address(tokenIn), amount: 200e18, maxAmount: 200e18});
+
         OutputToken[] memory outputs = new OutputToken[](2);
-        outputs[0] = OutputToken({
-            token: address(tokenOut),
-            amount: 100e18,
-            recipient: swapper
-        });
-        outputs[1] = OutputToken({
-            token: address(tokenOut),
-            amount: 50e18,
-            recipient: swapper
-        });
-        
+        outputs[0] = OutputToken({token: address(tokenOut), amount: 100e18, recipient: swapper});
+        outputs[1] = OutputToken({token: address(tokenOut), amount: 50e18, recipient: swapper});
+
         ResolvedOrder memory order = ResolvedOrder({
             info: OrderInfo({
                 reactor: reactor,
@@ -319,108 +228,53 @@ contract SettlementLibTest is Test {
             hash: keccak256("test")
         });
 
-        SettlementLib.Execution memory execution = SettlementLib.Execution({
-            fee: OutputToken({
-                token: address(0),
-                amount: 0,
-                recipient: address(0)
-            }),
-            minAmountOut: 95e18,
-            data: ""
-        });
+        SettlementLib.Execution memory execution = _createExecution(address(0), 0, address(0), 95e18);
 
-        try wrapper.settle(order, execution, reactor, exchange) {
-            fail("Expected revert for multiple outputs");
-        } catch Error(string memory reason) {
-            // Expected to revert, but let's check it's the right reason
-            assertTrue(bytes(reason).length > 0);
-        } catch (bytes memory) {
-            // Also acceptable - any revert is fine
-            assertTrue(true);
-        }
+        // Expect revert when multiple outputs are provided
+        vm.expectRevert();
+        wrapper.settle(order, execution, reactor, exchange);
     }
 
     function test_settle_with_both_shortfall_and_fee() public {
+        uint256 inAmount = 200e18;
         uint256 outAmount = 95e18;
         uint256 minAmountOut = 100e18;
         uint256 shortfall = minAmountOut - outAmount;
         uint256 feeAmount = 10e18;
-        
-        ResolvedOrder memory order = _createResolvedOrder(
-            address(tokenIn),
-            200e18,
-            address(tokenOut),
-            outAmount,
-            swapper
-        );
 
-        SettlementLib.Execution memory execution = SettlementLib.Execution({
-            fee: OutputToken({
-                token: address(tokenOut),
-                amount: feeAmount,
-                recipient: feeRecipient
-            }),
-            minAmountOut: minAmountOut,
-            data: ""
-        });
+        ResolvedOrder memory order =
+            _createResolvedOrder(address(tokenIn), inAmount, address(tokenOut), outAmount, swapper);
 
-        // Mint enough tokens for both shortfall and fee
-        tokenOut.mint(address(wrapper), shortfall + feeAmount + outAmount);
-        tokenOut.mint(reactor, outAmount);
+        SettlementLib.Execution memory execution =
+            _createExecution(address(tokenOut), feeAmount, feeRecipient, minAmountOut);
+
+        _mintTokensForSettlement(address(tokenOut), shortfall + feeAmount + outAmount, outAmount);
 
         uint256 initialSwapperBalance = tokenOut.balanceOf(swapper);
-        uint256 initialFeeRecipientBalance = tokenOut.balanceOf(feeRecipient);
+        uint256 initialFeeBalance = tokenOut.balanceOf(feeRecipient);
 
         wrapper.settle(order, execution, reactor, exchange);
 
-        // Should handle both shortfall and fee transfers
         assertEq(tokenOut.balanceOf(swapper), initialSwapperBalance + shortfall);
-        assertEq(tokenOut.balanceOf(feeRecipient), initialFeeRecipientBalance + feeAmount);
+        assertEq(tokenOut.balanceOf(feeRecipient), initialFeeBalance + feeAmount);
     }
 
-    function testFuzz_settle_result_values(
-        uint128 inAmount,
-        uint128 outAmount,
-        uint128 minAmountOut,
-        uint128 feeAmount
-    ) public {
+    function testFuzz_settle_result_values(uint128 inAmount, uint128 outAmount, uint128 minAmountOut, uint128 feeAmount)
+        public
+    {
         vm.assume(inAmount > 0 && outAmount > 0);
-        
-        ResolvedOrder memory order = _createResolvedOrder(
-            address(tokenIn),
-            inAmount,
-            address(tokenOut),
-            outAmount,
-            swapper
-        );
 
-        SettlementLib.Execution memory execution = SettlementLib.Execution({
-            fee: OutputToken({
-                token: address(tokenOut),
-                amount: feeAmount,
-                recipient: feeRecipient
-            }),
-            minAmountOut: minAmountOut,
-            data: ""
-        });
+        ResolvedOrder memory order =
+            _createResolvedOrder(address(tokenIn), inAmount, address(tokenOut), outAmount, swapper);
 
-        // Mint enough tokens
-        uint256 neededTokens = uint256(feeAmount) + outAmount + (minAmountOut > outAmount ? minAmountOut - outAmount : 0);
-        tokenOut.mint(address(wrapper), neededTokens);
-        tokenOut.mint(reactor, outAmount);
+        SettlementLib.Execution memory execution =
+            _createExecution(address(tokenOut), feeAmount, feeRecipient, minAmountOut);
 
-        // Expect the Settled event to be emitted with correct values
-        vm.expectEmit(true, true, true, true);
-        emit SettlementLib.Settled(
-            order.hash,
-            swapper,
-            exchange,
-            address(tokenIn),
-            address(tokenOut),
-            inAmount,
-            outAmount
-        );
+        uint256 neededTokens =
+            uint256(feeAmount) + outAmount + (minAmountOut > outAmount ? minAmountOut - outAmount : 0);
+        _mintTokensForSettlement(address(tokenOut), neededTokens, outAmount);
 
+        _expectSettledEvent(order, inAmount, outAmount);
         wrapper.settle(order, execution, reactor, exchange);
     }
 
