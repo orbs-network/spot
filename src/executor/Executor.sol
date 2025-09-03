@@ -16,16 +16,6 @@ contract Executor is IReactorCallback, IValidationCallback {
     error InvalidSender();
     error InvalidOrder();
 
-    event Settled(
-        bytes32 indexed orderHash,
-        address indexed swapper,
-        address indexed exchange,
-        address inToken,
-        address outToken,
-        uint256 inAmount,
-        uint256 outAmount
-    );
-
     address public immutable reactor;
     address public immutable allowed;
 
@@ -70,17 +60,7 @@ contract Executor is IReactorCallback, IValidationCallback {
     function _settle(ResolvedOrder memory order, SettlementLib.Execution memory execution, address exchange)
         private
     {
-        SettlementLib.SettlementResult memory result = SettlementLib.settle(order, execution, reactor);
-
-        emit Settled(
-            result.orderHash,
-            result.swapper,
-            exchange,
-            result.inToken,
-            result.outToken,
-            result.inAmount,
-            result.outAmount
-        );
+        SettlementLib.settle(order, execution, reactor, exchange);
     }
 
     function validate(address filler, ResolvedOrder calldata) external view override {

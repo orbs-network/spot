@@ -10,11 +10,10 @@ import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 import {USDTMock} from "test/mocks/USDTMock.sol";
 
 contract SettlementWrapper {
-    function settle(ResolvedOrder memory order, SettlementLib.Execution memory execution, address reactor)
+    function settle(ResolvedOrder memory order, SettlementLib.Execution memory execution, address reactor, address exchange)
         external
-        returns (SettlementLib.SettlementResult memory)
     {
-        return SettlementLib.settle(order, execution, reactor);
+        SettlementLib.settle(order, execution, reactor, exchange);
     }
 }
 
@@ -25,6 +24,7 @@ contract SettlementLibTest is Test {
     address public reactor = makeAddr("reactor");
     address public swapper = makeAddr("swapper");
     address public feeRecipient = makeAddr("feeRecipient");
+    address public exchange = makeAddr("exchange");
     
     SettlementWrapper public wrapper;
     
@@ -94,20 +94,24 @@ contract SettlementLibTest is Test {
         });
 
         // Mint tokens to this contract
-        tokenOut.mint(address(this), outAmount);
+        tokenOut.mint(address(wrapper), outAmount);
         
         // Mock the prepareFor functionality by giving tokens to reactor
         tokenOut.mint(reactor, outAmount);
 
-        SettlementLib.SettlementResult memory result = SettlementLib.settle(order, execution, reactor);
+        // Expect the Settled event to be emitted
+        vm.expectEmit(true, true, true, true);
+        emit SettlementLib.Settled(
+            order.hash,
+            swapper,
+            exchange,
+            address(tokenIn),
+            address(tokenOut),
+            200e18,
+            outAmount
+        );
 
-        // Check return values
-        assertEq(result.orderHash, order.hash);
-        assertEq(result.swapper, swapper);
-        assertEq(result.inToken, address(tokenIn));
-        assertEq(result.outToken, address(tokenOut));
-        assertEq(result.inAmount, 200e18);
-        assertEq(result.outAmount, outAmount);
+        wrapper.settle(order, execution, reactor, exchange);
     }
 
     function test_settle_with_min_amount_out_transfer() public {
@@ -134,12 +138,12 @@ contract SettlementLibTest is Test {
         });
 
         // Mint tokens to this contract to cover the shortfall
-        tokenOut.mint(address(this), shortfall + outAmount);
+        tokenOut.mint(address(wrapper), shortfall + outAmount);
         tokenOut.mint(reactor, outAmount);
 
         uint256 initialBalance = tokenOut.balanceOf(swapper);
 
-        SettlementLib.settle(order, execution, reactor);
+        wrapper.settle(order, execution, reactor, exchange);
 
         // Should transfer the shortfall to the recipient
         assertEq(tokenOut.balanceOf(swapper), initialBalance + shortfall);
@@ -168,12 +172,12 @@ contract SettlementLibTest is Test {
         });
 
         // Mint tokens to this contract for the fee
-        tokenOut.mint(address(this), feeAmount + outAmount);
+        tokenOut.mint(address(wrapper), feeAmount + outAmount);
         tokenOut.mint(reactor, outAmount);
 
         uint256 initialFeeRecipientBalance = tokenOut.balanceOf(feeRecipient);
 
-        SettlementLib.settle(order, execution, reactor);
+        wrapper.settle(order, execution, reactor, exchange);
 
         // Should transfer fee to fee recipient
         assertEq(tokenOut.balanceOf(feeRecipient), initialFeeRecipientBalance + feeAmount);
@@ -201,14 +205,14 @@ contract SettlementLibTest is Test {
             data: ""
         });
 
-        // Give this contract some ETH for the fee
-        vm.deal(address(this), feeAmount);
-        tokenOut.mint(address(this), outAmount);
+        // Give wrapper contract some ETH for the fee
+        vm.deal(address(wrapper), feeAmount);
+        tokenOut.mint(address(wrapper), outAmount);
         tokenOut.mint(reactor, outAmount);
 
         uint256 initialFeeRecipientBalance = feeRecipient.balance;
 
-        SettlementLib.settle(order, execution, reactor);
+        wrapper.settle(order, execution, reactor, exchange);
 
         // Should transfer ETH fee to fee recipient
         assertEq(feeRecipient.balance, initialFeeRecipientBalance + feeAmount);
@@ -235,12 +239,12 @@ contract SettlementLibTest is Test {
             data: ""
         });
 
-        tokenOut.mint(address(this), outAmount);
+        tokenOut.mint(address(wrapper), outAmount);
         tokenOut.mint(reactor, outAmount);
 
         uint256 initialFeeRecipientBalance = tokenOut.balanceOf(feeRecipient);
 
-        SettlementLib.settle(order, execution, reactor);
+        wrapper.settle(order, execution, reactor, exchange);
 
         // Should not transfer anything when fee is 0
         assertEq(tokenOut.balanceOf(feeRecipient), initialFeeRecipientBalance);
@@ -269,12 +273,12 @@ contract SettlementLibTest is Test {
         });
 
         // Mint USDT tokens
-        usdt.mint(address(this), feeAmount + outAmount);
+        usdt.mint(address(wrapper), feeAmount + outAmount);
         usdt.mint(reactor, outAmount);
 
         uint256 initialFeeRecipientBalance = usdt.balanceOf(feeRecipient);
 
-        SettlementLib.settle(order, execution, reactor);
+        wrapper.settle(order, execution, reactor, exchange);
 
         // Should handle USDT-like tokens correctly
         assertEq(usdt.balanceOf(feeRecipient), initialFeeRecipientBalance + feeAmount);
@@ -325,7 +329,7 @@ contract SettlementLibTest is Test {
             data: ""
         });
 
-        try wrapper.settle(order, execution, reactor) {
+        try wrapper.settle(order, execution, reactor, exchange) {
             fail("Expected revert for multiple outputs");
         } catch Error(string memory reason) {
             // Expected to revert, but let's check it's the right reason
@@ -361,13 +365,13 @@ contract SettlementLibTest is Test {
         });
 
         // Mint enough tokens for both shortfall and fee
-        tokenOut.mint(address(this), shortfall + feeAmount + outAmount);
+        tokenOut.mint(address(wrapper), shortfall + feeAmount + outAmount);
         tokenOut.mint(reactor, outAmount);
 
         uint256 initialSwapperBalance = tokenOut.balanceOf(swapper);
         uint256 initialFeeRecipientBalance = tokenOut.balanceOf(feeRecipient);
 
-        SettlementLib.settle(order, execution, reactor);
+        wrapper.settle(order, execution, reactor, exchange);
 
         // Should handle both shortfall and fee transfers
         assertEq(tokenOut.balanceOf(swapper), initialSwapperBalance + shortfall);
@@ -402,18 +406,22 @@ contract SettlementLibTest is Test {
 
         // Mint enough tokens
         uint256 neededTokens = uint256(feeAmount) + outAmount + (minAmountOut > outAmount ? minAmountOut - outAmount : 0);
-        tokenOut.mint(address(this), neededTokens);
+        tokenOut.mint(address(wrapper), neededTokens);
         tokenOut.mint(reactor, outAmount);
 
-        SettlementLib.SettlementResult memory result = SettlementLib.settle(order, execution, reactor);
+        // Expect the Settled event to be emitted with correct values
+        vm.expectEmit(true, true, true, true);
+        emit SettlementLib.Settled(
+            order.hash,
+            swapper,
+            exchange,
+            address(tokenIn),
+            address(tokenOut),
+            inAmount,
+            outAmount
+        );
 
-        // Verify all result fields are correctly set
-        assertEq(result.orderHash, order.hash);
-        assertEq(result.swapper, swapper);
-        assertEq(result.inToken, address(tokenIn));
-        assertEq(result.outToken, address(tokenOut));
-        assertEq(result.inAmount, inAmount);
-        assertEq(result.outAmount, outAmount);
+        wrapper.settle(order, execution, reactor, exchange);
     }
 
     // Helper function to receive ETH

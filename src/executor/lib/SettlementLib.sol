@@ -7,24 +7,24 @@ import {TokenLib} from "src/executor/lib/TokenLib.sol";
 library SettlementLib {
     error InvalidOrder();
 
+    event Settled(
+        bytes32 indexed orderHash,
+        address indexed swapper,
+        address indexed exchange,
+        address inToken,
+        address outToken,
+        uint256 inAmount,
+        uint256 outAmount
+    );
+
     struct Execution {
         OutputToken fee;
         uint256 minAmountOut;
         bytes data;
     }
 
-    struct SettlementResult {
-        bytes32 orderHash;
-        address swapper;
-        address inToken;
-        address outToken;
-        uint256 inAmount;
-        uint256 outAmount;
-    }
-
-    function settle(ResolvedOrder memory order, Execution memory execution, address reactor)
+    function settle(ResolvedOrder memory order, Execution memory execution, address reactor, address exchange)
         internal
-        returns (SettlementResult memory result)
     {
         if (order.outputs.length != 1) revert InvalidOrder();
         
@@ -42,13 +42,14 @@ library SettlementLib {
             TokenLib.transfer(execution.fee.token, execution.fee.recipient, execution.fee.amount);
         }
 
-        result = SettlementResult({
-            orderHash: order.hash,
-            swapper: order.info.swapper,
-            inToken: address(order.input.token),
-            outToken: outToken,
-            inAmount: order.input.amount,
-            outAmount: outAmount
-        });
+        emit Settled(
+            order.hash,
+            order.info.swapper,
+            exchange,
+            address(order.input.token),
+            outToken,
+            order.input.amount,
+            outAmount
+        );
     }
 }
