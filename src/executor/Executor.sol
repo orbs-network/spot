@@ -4,27 +4,17 @@ pragma solidity 0.8.20;
 import {IReactor} from "src/lib/uniswapx/interfaces/IReactor.sol";
 import {IReactorCallback} from "src/lib/uniswapx/interfaces/IReactorCallback.sol";
 import {IValidationCallback} from "src/lib/uniswapx/interfaces/IValidationCallback.sol";
-import {ResolvedOrder, SignedOrder} from "src/lib/uniswapx/base/ReactorStructs.sol";
+import {ResolvedOrder, SignedOrder, OutputToken} from "src/lib/uniswapx/base/ReactorStructs.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {IWM} from "src/interface/IWM.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
-import {TokenLib} from "src/executor/lib/TokenLib.sol";
 import {SurplusLib} from "src/executor/lib/SurplusLib.sol";
 import {IExchangeAdapter} from "src/interface/IExchangeAdapter.sol";
+import {SettlementLib} from "src/executor/lib/SettlementLib.sol";
 
 contract Executor is IReactorCallback, IValidationCallback {
     error InvalidSender();
     error InvalidOrder();
-
-    event Settled(
-        bytes32 indexed orderHash,
-        address indexed swapper,
-        address indexed exchange,
-        address inToken,
-        address outToken,
-        uint256 inAmount,
-        uint256 outAmount
-    );
 
     address public immutable reactor;
     address public immutable allowed;
@@ -44,12 +34,7 @@ contract Executor is IReactorCallback, IValidationCallback {
         _;
     }
 
-    struct Execution {
-        uint256 minAmountOut;
-        bytes data;
-    }
-
-    function execute(OrderLib.CosignedOrder calldata co, Execution calldata x) external onlyAllowed {
+    function execute(OrderLib.CosignedOrder calldata co, SettlementLib.Execution calldata x) external onlyAllowed {
         SignedOrder memory so;
         so.order = abi.encode(co);
         so.sig = co.signature;
@@ -65,31 +50,12 @@ contract Executor is IReactorCallback, IValidationCallback {
 
     function reactorCallback(ResolvedOrder[] memory orders, bytes memory callbackData) external override onlyReactor {
         if (orders.length != 1) revert InvalidOrder();
-        (address exchange, Execution memory x) = abi.decode(callbackData, (address, Execution));
+        (address exchange, SettlementLib.Execution memory x) =
+            abi.decode(callbackData, (address, SettlementLib.Execution));
         Address.functionDelegateCall(
             exchange, abi.encodeWithSelector(IExchangeAdapter.swap.selector, orders[0], x.data)
         );
-        _settle(orders[0], x.minAmountOut, exchange);
-    }
-
-    function _settle(ResolvedOrder memory order, uint256 minAmountOut, address exchange) private {
-        if (order.outputs.length != 1) revert InvalidOrder();
-        address outToken = address(order.outputs[0].token);
-        uint256 outAmount = order.outputs[0].amount;
-        address recipient = order.outputs[0].recipient;
-        TokenLib.prepareFor(outToken, reactor, outAmount);
-        if (minAmountOut > outAmount) {
-            TokenLib.transfer(outToken, recipient, minAmountOut - outAmount);
-        }
-        emit Settled(
-            order.hash,
-            order.info.swapper,
-            exchange,
-            address(order.input.token),
-            outToken,
-            order.input.amount,
-            outAmount
-        );
+        SettlementLib.settle(orders[0], x, reactor, exchange);
     }
 
     function validate(address filler, ResolvedOrder calldata) external view override {

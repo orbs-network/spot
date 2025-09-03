@@ -6,7 +6,7 @@ import "forge-std/Test.sol";
 import {BaseTest} from "test/base/BaseTest.sol";
 
 import {Executor} from "src/executor/Executor.sol";
-// no multicall usage
+import {SettlementLib} from "src/executor/lib/SettlementLib.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
@@ -70,7 +70,11 @@ contract ExecutorTest is BaseTest {
         co.order.slippage = 0;
         co.order.input = OrderLib.Input({token: address(token), amount: 0, maxAmount: 0});
         co.order.output = OrderLib.Output({token: address(token), amount: 0, maxAmount: 0, recipient: signer});
-        Executor.Execution memory ex = Executor.Execution({minAmountOut: 0, data: hex""});
+        SettlementLib.Execution memory ex = SettlementLib.Execution({
+            fee: OutputToken({token: address(0), amount: 0, recipient: address(0)}),
+            minAmountOut: 0,
+            data: hex""
+        });
         exec.execute(co, ex);
 
         assertEq(reactor.lastSender(), address(exec));
@@ -78,7 +82,16 @@ contract ExecutorTest is BaseTest {
         assertEq(keccak256(lastOrderBytes), keccak256(abi.encode(co)));
         assertEq(
             keccak256(reactor.lastCallbackData()),
-            keccak256(abi.encode(address(adapter), Executor.Execution({minAmountOut: 0, data: hex""})))
+            keccak256(
+                abi.encode(
+                    address(adapter),
+                    SettlementLib.Execution({
+                        fee: OutputToken({token: address(0), amount: 0, recipient: address(0)}),
+                        minAmountOut: 0,
+                        data: hex""
+                    })
+                )
+            )
         );
     }
 
@@ -100,7 +113,11 @@ contract ExecutorTest is BaseTest {
         co.order.slippage = 0;
         co.order.input = OrderLib.Input({token: address(token), amount: 0, maxAmount: 0});
         co.order.output = OrderLib.Output({token: address(token), amount: 0, maxAmount: 0, recipient: signer});
-        Executor.Execution memory ex = Executor.Execution({minAmountOut: 0, data: hex""});
+        SettlementLib.Execution memory ex = SettlementLib.Execution({
+            fee: OutputToken({token: address(0), amount: 0, recipient: address(0)}),
+            minAmountOut: 0,
+            data: hex""
+        });
         vm.expectRevert(abi.encodeWithSelector(Executor.InvalidSender.selector));
         exec.execute(co, ex);
     }
@@ -110,7 +127,17 @@ contract ExecutorTest is BaseTest {
         ros[0] = _dummyResolvedOrder(address(token), 0);
 
         vm.expectRevert(abi.encodeWithSelector(Executor.InvalidSender.selector));
-        exec.reactorCallback(ros, abi.encode(address(adapter), Executor.Execution({minAmountOut: 0, data: hex""})));
+        exec.reactorCallback(
+            ros,
+            abi.encode(
+                address(adapter),
+                SettlementLib.Execution({
+                    fee: OutputToken({token: address(0), amount: 0, recipient: address(0)}),
+                    minAmountOut: 0,
+                    data: hex""
+                })
+            )
+        );
     }
 
     function test_reactorCallback_executes_multicall_and_sets_erc20_approval() public {
@@ -122,7 +149,17 @@ contract ExecutorTest is BaseTest {
 
         // call from reactor
         vm.prank(address(reactor));
-        exec.reactorCallback(ros, abi.encode(address(adapter), Executor.Execution({minAmountOut: 0, data: hex""})));
+        exec.reactorCallback(
+            ros,
+            abi.encode(
+                address(adapter),
+                SettlementLib.Execution({
+                    fee: OutputToken({token: address(0), amount: 0, recipient: address(0)}),
+                    minAmountOut: 0,
+                    data: hex""
+                })
+            )
+        );
 
         // multicall executed: executor now holds minted tokens
         assertEq(ERC20Mock(address(token)).balanceOf(address(exec)), 1e18);
@@ -148,7 +185,17 @@ contract ExecutorTest is BaseTest {
 
         // call from reactor; should internally forceApprove to exact amount (approve(0) then approve(1234))
         vm.prank(address(reactor));
-        exec.reactorCallback(ros, abi.encode(address(adapter), Executor.Execution({minAmountOut: 0, data: hex""})));
+        exec.reactorCallback(
+            ros,
+            abi.encode(
+                address(adapter),
+                SettlementLib.Execution({
+                    fee: OutputToken({token: address(0), amount: 0, recipient: address(0)}),
+                    minAmountOut: 0,
+                    data: hex""
+                })
+            )
+        );
 
         // final allowance set to exact amount
         assertEq(IERC20(address(usdt)).allowance(address(exec), address(reactor)), 1234);
@@ -163,7 +210,17 @@ contract ExecutorTest is BaseTest {
 
         uint256 beforeBal = address(reactor).balance;
         vm.prank(address(reactor));
-        exec.reactorCallback(ros, abi.encode(address(adapter), Executor.Execution({minAmountOut: 0, data: hex""})));
+        exec.reactorCallback(
+            ros,
+            abi.encode(
+                address(adapter),
+                SettlementLib.Execution({
+                    fee: OutputToken({token: address(0), amount: 0, recipient: address(0)}),
+                    minAmountOut: 0,
+                    data: hex""
+                })
+            )
+        );
         assertEq(address(reactor).balance, beforeBal + 987);
     }
 
@@ -186,7 +243,17 @@ contract ExecutorTest is BaseTest {
 
         // should not revert; also sets approval for reactor
         vm.prank(address(reactor));
-        exec.reactorCallback(ros, abi.encode(address(adapter), Executor.Execution({minAmountOut: 0, data: hex""})));
+        exec.reactorCallback(
+            ros,
+            abi.encode(
+                address(adapter),
+                SettlementLib.Execution({
+                    fee: OutputToken({token: address(0), amount: 0, recipient: address(0)}),
+                    minAmountOut: 0,
+                    data: hex""
+                })
+            )
+        );
         assertEq(IERC20(address(token)).allowance(address(exec), address(reactor)), 100);
     }
 
@@ -202,7 +269,17 @@ contract ExecutorTest is BaseTest {
 
         vm.prank(address(reactor));
         vm.expectRevert(Executor.InvalidOrder.selector);
-        exec.reactorCallback(ros, abi.encode(address(adapter), Executor.Execution({minAmountOut: 0, data: hex""})));
+        exec.reactorCallback(
+            ros,
+            abi.encode(
+                address(adapter),
+                SettlementLib.Execution({
+                    fee: OutputToken({token: address(0), amount: 0, recipient: address(0)}),
+                    minAmountOut: 0,
+                    data: hex""
+                })
+            )
+        );
     }
 
     function test_reactorCallback_transfers_delta_to_swapper_when_outAmountSwapper_greater() public {
@@ -214,7 +291,17 @@ contract ExecutorTest is BaseTest {
 
         uint256 before = out.balanceOf(signer);
         vm.prank(address(reactor));
-        exec.reactorCallback(ros, abi.encode(address(adapter), Executor.Execution({minAmountOut: 600, data: hex""})));
+        exec.reactorCallback(
+            ros,
+            abi.encode(
+                address(adapter),
+                SettlementLib.Execution({
+                    fee: OutputToken({token: address(0), amount: 0, recipient: address(0)}),
+                    minAmountOut: 600,
+                    data: hex""
+                })
+            )
+        );
         assertEq(out.balanceOf(signer), before + 100);
     }
 
@@ -240,7 +327,11 @@ contract ExecutorTest is BaseTest {
         _mint(address(tokenOut), address(exec), 1000);
         _mint(address(token), address(exec), 200);
 
-        Executor.Execution memory ex2 = Executor.Execution({minAmountOut: 600, data: hex""});
+        SettlementLib.Execution memory ex2 = SettlementLib.Execution({
+            fee: OutputToken({token: address(0), amount: 0, recipient: address(0)}),
+            minAmountOut: 600,
+            data: hex""
+        });
         exec.execute(co, ex2);
 
         assertEq(IERC20(address(tokenOut)).allowance(address(exec), address(reactor)), 500);
@@ -287,5 +378,53 @@ contract ExecutorTest is BaseTest {
         outputs[0] = OutputToken({token: outToken, amount: outAmount, recipient: signer});
 
         ro = ResolvedOrder({info: info, input: input, outputs: outputs, sig: bytes(""), hash: bytes32(uint256(123))});
+    }
+
+    function test_execution_with_gas_fee_fields() public {
+        // Test that the new gas fee fields can be set and used
+        address gasFeeToken = address(token); // Use actual token for gas fee
+        uint256 gasFeeAmount = 1000;
+        address gasFeeRecipient = makeAddr("gasFeeRecipient");
+
+        // Mint gas fee tokens to the executor
+        _mint(gasFeeToken, address(exec), gasFeeAmount);
+
+        OrderLib.CosignedOrder memory co;
+        co.order.info = OrderLib.OrderInfo({
+            reactor: address(reactor),
+            swapper: signer,
+            nonce: 0,
+            deadline: 1_086_400,
+            additionalValidationContract: address(0),
+            additionalValidationData: abi.encode(address(0), uint16(0))
+        });
+        co.order.exchange = OrderLib.Exchange({adapter: address(adapter), ref: address(0), share: 0});
+        co.order.executor = address(exec);
+        co.order.epoch = 0;
+        co.order.slippage = 0;
+        co.order.input = OrderLib.Input({token: address(token), amount: 0, maxAmount: 0});
+        co.order.output = OrderLib.Output({token: address(token), amount: 0, maxAmount: 0, recipient: signer});
+
+        SettlementLib.Execution memory ex = SettlementLib.Execution({
+            fee: OutputToken({token: gasFeeToken, amount: gasFeeAmount, recipient: gasFeeRecipient}),
+            minAmountOut: 0,
+            data: hex""
+        });
+
+        uint256 beforeBalance = IERC20(gasFeeToken).balanceOf(gasFeeRecipient);
+        exec.execute(co, ex);
+
+        // Verify that the gas fee fields are properly encoded in the callback data
+        assertEq(reactor.lastSender(), address(exec));
+        (bytes memory lastOrderBytes,) = reactor.lastOrder();
+        assertEq(keccak256(lastOrderBytes), keccak256(abi.encode(co)));
+
+        // The callback data should include our gas fee fields
+        bytes memory expectedCallbackData = abi.encode(address(adapter), ex);
+        assertEq(keccak256(reactor.lastCallbackData()), keccak256(expectedCallbackData));
+
+        // Verify that gas fee was transferred to the recipient
+        uint256 afterBalance = IERC20(gasFeeToken).balanceOf(gasFeeRecipient);
+        assertEq(afterBalance, beforeBalance + gasFeeAmount);
     }
 }
