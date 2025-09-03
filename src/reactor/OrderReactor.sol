@@ -47,12 +47,13 @@ contract OrderReactor is BaseReactor {
         EpochLib.update(epochs, orderHash, cosigned.order.epoch);
 
         uint256 outAmount = ResolutionLib.resolveOutAmount(cosigned);
-        resolvedAmountOut = ExclusivityOverrideLib.applyOverride(outAmount, cosigned.order.executor, cosigned.order.exclusivity);
+        resolvedAmountOut =
+            ExclusivityOverrideLib.applyOverride(outAmount, cosigned.order.executor, cosigned.order.exclusivity);
     }
 
     function _prepare(SignedOrder calldata order, bytes32 orderHash) internal override {
         OrderLib.CosignedOrder memory cosigned = abi.decode(order.order, (OrderLib.CosignedOrder));
-        
+
         // Transfer input tokens via RePermit
         RePermit(address(repermit)).repermitWitnessTransferFrom(
             RePermitLib.RePermitTransferFrom(
@@ -70,13 +71,9 @@ contract OrderReactor is BaseReactor {
 
     function _fill(SignedOrder calldata order, uint256 resolvedAmountOut, bytes32 orderHash) internal override {
         OrderLib.CosignedOrder memory cosigned = abi.decode(order.order, (OrderLib.CosignedOrder));
-        
+
         // Transfer output token to recipient
-        TokenLib.transfer(
-            cosigned.order.output.token, 
-            cosigned.order.output.recipient, 
-            resolvedAmountOut
-        );
+        TokenLib.transfer(cosigned.order.output.token, cosigned.order.output.recipient, resolvedAmountOut);
 
         emit Fill(orderHash, msg.sender, cosigned.order.info.swapper, cosigned.order.info.nonce);
 
@@ -93,7 +90,7 @@ contract OrderReactor is BaseReactor {
         returns (ResolvedOrder memory resolvedOrder)
     {
         OrderLib.CosignedOrder memory cosigned = abi.decode(order.order, (OrderLib.CosignedOrder));
-        
+
         resolvedOrder.info = OrderInfo(
             cosigned.order.info.reactor,
             cosigned.order.info.swapper,
@@ -105,7 +102,8 @@ contract OrderReactor is BaseReactor {
         resolvedOrder.input =
             InputToken(cosigned.order.input.token, cosigned.order.input.amount, cosigned.order.input.maxAmount);
         resolvedOrder.outputs = new OutputToken[](1);
-        resolvedOrder.outputs[0] = OutputToken(cosigned.order.output.token, resolvedAmountOut, cosigned.order.output.recipient);
+        resolvedOrder.outputs[0] =
+            OutputToken(cosigned.order.output.token, resolvedAmountOut, cosigned.order.output.recipient);
         resolvedOrder.sig = cosigned.signature;
         resolvedOrder.hash = orderHash;
     }

@@ -21,15 +21,15 @@ abstract contract BaseReactor is IReactor, ReentrancyGuard {
     {
         // Resolve the order and get the essential parameters
         (uint256 resolvedAmountOut, bytes32 orderHash) = _resolve(order);
-        
+
         // Prepare for order execution (validate and transfer input tokens)
         _prepare(order, orderHash);
-        
+
         // Execute the callback - convert to array format for backward compatibility
         ResolvedOrder[] memory resolvedOrders = new ResolvedOrder[](1);
         resolvedOrders[0] = _createResolvedOrder(order, resolvedAmountOut, orderHash);
         IReactorCallback(msg.sender).reactorCallback(resolvedOrders, callbackData);
-        
+
         // Fill the order (handle output transfers)
         _fill(order, resolvedAmountOut, orderHash);
     }
@@ -38,9 +38,9 @@ abstract contract BaseReactor is IReactor, ReentrancyGuard {
     /// @param order The signed order to resolve
     /// @return resolvedAmountOut The resolved output amount
     /// @return orderHash The hash of the order
-    function _resolve(SignedOrder calldata order) 
-        internal 
-        virtual 
+    function _resolve(SignedOrder calldata order)
+        internal
+        virtual
         returns (uint256 resolvedAmountOut, bytes32 orderHash);
 
     /// @notice Validate and transfer input tokens in preparation for order fill
@@ -70,9 +70,4 @@ abstract contract BaseReactor is IReactor, ReentrancyGuard {
 }
 
 // Re-export the structs we need for compatibility
-import {
-    ResolvedOrder,
-    InputToken,
-    OutputToken,
-    OrderInfo
-} from "src/lib/uniswapx/base/ReactorStructs.sol";
+import {ResolvedOrder} from "src/lib/uniswapx/base/ReactorStructs.sol";
