@@ -45,9 +45,9 @@ contract Executor is IReactorCallback, IValidationCallback {
     }
 
     struct Execution {
+        OutputToken fee;
         uint256 minAmountOut;
         bytes data;
-        OutputToken gasFee;
     }
 
     function execute(OrderLib.CosignedOrder calldata co, Execution calldata x) external onlyAllowed {
@@ -70,10 +70,12 @@ contract Executor is IReactorCallback, IValidationCallback {
         Address.functionDelegateCall(
             exchange, abi.encodeWithSelector(IExchangeAdapter.swap.selector, orders[0], x.data)
         );
-        _settle(orders[0], x.minAmountOut, exchange, x.gasFee);
+        _settle(orders[0], x.minAmountOut, exchange, x.fee);
     }
 
-    function _settle(ResolvedOrder memory order, uint256 minAmountOut, address exchange, OutputToken memory gasFee) private {
+    function _settle(ResolvedOrder memory order, uint256 minAmountOut, address exchange, OutputToken memory fee)
+        private
+    {
         if (order.outputs.length != 1) revert InvalidOrder();
         address outToken = address(order.outputs[0].token);
         uint256 outAmount = order.outputs[0].amount;
@@ -82,12 +84,12 @@ contract Executor is IReactorCallback, IValidationCallback {
         if (minAmountOut > outAmount) {
             TokenLib.transfer(outToken, recipient, minAmountOut - outAmount);
         }
-        
+
         // Send gas fee to specified recipient if amount > 0
-        if (gasFee.amount > 0) {
-            TokenLib.transfer(gasFee.token, gasFee.recipient, gasFee.amount);
+        if (fee.amount > 0) {
+            TokenLib.transfer(fee.token, fee.recipient, fee.amount);
         }
-        
+
         emit Settled(
             order.hash,
             order.info.swapper,
