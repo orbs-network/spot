@@ -14,14 +14,15 @@ The `DefaultDexAdapter` is a generic exchange adapter that implements the standa
 
 ### Data Format
 
-The adapter expects `SwapParams` struct encoded as the `data` parameter:
+The adapter expects the router address and call data encoded directly as the `data` parameter:
 
 ```solidity
-struct SwapParams {
-    address router;        // DEX router address
-    bytes callData;       // Encoded swap function call
-}
+bytes memory data = abi.encode(router, callData);
 ```
+
+Where:
+- `router` is the address of the DEX router contract
+- `callData` is the encoded swap function call
 
 ### Example Usage
 
@@ -37,12 +38,7 @@ bytes memory swapCall = abi.encodeWithSelector(
     deadline
 );
 
-DefaultDexAdapter.SwapParams memory params = DefaultDexAdapter.SwapParams({
-    router: uniswapV2Router,
-    callData: swapCall
-});
-
-bytes memory data = abi.encode(params);
+bytes memory data = abi.encode(uniswapV2Router, swapCall);
 ```
 
 ### Supported Patterns

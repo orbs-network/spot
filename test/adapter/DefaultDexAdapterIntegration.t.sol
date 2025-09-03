@@ -149,10 +149,7 @@ contract DefaultDexAdapterIntegrationTest is BaseTest {
             block.timestamp + 1000
         );
 
-        DefaultDexAdapter.SwapParams memory swapParams =
-            DefaultDexAdapter.SwapParams({router: address(router), callData: swapCall});
-
-        Executor.Execution memory execution = Executor.Execution({minAmountOut: 1800e18, data: abi.encode(swapParams)});
+        Executor.Execution memory execution = Executor.Execution({minAmountOut: 1800e18, data: abi.encode(address(router), swapCall)});
 
         bytes memory callbackData = abi.encode(address(adapter), execution);
 
@@ -216,10 +213,7 @@ contract DefaultDexAdapterIntegrationTest is BaseTest {
             block.timestamp + 1000
         );
 
-        DefaultDexAdapter.SwapParams memory swapParams =
-            DefaultDexAdapter.SwapParams({router: address(router), callData: swapCall});
-
-        Executor.Execution memory execution = Executor.Execution({minAmountOut: 900e18, data: abi.encode(swapParams)});
+        Executor.Execution memory execution = Executor.Execution({minAmountOut: 900e18, data: abi.encode(address(router), swapCall)});
 
         bytes memory callbackData = abi.encode(address(adapter), execution);
 
@@ -269,10 +263,7 @@ contract DefaultDexAdapterIntegrationTest is BaseTest {
             SimpleRouter.swapExactTokensForTokens.selector, 100e18, 180e18, path, recipient, block.timestamp + 1000
         );
 
-        DefaultDexAdapter.SwapParams memory swapParams =
-            DefaultDexAdapter.SwapParams({router: address(router), callData: swapCall});
-
-        Executor.Execution memory execution = Executor.Execution({minAmountOut: 180e18, data: abi.encode(swapParams)});
+        Executor.Execution memory execution = Executor.Execution({minAmountOut: 180e18, data: abi.encode(address(router), swapCall)});
 
         bytes memory callbackData = abi.encode(address(adapter), execution);
 

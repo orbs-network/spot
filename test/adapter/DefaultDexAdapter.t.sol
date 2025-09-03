@@ -128,10 +128,7 @@ contract DefaultDexAdapterTest is Test {
             MockDexRouter.swapExactTokensForTokens.selector, 1000, 500, path, recipient, block.timestamp + 1000
         );
 
-        DefaultDexAdapter.SwapParams memory params =
-            DefaultDexAdapter.SwapParams({router: address(router), callData: swapCall});
-
-        bytes memory data = abi.encode(params);
+        bytes memory data = abi.encode(address(router), swapCall);
 
         uint256 beforeBalance = tokenB.balanceOf(recipient);
         uint256 beforeAllowance = tokenA.allowance(address(adapter), address(router));
@@ -160,10 +157,7 @@ contract DefaultDexAdapterTest is Test {
             MockDexRouter.swapExactETHForTokens.selector, 500, path, recipient, block.timestamp + 1000
         );
 
-        DefaultDexAdapter.SwapParams memory params =
-            DefaultDexAdapter.SwapParams({router: address(router), callData: swapCall});
-
-        bytes memory data = abi.encode(params);
+        bytes memory data = abi.encode(address(router), swapCall);
 
         uint256 beforeBalance = tokenB.balanceOf(recipient);
         uint256 beforeETHBalance = address(router).balance;
@@ -182,11 +176,10 @@ contract DefaultDexAdapterTest is Test {
     function test_swap_reverts_invalid_router() public {
         ResolvedOrder memory order = _createOrder(address(tokenA), 1000, address(tokenB));
 
-        DefaultDexAdapter.SwapParams memory params = DefaultDexAdapter.SwapParams({router: address(0), callData: ""});
+        bytes memory data = abi.encode(address(0), "");
 
-        bytes memory data = abi.encode(params);
-
-        vm.expectRevert(DefaultDexAdapter.InvalidRouter.selector);
+        // For ERC20 tokens, forceApprove will fail before Address.functionCall when target is address(0)
+        vm.expectRevert("ERC20: approve to the zero address");
         adapter.swap(order, data);
     }
 
@@ -203,12 +196,10 @@ contract DefaultDexAdapterTest is Test {
             MockDexRouter.swapExactTokensForTokens.selector, 1000, 500, path, recipient, block.timestamp + 1000
         );
 
-        DefaultDexAdapter.SwapParams memory params =
-            DefaultDexAdapter.SwapParams({router: address(router), callData: swapCall});
+        bytes memory data = abi.encode(address(router), swapCall);
 
-        bytes memory data = abi.encode(params);
-
-        vm.expectRevert(DefaultDexAdapter.SwapFailed.selector);
+        // Address.functionCall will revert with "Address: low-level call failed" when the call reverts
+        vm.expectRevert("Mock swap failed");
         adapter.swap(order, data);
     }
 
@@ -224,12 +215,10 @@ contract DefaultDexAdapterTest is Test {
             MockDexRouter.swapExactETHForTokens.selector, 500, path, recipient, block.timestamp + 1000
         );
 
-        DefaultDexAdapter.SwapParams memory params =
-            DefaultDexAdapter.SwapParams({router: address(router), callData: swapCall});
+        bytes memory data = abi.encode(address(router), swapCall);
 
-        bytes memory data = abi.encode(params);
-
-        vm.expectRevert(DefaultDexAdapter.SwapFailed.selector);
+        // Address.functionCallWithValue will revert with the original error message
+        vm.expectRevert("Mock ETH swap failed");
         adapter.swap(order, data);
     }
 
@@ -252,10 +241,7 @@ contract DefaultDexAdapterTest is Test {
             MockDexRouter.swapExactTokensForTokens.selector, 1000, 500, path, recipient, block.timestamp + 1000
         );
 
-        DefaultDexAdapter.SwapParams memory params =
-            DefaultDexAdapter.SwapParams({router: address(router), callData: swapCall});
-
-        bytes memory data = abi.encode(params);
+        bytes memory data = abi.encode(address(router), swapCall);
 
         // Should not revert despite USDT-like behavior
         adapter.swap(order, data);

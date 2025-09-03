@@ -4,6 +4,7 @@ pragma solidity 0.8.20;
 import {IExchangeAdapter} from "src/interface/IExchangeAdapter.sol";
 import {ResolvedOrder} from "src/lib/uniswapx/base/ReactorStructs.sol";
 import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
 /**
  * @title DefaultDexAdapter
@@ -15,23 +16,13 @@ import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeE
 contract DefaultDexAdapter is IExchangeAdapter {
     using SafeERC20 for IERC20;
 
-    error InvalidRouter();
-    error SwapFailed();
-
-    struct SwapParams {
-        address router; // DEX router address
-        bytes callData; // Encoded swap function call
-    }
-
     /**
      * @notice Executes a token swap through a DEX router
      * @param order The resolved order containing input/output token information
-     * @param data ABI-encoded SwapParams containing router address and call data
+     * @param data ABI-encoded router address and call data: abi.encode(router, callData)
      */
     function swap(ResolvedOrder memory order, bytes calldata data) external override {
-        SwapParams memory params = abi.decode(data, (SwapParams));
-
-        if (params.router == address(0)) revert InvalidRouter();
+        (address router, bytes memory callData) = abi.decode(data, (address, bytes));
 
         address inputToken = address(order.input.token);
         uint256 inputAmount = order.input.amount;
@@ -39,18 +30,16 @@ contract DefaultDexAdapter is IExchangeAdapter {
         // Handle ETH input - no approval needed
         if (inputToken == address(0)) {
             // For ETH swaps, call router with value
-            (bool success,) = params.router.call{value: inputAmount}(params.callData);
-            if (!success) revert SwapFailed();
+            Address.functionCallWithValue(router, callData, inputAmount);
             return;
         }
 
         // For ERC20 tokens, approve router then call swap
-        IERC20(inputToken).forceApprove(params.router, inputAmount);
+        IERC20(inputToken).forceApprove(router, inputAmount);
 
-        (bool swapSuccess,) = params.router.call(params.callData);
-        if (!swapSuccess) revert SwapFailed();
+        Address.functionCall(router, callData);
 
         // Reset approval to 0 for security (USDT-safe)
-        IERC20(inputToken).forceApprove(params.router, 0);
+        IERC20(inputToken).forceApprove(router, 0);
     }
 }
