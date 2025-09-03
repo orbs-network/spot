@@ -13,7 +13,7 @@ abstract contract BaseReactor is IReactor, ReentrancyGuard {
     event Fill(bytes32 indexed orderHash, address indexed filler, address indexed swapper, uint256 nonce);
 
     /// @inheritdoc IReactor
-    function executeWithCallback(SignedOrder calldata signedOrder, bytes calldata callbackData)
+    function executeWithCallback(SignedOrder calldata signedOrder, bytes calldata /* callbackData */)
         external
         payable
         override
