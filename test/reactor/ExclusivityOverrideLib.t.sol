@@ -8,6 +8,7 @@ contract ExclusivityOverrideLibTest is Test {
     function _apply(uint256 base, address exec, uint32 bps) external view returns (uint256) {
         return ExclusivityOverrideLib.applyOverride(base, exec, bps);
     }
+
     function test_applyOverride_noChangeWhenExclusive() public {
         address addr1 = makeAddr("addr1");
         vm.prank(addr1);
