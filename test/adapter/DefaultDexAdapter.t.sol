@@ -6,51 +6,8 @@ import {DefaultDexAdapter} from "src/adapter/DefaultDexAdapter.sol";
 import {ResolvedOrder, InputToken, OutputToken, OrderInfo} from "src/lib/uniswapx/base/ReactorStructs.sol";
 import {IValidationCallback} from "src/lib/uniswapx/interfaces/IValidationCallback.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
-// Mock router for testing
-contract MockDexRouter {
-    bool public shouldFail;
-    uint256 public lastAmountIn;
-    address public lastTokenIn;
-    address public lastTokenOut;
-    uint256 public outputAmount = 1000; // Default output amount
-
-    function setShouldFail(bool _shouldFail) external {
-        shouldFail = _shouldFail;
-    }
-
-    function setOutputAmount(uint256 _amount) external {
-        outputAmount = _amount;
-    }
-
-    // Mock swap function for ERC20 -> ERC20
-    function swapExactTokensForTokens(
-        uint256 amountIn,
-        uint256 amountOutMin,
-        address[] calldata path,
-        address to,
-        uint256 deadline
-    ) external returns (uint256[] memory amounts) {
-        if (shouldFail) revert("Mock swap failed");
-
-        lastAmountIn = amountIn;
-        lastTokenIn = path[0];
-        lastTokenOut = path[path.length - 1];
-
-        // Transfer input tokens from caller
-        IERC20(lastTokenIn).transferFrom(msg.sender, address(this), amountIn);
-
-        // Mint output tokens to recipient
-        ERC20Mock(lastTokenOut).mint(to, outputAmount);
-
-        amounts = new uint256[](2);
-        amounts[0] = amountIn;
-        amounts[1] = outputAmount;
-    }
-
-    receive() external payable {}
-}
+import {MockDexRouter} from "test/mocks/MockDexRouter.sol";
+import {USDTMock} from "test/mocks/USDTMock.sol";
 
 contract DefaultDexAdapterTest is Test {
     DefaultDexAdapter public adapter;
@@ -68,8 +25,7 @@ contract DefaultDexAdapterTest is Test {
         tokenB = new ERC20Mock();
 
         // Fund the adapter with tokens for testing
-        tokenA.mint(address(adapter), 10000e18);
-        vm.deal(address(adapter), 10 ether);
+        tokenA.mint(address(adapter), 1000 ether);
     }
 
     function _createOrder(address inputToken, uint256 inputAmount, address outputToken)
@@ -82,7 +38,7 @@ contract DefaultDexAdapterTest is Test {
         OutputToken[] memory outputs = new OutputToken[](1);
         outputs[0] = OutputToken({
             token: outputToken,
-            amount: 500, // min output
+            amount: 500 ether, // min output
             recipient: recipient
         });
         order.outputs = outputs;
@@ -98,14 +54,10 @@ contract DefaultDexAdapterTest is Test {
     }
 
     function test_swap_ERC20_to_ERC20_success() public {
-        ResolvedOrder memory order = _createOrder(address(tokenA), 1000, address(tokenB));
-
-        address[] memory path = new address[](2);
-        path[0] = address(tokenA);
-        path[1] = address(tokenB);
+        ResolvedOrder memory order = _createOrder(address(tokenA), 1000 ether, address(tokenB));
 
         bytes memory data = abi.encodeWithSelector(
-            MockDexRouter.swapExactTokensForTokens.selector, 1000, 500, path, recipient, block.timestamp + 1000
+            MockDexRouter.doSwap.selector, address(tokenA), 1000 ether, address(tokenB), 2000 ether, recipient
         );
 
         uint256 beforeBalance = tokenB.balanceOf(recipient);
@@ -113,23 +65,18 @@ contract DefaultDexAdapterTest is Test {
         adapter.swap(order, data);
 
         // Check output token was minted to recipient
-        assertEq(tokenB.balanceOf(recipient), beforeBalance + router.outputAmount());
-
-        // Check router received input tokens
-        assertEq(router.lastAmountIn(), 1000);
-        assertEq(router.lastTokenIn(), address(tokenA));
-        assertEq(router.lastTokenOut(), address(tokenB));
+        assertEq(tokenB.balanceOf(recipient), beforeBalance + 2000 ether);
 
         // After swap, allowance should be 0 (consumed by transferFrom)
         assertEq(tokenA.allowance(address(adapter), address(router)), 0);
     }
 
-    function test_swap_reverts_invalid_router() public {
-        ResolvedOrder memory order = _createOrder(address(tokenA), 1000, address(tokenB));
+    function test_swap_reverts_invalid_data() public {
+        ResolvedOrder memory order = _createOrder(address(tokenA), 1000 ether, address(tokenB));
 
         bytes memory data = "invalid_call_data";
 
-        // Invalid call data should revert with function selector not found
+        // Invalid call data should revert
         vm.expectRevert();
         adapter.swap(order, data);
     }
@@ -137,38 +84,29 @@ contract DefaultDexAdapterTest is Test {
     function test_swap_reverts_when_router_call_fails() public {
         router.setShouldFail(true);
 
-        ResolvedOrder memory order = _createOrder(address(tokenA), 1000, address(tokenB));
-
-        address[] memory path = new address[](2);
-        path[0] = address(tokenA);
-        path[1] = address(tokenB);
+        ResolvedOrder memory order = _createOrder(address(tokenA), 1000 ether, address(tokenB));
 
         bytes memory data = abi.encodeWithSelector(
-            MockDexRouter.swapExactTokensForTokens.selector, 1000, 500, path, recipient, block.timestamp + 1000
+            MockDexRouter.doSwap.selector, address(tokenA), 1000 ether, address(tokenB), 2000 ether, recipient
         );
 
-        // Address.functionCall will revert with "Address: low-level call failed" when the call reverts
         vm.expectRevert("Mock swap failed");
         adapter.swap(order, data);
     }
 
     function test_swap_handles_USDT_like_tokens() public {
-        // Deploy USDT-like token that reverts on non-zero -> non-zero approvals
-        USDTLikeToken usdt = new USDTLikeToken();
-        usdt.mint(address(adapter), 10000e18);
+        // Use existing USDT mock
+        USDTMock usdt = new USDTMock();
+        usdt.mint(address(adapter), 1000 ether);
 
-        ResolvedOrder memory order = _createOrder(address(usdt), 1000, address(tokenB));
+        ResolvedOrder memory order = _createOrder(address(usdt), 1000 ether, address(tokenB));
 
         // Pre-set a non-zero allowance to test forceApprove behavior
         vm.prank(address(adapter));
         usdt.approve(address(router), 1);
 
-        address[] memory path = new address[](2);
-        path[0] = address(usdt);
-        path[1] = address(tokenB);
-
         bytes memory data = abi.encodeWithSelector(
-            MockDexRouter.swapExactTokensForTokens.selector, 1000, 500, path, recipient, block.timestamp + 1000
+            MockDexRouter.doSwap.selector, address(usdt), 1000 ether, address(tokenB), 2000 ether, recipient
         );
 
         // Should not revert despite USDT-like behavior
@@ -176,15 +114,5 @@ contract DefaultDexAdapterTest is Test {
 
         // After swap, allowance should be 0 (consumed by transferFrom)
         assertEq(usdt.allowance(address(adapter), address(router)), 0);
-    }
-}
-
-// USDT-like token that reverts on non-zero -> non-zero approvals
-contract USDTLikeToken is ERC20Mock {
-    function approve(address spender, uint256 amount) public override returns (bool) {
-        if (amount != 0 && allowance(msg.sender, spender) != 0) {
-            revert("USDT: non-zero to non-zero approval");
-        }
-        return super.approve(spender, amount);
     }
 }
