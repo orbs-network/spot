@@ -1,14 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import {
-    IValidationCallback,
-    ResolvedOrder,
-    SignedOrder,
-    InputToken,
-    OutputToken,
-    OrderInfo
-} from "src/lib/uniswapx/base/ReactorStructs.sol";
 import {BaseReactor} from "src/base/BaseReactor.sol";
 import {TokenLib} from "src/executor/lib/TokenLib.sol";
 
@@ -33,78 +25,48 @@ contract OrderReactor is BaseReactor {
         repermit = _repermit;
     }
 
-    function _resolve(SignedOrder calldata signedOrder)
+    function _resolve(OrderLib.CosignedOrder memory cosignedOrder)
         internal
         override
         returns (uint256 resolvedAmountOut, bytes32 orderHash)
     {
-        OrderLib.CosignedOrder memory cosigned = abi.decode(signedOrder.order, (OrderLib.CosignedOrder));
-        orderHash = OrderLib.hash(cosigned.order);
+        orderHash = OrderLib.hash(cosignedOrder.order);
 
-        OrderValidationLib.validate(cosigned.order);
-        CosignatureLib.validate(cosigned, cosigner, address(repermit));
+        OrderValidationLib.validate(cosignedOrder.order);
+        CosignatureLib.validate(cosignedOrder, cosigner, address(repermit));
 
-        EpochLib.update(epochs, orderHash, cosigned.order.epoch);
+        EpochLib.update(epochs, orderHash, cosignedOrder.order.epoch);
 
-        uint256 outAmount = ResolutionLib.resolveOutAmount(cosigned);
+        uint256 outAmount = ResolutionLib.resolveOutAmount(cosignedOrder);
         resolvedAmountOut =
-            ExclusivityOverrideLib.applyOverride(outAmount, cosigned.order.executor, cosigned.order.exclusivity);
+            ExclusivityOverrideLib.applyOverride(outAmount, cosignedOrder.order.executor, cosignedOrder.order.exclusivity);
     }
 
-    function _prepare(SignedOrder calldata order, bytes32 orderHash) internal override {
-        OrderLib.CosignedOrder memory cosigned = abi.decode(order.order, (OrderLib.CosignedOrder));
-
+    function _prepare(OrderLib.CosignedOrder memory cosignedOrder, bytes32 orderHash) internal override {
         // Transfer input tokens via RePermit
         RePermit(address(repermit)).repermitWitnessTransferFrom(
             RePermitLib.RePermitTransferFrom(
-                RePermitLib.TokenPermissions(address(cosigned.order.input.token), cosigned.order.input.maxAmount),
-                cosigned.order.info.nonce,
-                cosigned.order.info.deadline
+                RePermitLib.TokenPermissions(address(cosignedOrder.order.input.token), cosignedOrder.order.input.maxAmount),
+                cosignedOrder.order.info.nonce,
+                cosignedOrder.order.info.deadline
             ),
-            RePermitLib.TransferRequest(msg.sender, cosigned.order.input.amount),
-            cosigned.order.info.swapper,
+            RePermitLib.TransferRequest(msg.sender, cosignedOrder.order.input.amount),
+            cosignedOrder.order.info.swapper,
             orderHash,
             OrderLib.WITNESS_TYPE_SUFFIX,
-            cosigned.signature
+            cosignedOrder.signature
         );
     }
 
-    function _fill(SignedOrder calldata order, uint256 resolvedAmountOut, bytes32 orderHash) internal override {
-        OrderLib.CosignedOrder memory cosigned = abi.decode(order.order, (OrderLib.CosignedOrder));
-
+    function _fill(OrderLib.CosignedOrder memory cosignedOrder, uint256 resolvedAmountOut, bytes32 orderHash) internal override {
         // Transfer output token to recipient
-        TokenLib.transfer(cosigned.order.output.token, cosigned.order.output.recipient, resolvedAmountOut);
+        TokenLib.transfer(cosignedOrder.order.output.token, cosignedOrder.order.output.recipient, resolvedAmountOut);
 
-        emit Fill(orderHash, msg.sender, cosigned.order.info.swapper, cosigned.order.info.nonce);
+        emit Fill(orderHash, msg.sender, cosignedOrder.order.info.swapper, cosignedOrder.order.info.nonce);
 
         // Refund any remaining ETH to the filler
         if (address(this).balance > 0) {
             TokenLib.transfer(address(0), msg.sender, address(this).balance);
         }
-    }
-
-    function _createResolvedOrder(SignedOrder calldata order, uint256 resolvedAmountOut, bytes32 orderHash)
-        internal
-        pure
-        override
-        returns (ResolvedOrder memory resolvedOrder)
-    {
-        OrderLib.CosignedOrder memory cosigned = abi.decode(order.order, (OrderLib.CosignedOrder));
-
-        resolvedOrder.info = OrderInfo(
-            cosigned.order.info.reactor,
-            cosigned.order.info.swapper,
-            cosigned.order.info.nonce,
-            cosigned.order.info.deadline,
-            IValidationCallback(cosigned.order.info.additionalValidationContract),
-            cosigned.order.info.additionalValidationData
-        );
-        resolvedOrder.input =
-            InputToken(cosigned.order.input.token, cosigned.order.input.amount, cosigned.order.input.maxAmount);
-        resolvedOrder.outputs = new OutputToken[](1);
-        resolvedOrder.outputs[0] =
-            OutputToken(cosigned.order.output.token, resolvedAmountOut, cosigned.order.output.recipient);
-        resolvedOrder.sig = cosigned.signature;
-        resolvedOrder.hash = orderHash;
     }
 }
