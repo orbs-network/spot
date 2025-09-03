@@ -100,9 +100,9 @@ contract SettlementLibTest is Test {
     }
 
     function test_settle_basic_functionality() public {
-        uint256 inAmount = 200e18;
-        uint256 outAmount = 100e18;
-        uint256 minAmountOut = 95e18;
+        uint256 inAmount = 200 ether;
+        uint256 outAmount = 100 ether;
+        uint256 minAmountOut = 95 ether;
 
         ResolvedOrder memory order =
             _createResolvedOrder(address(tokenIn), inAmount, address(tokenOut), outAmount, swapper);
@@ -116,9 +116,9 @@ contract SettlementLibTest is Test {
     }
 
     function test_settle_with_min_amount_out_transfer() public {
-        uint256 inAmount = 200e18;
-        uint256 outAmount = 95e18;
-        uint256 minAmountOut = 100e18;
+        uint256 inAmount = 200 ether;
+        uint256 outAmount = 95 ether;
+        uint256 minAmountOut = 100 ether;
         uint256 shortfall = minAmountOut - outAmount;
 
         ResolvedOrder memory order =
@@ -135,14 +135,14 @@ contract SettlementLibTest is Test {
     }
 
     function test_settle_with_gas_fee_transfer() public {
-        uint256 inAmount = 200e18;
-        uint256 outAmount = 100e18;
-        uint256 feeAmount = 5e18;
+        uint256 inAmount = 200 ether;
+        uint256 outAmount = 100 ether;
+        uint256 feeAmount = 5 ether;
 
         ResolvedOrder memory order =
             _createResolvedOrder(address(tokenIn), inAmount, address(tokenOut), outAmount, swapper);
 
-        SettlementLib.Execution memory execution = _createExecution(address(tokenOut), feeAmount, feeRecipient, 95e18);
+        SettlementLib.Execution memory execution = _createExecution(address(tokenOut), feeAmount, feeRecipient, 95 ether);
 
         _mintTokensForSettlement(address(tokenOut), feeAmount + outAmount, outAmount);
 
@@ -153,14 +153,14 @@ contract SettlementLibTest is Test {
     }
 
     function test_settle_with_eth_gas_fee() public {
-        uint256 inAmount = 200e18;
-        uint256 outAmount = 100e18;
+        uint256 inAmount = 200 ether;
+        uint256 outAmount = 100 ether;
         uint256 feeAmount = 1 ether;
 
         ResolvedOrder memory order =
             _createResolvedOrder(address(tokenIn), inAmount, address(tokenOut), outAmount, swapper);
 
-        SettlementLib.Execution memory execution = _createExecution(address(0), feeAmount, feeRecipient, 95e18);
+        SettlementLib.Execution memory execution = _createExecution(address(0), feeAmount, feeRecipient, 95 ether);
 
         vm.deal(address(wrapper), feeAmount);
         _mintTokensForSettlement(address(tokenOut), outAmount, outAmount);
@@ -172,13 +172,13 @@ contract SettlementLibTest is Test {
     }
 
     function test_settle_with_zero_gas_fee_skips_transfer() public {
-        uint256 inAmount = 200e18;
-        uint256 outAmount = 100e18;
+        uint256 inAmount = 200 ether;
+        uint256 outAmount = 100 ether;
 
         ResolvedOrder memory order =
             _createResolvedOrder(address(tokenIn), inAmount, address(tokenOut), outAmount, swapper);
 
-        SettlementLib.Execution memory execution = _createExecution(address(tokenOut), 0, feeRecipient, 95e18);
+        SettlementLib.Execution memory execution = _createExecution(address(tokenOut), 0, feeRecipient, 95 ether);
 
         _mintTokensForSettlement(address(tokenOut), outAmount, outAmount);
 
@@ -189,7 +189,7 @@ contract SettlementLibTest is Test {
     }
 
     function test_settle_handles_usdt_like_tokens() public {
-        uint256 inAmount = 200e18;
+        uint256 inAmount = 200 ether;
         uint256 outAmount = 100e6;
         uint256 feeAmount = 5e6;
 
@@ -207,11 +207,11 @@ contract SettlementLibTest is Test {
     }
 
     function test_settle_reverts_on_multiple_outputs() public {
-        InputToken memory input = InputToken({token: address(tokenIn), amount: 200e18, maxAmount: 200e18});
+        InputToken memory input = InputToken({token: address(tokenIn), amount: 200 ether, maxAmount: 200 ether});
 
         OutputToken[] memory outputs = new OutputToken[](2);
-        outputs[0] = OutputToken({token: address(tokenOut), amount: 100e18, recipient: swapper});
-        outputs[1] = OutputToken({token: address(tokenOut), amount: 50e18, recipient: swapper});
+        outputs[0] = OutputToken({token: address(tokenOut), amount: 100 ether, recipient: swapper});
+        outputs[1] = OutputToken({token: address(tokenOut), amount: 50 ether, recipient: swapper});
 
         ResolvedOrder memory order = ResolvedOrder({
             info: OrderInfo({
@@ -228,7 +228,7 @@ contract SettlementLibTest is Test {
             hash: keccak256("test")
         });
 
-        SettlementLib.Execution memory execution = _createExecution(address(0), 0, address(0), 95e18);
+        SettlementLib.Execution memory execution = _createExecution(address(0), 0, address(0), 95 ether);
 
         // Expect revert when multiple outputs are provided
         vm.expectRevert();
@@ -236,11 +236,11 @@ contract SettlementLibTest is Test {
     }
 
     function test_settle_with_both_shortfall_and_fee() public {
-        uint256 inAmount = 200e18;
-        uint256 outAmount = 95e18;
-        uint256 minAmountOut = 100e18;
+        uint256 inAmount = 200 ether;
+        uint256 outAmount = 95 ether;
+        uint256 minAmountOut = 100 ether;
         uint256 shortfall = minAmountOut - outAmount;
-        uint256 feeAmount = 10e18;
+        uint256 feeAmount = 10 ether;
 
         ResolvedOrder memory order =
             _createResolvedOrder(address(tokenIn), inAmount, address(tokenOut), outAmount, swapper);

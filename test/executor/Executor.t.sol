@@ -7,7 +7,6 @@ import {BaseTest} from "test/base/BaseTest.sol";
 
 import {Executor} from "src/executor/Executor.sol";
 import {SettlementLib} from "src/executor/lib/SettlementLib.sol";
-// no multicall usage
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";

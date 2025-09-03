@@ -55,11 +55,7 @@ contract Executor is IReactorCallback, IValidationCallback {
         Address.functionDelegateCall(
             exchange, abi.encodeWithSelector(IExchangeAdapter.swap.selector, orders[0], x.data)
         );
-        _settle(orders[0], x, exchange);
-    }
-
-    function _settle(ResolvedOrder memory order, SettlementLib.Execution memory execution, address exchange) private {
-        SettlementLib.settle(order, execution, reactor, exchange);
+        SettlementLib.settle(orders[0], x, reactor, exchange);
     }
 
     function validate(address filler, ResolvedOrder calldata) external view override {
