@@ -115,12 +115,13 @@ contract ExecutorTest is BaseTest {
     }
 
     function test_reactorCallback_onlyReactor() public {
-        OrderLib.CosignedOrder[] memory ros = new OrderLib.CosignedOrder[](1);
-        ros[0] = _dummyCosignedOrder(address(token), 0);
+        OrderLib.CosignedOrder memory co = _dummyCosignedOrder(address(token), 0);
+        bytes32 orderHash = OrderLib.hash(co.order);
 
         vm.expectRevert(abi.encodeWithSelector(Executor.InvalidSender.selector));
         exec.reactorCallback(
-            ros,
+            co,
+            orderHash,
             abi.encode(
                 address(adapter),
                 SettlementLib.Execution({
@@ -136,13 +137,14 @@ contract ExecutorTest is BaseTest {
         // mint to executor
         _mint(address(token), address(exec), 1e18);
 
-        OrderLib.CosignedOrder[] memory ros = new OrderLib.CosignedOrder[](1);
-        ros[0] = _dummyCosignedOrder(address(token), 1234);
+        OrderLib.CosignedOrder memory co = _dummyCosignedOrder(address(token), 1234);
+        bytes32 orderHash = OrderLib.hash(co.order);
 
         // call from reactor
         vm.prank(address(reactor));
         exec.reactorCallback(
-            ros,
+            co,
+            orderHash,
             abi.encode(
                 address(adapter),
                 SettlementLib.Execution({
@@ -172,13 +174,14 @@ contract ExecutorTest is BaseTest {
         _mint(address(usdt), address(exec), 1e18);
 
         // resolved order outputs USDT to reactor via approval path
-        OrderLib.CosignedOrder[] memory ros = new OrderLib.CosignedOrder[](1);
-        ros[0] = _dummyCosignedOrder(address(usdt), 1234);
+        OrderLib.CosignedOrder memory co = _dummyCosignedOrder(address(usdt), 1234);
+        bytes32 orderHash = OrderLib.hash(co.order);
 
         // call from reactor; should internally forceApprove to exact amount (approve(0) then approve(1234))
         vm.prank(address(reactor));
         exec.reactorCallback(
-            ros,
+            co,
+            orderHash,
             abi.encode(
                 address(adapter),
                 SettlementLib.Execution({
@@ -197,13 +200,14 @@ contract ExecutorTest is BaseTest {
         // fund executor to cover sendValue
         vm.deal(address(exec), 1 ether);
 
-        OrderLib.CosignedOrder[] memory ros = new OrderLib.CosignedOrder[](1);
-        ros[0] = _dummyCosignedOrder(address(0), 987);
+        OrderLib.CosignedOrder memory co = _dummyCosignedOrder(address(0), 987);
+        bytes32 orderHash = OrderLib.hash(co.order);
 
         uint256 beforeBal = address(reactor).balance;
         vm.prank(address(reactor));
         exec.reactorCallback(
-            ros,
+            co,
+            orderHash,
             abi.encode(
                 address(adapter),
                 SettlementLib.Execution({
@@ -226,13 +230,14 @@ contract ExecutorTest is BaseTest {
     }
 
     function test_reactorCallback_allows_single_output_to_non_swapper() public {
-        OrderLib.CosignedOrder[] memory ros = new OrderLib.CosignedOrder[](1);
-        ros[0] = _dummyCosignedOrderWithRecipient(address(token), 100, other);
+        OrderLib.CosignedOrder memory co = _dummyCosignedOrderWithRecipient(address(token), 100, other);
+        bytes32 orderHash = OrderLib.hash(co.order);
 
         // should not revert; also sets approval for reactor
         vm.prank(address(reactor));
         exec.reactorCallback(
-            ros,
+            co,
+            orderHash,
             abi.encode(
                 address(adapter),
                 SettlementLib.Execution({
@@ -275,13 +280,14 @@ contract ExecutorTest is BaseTest {
         ERC20Mock out = new ERC20Mock();
         _mint(address(out), address(exec), 100);
 
-        OrderLib.CosignedOrder[] memory ros = new OrderLib.CosignedOrder[](1);
-        ros[0] = _dummyCosignedOrder(address(out), 500);
+        OrderLib.CosignedOrder memory co = _dummyCosignedOrder(address(out), 500);
+        bytes32 orderHash = OrderLib.hash(co.order);
 
         uint256 before = out.balanceOf(signer);
         vm.prank(address(reactor));
         exec.reactorCallback(
-            ros,
+            co,
+            orderHash,
             abi.encode(
                 address(adapter),
                 SettlementLib.Execution({

@@ -64,10 +64,8 @@ contract OrderReactor is ReentrancyGuard {
             cosignedOrder.signature
         );
 
-        // Call the executor callback with cosigned orders
-        OrderLib.CosignedOrder[] memory cosignedOrders = new OrderLib.CosignedOrder[](1);
-        cosignedOrders[0] = cosignedOrder;
-        IReactorCallback(msg.sender).reactorCallback(cosignedOrders, callbackData);
+        // Call the executor callback with the cosigned order and hash
+        IReactorCallback(msg.sender).reactorCallback(cosignedOrder, orderHash, callbackData);
 
         // Transfer output tokens to recipient
         TokenLib.transfer(cosignedOrder.order.output.token, cosignedOrder.order.output.recipient, resolvedAmountOut);

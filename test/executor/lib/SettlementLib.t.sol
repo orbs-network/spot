@@ -16,7 +16,7 @@ contract SettlementWrapper {
         address reactor,
         address exchange
     ) external {
-        SettlementLib.settle(cosignedOrder, execution, reactor, exchange);
+        SettlementLib.settle(cosignedOrder, execution, reactor, exchange, OrderLib.hash(cosignedOrder.order));
     }
 }
 

@@ -23,16 +23,12 @@ library SettlementLib {
         bytes data;
     }
 
-    function settle(OrderLib.CosignedOrder memory cosignedOrder, Execution memory execution, address reactor, address exchange)
+    function settle(OrderLib.CosignedOrder memory cosignedOrder, Execution memory execution, address reactor, address exchange, bytes32 orderHash)
         internal
     {
-        address outToken = cosignedOrder.order.output.token;
-        uint256 outAmount = cosignedOrder.order.output.amount;
-        address recipient = cosignedOrder.order.output.recipient;
-
-        TokenLib.prepareFor(outToken, reactor, outAmount);
-        if (execution.minAmountOut > outAmount) {
-            TokenLib.transfer(outToken, recipient, execution.minAmountOut - outAmount);
+        TokenLib.prepareFor(cosignedOrder.order.output.token, reactor, cosignedOrder.order.output.amount);
+        if (execution.minAmountOut > cosignedOrder.order.output.amount) {
+            TokenLib.transfer(cosignedOrder.order.output.token, cosignedOrder.order.output.recipient, execution.minAmountOut - cosignedOrder.order.output.amount);
         }
 
         // Send gas fee to specified recipient if amount > 0
@@ -41,13 +37,13 @@ library SettlementLib {
         }
 
         emit Settled(
-            OrderLib.hash(cosignedOrder.order),
+            orderHash,
             cosignedOrder.order.info.swapper,
             exchange,
             cosignedOrder.order.input.token,
-            outToken,
+            cosignedOrder.order.output.token,
             cosignedOrder.order.input.amount,
-            outAmount
+            cosignedOrder.order.output.amount
         );
     }
 }
