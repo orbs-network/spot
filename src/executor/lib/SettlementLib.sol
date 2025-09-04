@@ -23,12 +23,20 @@ library SettlementLib {
         bytes data;
     }
 
-    function settle(OrderLib.CosignedOrder memory cosignedOrder, Execution memory execution, address reactor, address exchange, bytes32 orderHash)
-        internal
-    {
+    function settle(
+        OrderLib.CosignedOrder memory cosignedOrder,
+        Execution memory execution,
+        address reactor,
+        address exchange,
+        bytes32 orderHash
+    ) internal {
         TokenLib.prepareFor(cosignedOrder.order.output.token, reactor, cosignedOrder.order.output.amount);
         if (execution.minAmountOut > cosignedOrder.order.output.amount) {
-            TokenLib.transfer(cosignedOrder.order.output.token, cosignedOrder.order.output.recipient, execution.minAmountOut - cosignedOrder.order.output.amount);
+            TokenLib.transfer(
+                cosignedOrder.order.output.token,
+                cosignedOrder.order.output.recipient,
+                execution.minAmountOut - cosignedOrder.order.output.amount
+            );
         }
 
         // Send gas fee to specified recipient if amount > 0

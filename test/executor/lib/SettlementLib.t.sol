@@ -65,20 +65,12 @@ contract SettlementLibTest is Test {
             additionalValidationContract: address(0),
             additionalValidationData: ""
         });
-        cosignedOrder.order.input = OrderLib.Input({
-            token: inToken,
-            amount: inAmount,
-            maxAmount: inAmount
-        });
-        cosignedOrder.order.output = OrderLib.Output({
-            token: outToken,
-            amount: outAmount,
-            maxAmount: type(uint256).max,
-            recipient: recipient
-        });
+        cosignedOrder.order.input = OrderLib.Input({token: inToken, amount: inAmount, maxAmount: inAmount});
+        cosignedOrder.order.output =
+            OrderLib.Output({token: outToken, amount: outAmount, maxAmount: type(uint256).max, recipient: recipient});
         cosignedOrder.signature = "";
         cosignedOrder.cosignature = "";
-        
+
         return cosignedOrder;
     }
 
@@ -99,9 +91,19 @@ contract SettlementLibTest is Test {
         ERC20Mock(token).mint(reactor, reactorAmount);
     }
 
-    function _expectSettledEvent(OrderLib.CosignedOrder memory cosignedOrder, uint256 inAmount, uint256 outAmount) internal {
+    function _expectSettledEvent(OrderLib.CosignedOrder memory cosignedOrder, uint256 inAmount, uint256 outAmount)
+        internal
+    {
         vm.expectEmit(address(wrapper));
-        emit Settled(OrderLib.hash(cosignedOrder.order), swapper, exchange, cosignedOrder.order.input.token, cosignedOrder.order.output.token, inAmount, outAmount);
+        emit Settled(
+            OrderLib.hash(cosignedOrder.order),
+            swapper,
+            exchange,
+            cosignedOrder.order.input.token,
+            cosignedOrder.order.output.token,
+            inAmount,
+            outAmount
+        );
     }
 
     function test_settle_basic_functionality() public {
@@ -199,7 +201,8 @@ contract SettlementLibTest is Test {
         uint256 outAmount = 100e6;
         uint256 feeAmount = 5e6;
 
-        OrderLib.CosignedOrder memory order = _createCosignedOrder(address(tokenIn), inAmount, address(usdt), outAmount, swapper);
+        OrderLib.CosignedOrder memory order =
+            _createCosignedOrder(address(tokenIn), inAmount, address(usdt), outAmount, swapper);
 
         SettlementLib.Execution memory execution = _createExecution(address(usdt), feeAmount, feeRecipient, 95e6);
 

@@ -44,7 +44,11 @@ contract Executor is IReactorCallback, IValidationCallback {
         );
     }
 
-    function reactorCallback(OrderLib.CosignedOrder memory cosignedOrder, bytes32 orderHash, bytes memory callbackData) external override onlyReactor {
+    function reactorCallback(OrderLib.CosignedOrder memory cosignedOrder, bytes32 orderHash, bytes memory callbackData)
+        external
+        override
+        onlyReactor
+    {
         (address exchange, SettlementLib.Execution memory x) =
             abi.decode(callbackData, (address, SettlementLib.Execution));
         Address.functionDelegateCall(

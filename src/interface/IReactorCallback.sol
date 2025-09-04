@@ -10,5 +10,6 @@ interface IReactorCallback {
     /// @param orderHash The hash of the order
     /// @param callbackData The callbackData specified for an order execution
     /// @dev Must have approved each token and amount in outputs to the msg.sender
-    function reactorCallback(OrderLib.CosignedOrder memory cosignedOrder, bytes32 orderHash, bytes memory callbackData) external;
+    function reactorCallback(OrderLib.CosignedOrder memory cosignedOrder, bytes32 orderHash, bytes memory callbackData)
+        external;
 }

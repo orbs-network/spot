@@ -44,11 +44,28 @@ contract OrderReactor is ReentrancyGuard {
         uint256 currentEpoch = EpochLib.update(epochs, orderHash, cosignedOrder.order.epoch);
 
         uint256 outAmount = ResolutionLib.resolveOutAmount(cosignedOrder);
-        uint256 resolvedAmountOut = ExclusivityLib.applyOverride(
-            outAmount, cosignedOrder.order.executor, cosignedOrder.order.exclusivity
-        );
+        uint256 resolvedAmountOut =
+            ExclusivityLib.applyOverride(outAmount, cosignedOrder.order.executor, cosignedOrder.order.exclusivity);
 
         // Transfer input tokens via RePermit
+        _handleInputTokens(cosignedOrder, orderHash);
+
+        // Call the executor callback with the cosigned order and hash
+        IReactorCallback(msg.sender).reactorCallback(cosignedOrder, orderHash, callbackData);
+
+        // Transfer output tokens to recipient
+        TokenLib.transfer(cosignedOrder.order.output.token, cosignedOrder.order.output.recipient, resolvedAmountOut);
+
+        emit Fill(orderHash, msg.sender, cosignedOrder.order.info.swapper, currentEpoch);
+
+        // Refund any remaining ETH to the filler
+        TokenLib.transfer(address(0), msg.sender, address(this).balance);
+    }
+
+    /// @notice Handle input token transfers via RePermit
+    /// @param cosignedOrder The cosigned order containing input details
+    /// @param orderHash The hash of the order for witness verification
+    function _handleInputTokens(OrderLib.CosignedOrder calldata cosignedOrder, bytes32 orderHash) private {
         RePermit(address(repermit)).repermitWitnessTransferFrom(
             RePermitLib.RePermitTransferFrom(
                 RePermitLib.TokenPermissions(
@@ -63,17 +80,6 @@ contract OrderReactor is ReentrancyGuard {
             OrderLib.WITNESS_TYPE_SUFFIX,
             cosignedOrder.signature
         );
-
-        // Call the executor callback with the cosigned order and hash
-        IReactorCallback(msg.sender).reactorCallback(cosignedOrder, orderHash, callbackData);
-
-        // Transfer output tokens to recipient
-        TokenLib.transfer(cosignedOrder.order.output.token, cosignedOrder.order.output.recipient, resolvedAmountOut);
-
-        emit Fill(orderHash, msg.sender, cosignedOrder.order.info.swapper, currentEpoch);
-
-        // Refund any remaining ETH to the filler
-        TokenLib.transfer(address(0), msg.sender, address(this).balance);
     }
 
     receive() external payable {

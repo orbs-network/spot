@@ -114,8 +114,6 @@ library OrderLib {
         bytes cosignature;
     }
 
-
-
     function hash(OrderInfo memory info) internal pure returns (bytes32) {
         return keccak256(
             abi.encode(

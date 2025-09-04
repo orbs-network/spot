@@ -33,12 +33,8 @@ contract DefaultDexAdapterTest is Test {
         view
         returns (OrderLib.CosignedOrder memory cosignedOrder)
     {
-        cosignedOrder.order.input = OrderLib.Input({
-            token: inputToken,
-            amount: inputAmount,
-            maxAmount: inputAmount
-        });
-        
+        cosignedOrder.order.input = OrderLib.Input({token: inputToken, amount: inputAmount, maxAmount: inputAmount});
+
         cosignedOrder.order.output = OrderLib.Output({
             token: outputToken,
             amount: 500 ether, // min output
@@ -54,7 +50,7 @@ contract DefaultDexAdapterTest is Test {
             additionalValidationContract: address(0),
             additionalValidationData: ""
         });
-        
+
         // Add minimal required fields for CosignedOrder
         cosignedOrder.signature = "";
         cosignedOrder.cosignature = "";
