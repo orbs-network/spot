@@ -142,7 +142,8 @@ contract SettlementLibTest is Test {
         ResolvedOrder memory order =
             _createResolvedOrder(address(tokenIn), inAmount, address(tokenOut), outAmount, swapper);
 
-        SettlementLib.Execution memory execution = _createExecution(address(tokenOut), feeAmount, feeRecipient, 95 ether);
+        SettlementLib.Execution memory execution =
+            _createExecution(address(tokenOut), feeAmount, feeRecipient, 95 ether);
 
         _mintTokensForSettlement(address(tokenOut), feeAmount + outAmount, outAmount);
 
