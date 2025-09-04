@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import {ResolvedOrder} from "src/interface/ReactorStructs.sol";
+import {ResolvedOrder} from "src/interface/CallbackStructs.sol";
 
 /// @notice Callback for executing orders through a reactor.
 interface IReactorCallback {

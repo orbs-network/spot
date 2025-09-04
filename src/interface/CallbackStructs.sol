@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import {IValidationCallback} from "src/interface/IValidationCallback.sol";
-
 /// @dev generic order information
 ///  should be included as the first field in any concrete order types
 struct OrderInfo {
@@ -18,7 +16,7 @@ struct OrderInfo {
     // The timestamp after which this order is no longer valid
     uint256 deadline;
     // Custom validation contract
-    IValidationCallback additionalValidationContract;
+    address additionalValidationContract;
     // Encoded validation params for additionalValidationContract
     bytes additionalValidationData;
 }

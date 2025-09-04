@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import {IOrderReactor} from "src/interface/IOrderReactor.sol";
+import {IReactor} from "src/interface/IOrderReactor.sol";
 import {IReactorCallback} from "src/interface/IReactorCallback.sol";
-import {IValidationCallback} from "src/interface/IValidationCallback.sol";
-import {ResolvedOrder, OrderInfo, InputToken, OutputToken} from "src/interface/ReactorStructs.sol";
+import {ResolvedOrder, OrderInfo, InputToken, OutputToken} from "src/interface/CallbackStructs.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 
-contract MockReactor is IOrderReactor {
+contract MockReactor is IReactor {
     // Tracking fields used by unit tests
     OrderLib.CosignedOrder internal _lastOrder;
     bytes public lastCallbackData;
@@ -36,7 +35,7 @@ contract MockReactor is IOrderReactor {
                 swapper: cosignedOrder.order.info.swapper,
                 nonce: 1,
                 deadline: 1_086_400,
-                additionalValidationContract: IValidationCallback(address(0)),
+                additionalValidationContract: address(0),
                 additionalValidationData: abi.encode(adapter)
             }),
             input: InputToken({token: address(cosignedOrder.order.input.token), amount: 100, maxAmount: 100}),

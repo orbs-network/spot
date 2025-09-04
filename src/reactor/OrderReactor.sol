@@ -3,8 +3,7 @@ pragma solidity 0.8.20;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IReactorCallback} from "src/interface/IReactorCallback.sol";
-import {IValidationCallback} from "src/interface/IValidationCallback.sol";
-import {ResolvedOrder, OrderInfo, InputToken, OutputToken} from "src/interface/ReactorStructs.sol";
+import {ResolvedOrder, OrderInfo, InputToken, OutputToken} from "src/interface/CallbackStructs.sol";
 import {TokenLib} from "src/executor/lib/TokenLib.sol";
 
 import {RePermit} from "src/repermit/RePermit.sol";
@@ -81,7 +80,7 @@ contract OrderReactor is ReentrancyGuard {
                 swapper: cosignedOrder.order.info.swapper,
                 nonce: cosignedOrder.order.info.nonce,
                 deadline: cosignedOrder.order.info.deadline,
-                additionalValidationContract: IValidationCallback(cosignedOrder.order.info.additionalValidationContract),
+                additionalValidationContract: cosignedOrder.order.info.additionalValidationContract,
                 additionalValidationData: cosignedOrder.order.info.additionalValidationData
             }),
             input: InputToken({

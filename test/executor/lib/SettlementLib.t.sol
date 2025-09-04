@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import "forge-std/Test.sol";
 
 import {SettlementLib} from "src/executor/lib/SettlementLib.sol";
-import {ResolvedOrder, OrderInfo, InputToken, OutputToken} from "src/interface/ReactorStructs.sol";
+import {ResolvedOrder, OrderInfo, InputToken, OutputToken} from "src/interface/CallbackStructs.sol";
 import {IValidationCallback} from "src/interface/IValidationCallback.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 import {USDTMock} from "test/mocks/USDTMock.sol";
@@ -67,7 +67,7 @@ contract SettlementLibTest is Test {
                 swapper: swapper,
                 nonce: 1,
                 deadline: block.timestamp + 1000,
-                additionalValidationContract: IValidationCallback(address(0)),
+                additionalValidationContract: address(0),
                 additionalValidationData: ""
             }),
             input: input,
@@ -220,7 +220,7 @@ contract SettlementLibTest is Test {
                 swapper: swapper,
                 nonce: 1,
                 deadline: block.timestamp + 1000,
-                additionalValidationContract: IValidationCallback(address(0)),
+                additionalValidationContract: address(0),
                 additionalValidationData: ""
             }),
             input: input,
