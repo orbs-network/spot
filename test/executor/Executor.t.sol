@@ -62,14 +62,14 @@ contract ExecutorTest is BaseTest {
         co.order.input = OrderLib.Input({token: address(token), amount: 0, maxAmount: 0});
         co.order.output = OrderLib.Output({token: address(token), amount: 0, maxAmount: 0, recipient: signer});
         SettlementLib.Execution memory ex = SettlementLib.Execution({
-            fee: OrderLib.OutputToken({token: address(0), amount: 0, recipient: address(0)}),
+            fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
             minAmountOut: 0,
             data: hex""
         });
         exec.execute(co, ex);
 
         assertEq(reactor.lastSender(), address(exec));
-        OrderLib.CosignedOrder memory lastOrder = reactor.lastOrder();
+        OrderLib.CosignedOrder memory lastOrder = reactor.getLastOrder();
         // Compare the order structures (we can't compare the signature as it might be different)
         assertTrue(keccak256(abi.encode(lastOrder.order)) == keccak256(abi.encode(co.order)));
         assertEq(
@@ -78,7 +78,7 @@ contract ExecutorTest is BaseTest {
                 abi.encode(
                     address(adapter),
                     SettlementLib.Execution({
-                        fee: OrderLib.OutputToken({token: address(0), amount: 0, recipient: address(0)}),
+                        fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                         minAmountOut: 0,
                         data: hex""
                     })
@@ -106,7 +106,7 @@ contract ExecutorTest is BaseTest {
         co.order.input = OrderLib.Input({token: address(token), amount: 0, maxAmount: 0});
         co.order.output = OrderLib.Output({token: address(token), amount: 0, maxAmount: 0, recipient: signer});
         SettlementLib.Execution memory ex = SettlementLib.Execution({
-            fee: OrderLib.OutputToken({token: address(0), amount: 0, recipient: address(0)}),
+            fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
             minAmountOut: 0,
             data: hex""
         });
@@ -115,8 +115,8 @@ contract ExecutorTest is BaseTest {
     }
 
     function test_reactorCallback_onlyReactor() public {
-        OrderLib.ResolvedOrder[] memory ros = new OrderLib.ResolvedOrder[](1);
-        ros[0] = _dummyResolvedOrder(address(token), 0);
+        OrderLib.CosignedOrder[] memory ros = new OrderLib.CosignedOrder[](1);
+        ros[0] = _dummyCosignedOrder(address(token), 0);
 
         vm.expectRevert(abi.encodeWithSelector(Executor.InvalidSender.selector));
         exec.reactorCallback(
@@ -124,7 +124,7 @@ contract ExecutorTest is BaseTest {
             abi.encode(
                 address(adapter),
                 SettlementLib.Execution({
-                    fee: OrderLib.OutputToken({token: address(0), amount: 0, recipient: address(0)}),
+                    fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                     minAmountOut: 0,
                     data: hex""
                 })
@@ -136,8 +136,8 @@ contract ExecutorTest is BaseTest {
         // mint to executor
         _mint(address(token), address(exec), 1e18);
 
-        OrderLib.ResolvedOrder[] memory ros = new OrderLib.ResolvedOrder[](1);
-        ros[0] = _dummyResolvedOrder(address(token), 1234);
+        OrderLib.CosignedOrder[] memory ros = new OrderLib.CosignedOrder[](1);
+        ros[0] = _dummyCosignedOrder(address(token), 1234);
 
         // call from reactor
         vm.prank(address(reactor));
@@ -146,7 +146,7 @@ contract ExecutorTest is BaseTest {
             abi.encode(
                 address(adapter),
                 SettlementLib.Execution({
-                    fee: OrderLib.OutputToken({token: address(0), amount: 0, recipient: address(0)}),
+                    fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                     minAmountOut: 0,
                     data: hex""
                 })
@@ -172,8 +172,8 @@ contract ExecutorTest is BaseTest {
         _mint(address(usdt), address(exec), 1e18);
 
         // resolved order outputs USDT to reactor via approval path
-        OrderLib.ResolvedOrder[] memory ros = new OrderLib.ResolvedOrder[](1);
-        ros[0] = _dummyResolvedOrder(address(usdt), 1234);
+        OrderLib.CosignedOrder[] memory ros = new OrderLib.CosignedOrder[](1);
+        ros[0] = _dummyCosignedOrder(address(usdt), 1234);
 
         // call from reactor; should internally forceApprove to exact amount (approve(0) then approve(1234))
         vm.prank(address(reactor));
@@ -182,7 +182,7 @@ contract ExecutorTest is BaseTest {
             abi.encode(
                 address(adapter),
                 SettlementLib.Execution({
-                    fee: OrderLib.OutputToken({token: address(0), amount: 0, recipient: address(0)}),
+                    fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                     minAmountOut: 0,
                     data: hex""
                 })
@@ -197,8 +197,8 @@ contract ExecutorTest is BaseTest {
         // fund executor to cover sendValue
         vm.deal(address(exec), 1 ether);
 
-        OrderLib.ResolvedOrder[] memory ros = new OrderLib.ResolvedOrder[](1);
-        ros[0] = _dummyResolvedOrder(address(0), 987);
+        OrderLib.CosignedOrder[] memory ros = new OrderLib.CosignedOrder[](1);
+        ros[0] = _dummyCosignedOrder(address(0), 987);
 
         uint256 beforeBal = address(reactor).balance;
         vm.prank(address(reactor));
@@ -207,7 +207,7 @@ contract ExecutorTest is BaseTest {
             abi.encode(
                 address(adapter),
                 SettlementLib.Execution({
-                    fee: OrderLib.OutputToken({token: address(0), amount: 0, recipient: address(0)}),
+                    fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                     minAmountOut: 0,
                     data: hex""
                 })
@@ -217,21 +217,17 @@ contract ExecutorTest is BaseTest {
     }
 
     function test_validate_allows_only_self_as_filler() public view {
-        exec.validate(address(exec), _dummyResolvedOrder(address(token), 0));
+        exec.validate(address(exec), _dummyCosignedOrder(address(token), 0));
     }
 
     function test_validate_reverts_for_others() public {
         vm.expectRevert(abi.encodeWithSelector(Executor.InvalidSender.selector));
-        exec.validate(other, _dummyResolvedOrder(address(token), 0));
+        exec.validate(other, _dummyCosignedOrder(address(token), 0));
     }
 
     function test_reactorCallback_allows_single_output_to_non_swapper() public {
-        OrderLib.OutputToken[] memory outs = new OrderLib.OutputToken[](1);
-        outs[0] = OrderLib.OutputToken({token: address(token), amount: 100, recipient: other});
-
-        OrderLib.ResolvedOrder[] memory ros = new OrderLib.ResolvedOrder[](1);
-        ros[0] = _dummyResolvedOrder(address(token), 0);
-        ros[0].outputs = outs;
+        OrderLib.CosignedOrder[] memory ros = new OrderLib.CosignedOrder[](1);
+        ros[0] = _dummyCosignedOrderWithRecipient(address(token), 100, other);
 
         // should not revert; also sets approval for reactor
         vm.prank(address(reactor));
@@ -240,7 +236,7 @@ contract ExecutorTest is BaseTest {
             abi.encode(
                 address(adapter),
                 SettlementLib.Execution({
-                    fee: OrderLib.OutputToken({token: address(0), amount: 0, recipient: address(0)}),
+                    fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                     minAmountOut: 0,
                     data: hex""
                 })
@@ -249,37 +245,38 @@ contract ExecutorTest is BaseTest {
         assertEq(IERC20(address(token)).allowance(address(exec), address(reactor)), 100);
     }
 
-    function test_reactorCallback_reverts_on_mixed_out_tokens_to_swapper() public {
-        ERC20Mock token2 = new ERC20Mock();
-        OrderLib.OutputToken[] memory outs = new OrderLib.OutputToken[](2);
-        outs[0] = OrderLib.OutputToken({token: address(token), amount: 100, recipient: signer});
-        outs[1] = OrderLib.OutputToken({token: address(token2), amount: 1, recipient: signer});
-
-        OrderLib.ResolvedOrder[] memory ros = new OrderLib.ResolvedOrder[](1);
-        ros[0] = _dummyResolvedOrder(address(token), 0);
-        ros[0].outputs = outs;
-
-        vm.prank(address(reactor));
-        vm.expectRevert(Executor.InvalidOrder.selector);
-        exec.reactorCallback(
-            ros,
-            abi.encode(
-                address(adapter),
-                SettlementLib.Execution({
-                    fee: OrderLib.OutputToken({token: address(0), amount: 0, recipient: address(0)}),
-                    minAmountOut: 0,
-                    data: hex""
-                })
-            )
-        );
-    }
+    // NOTE: This test is no longer relevant as the new protocol only supports single output per order
+    // function test_reactorCallback_reverts_on_mixed_out_tokens_to_swapper() public {
+    //     ERC20Mock token2 = new ERC20Mock();
+    //     OrderLib.OutputToken[] memory outs = new OrderLib.OutputToken[](2);
+    //     outs[0] = OrderLib.Output({token: address(token), amount: 100, recipient: signer, maxAmount: type(uint256).max});
+    //     outs[1] = OrderLib.Output({token: address(token2), amount: 1, recipient: signer, maxAmount: type(uint256).max});
+    // 
+    //     OrderLib.CosignedOrder[] memory ros = new OrderLib.CosignedOrder[](1);
+    //     ros[0] = _dummyCosignedOrder(address(token), 0);
+    //     ros[0].outputs = outs;
+    // 
+    //     vm.prank(address(reactor));
+    //     vm.expectRevert(Executor.InvalidOrder.selector);
+    //     exec.reactorCallback(
+    //         ros,
+    //         abi.encode(
+    //             address(adapter),
+    //             SettlementLib.Execution({
+    //                 fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
+    //                 minAmountOut: 0,
+    //                 data: hex""
+    //             })
+    //         )
+    //     );
+    // }
 
     function test_reactorCallback_transfers_delta_to_swapper_when_outAmountSwapper_greater() public {
         ERC20Mock out = new ERC20Mock();
         _mint(address(out), address(exec), 100);
 
-        OrderLib.ResolvedOrder[] memory ros = new OrderLib.ResolvedOrder[](1);
-        ros[0] = _dummyResolvedOrder(address(out), 500);
+        OrderLib.CosignedOrder[] memory ros = new OrderLib.CosignedOrder[](1);
+        ros[0] = _dummyCosignedOrder(address(out), 500);
 
         uint256 before = out.balanceOf(signer);
         vm.prank(address(reactor));
@@ -288,7 +285,7 @@ contract ExecutorTest is BaseTest {
             abi.encode(
                 address(adapter),
                 SettlementLib.Execution({
-                    fee: OrderLib.OutputToken({token: address(0), amount: 0, recipient: address(0)}),
+                    fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                     minAmountOut: 600,
                     data: hex""
                 })
@@ -320,7 +317,7 @@ contract ExecutorTest is BaseTest {
         _mint(address(token), address(exec), 200);
 
         SettlementLib.Execution memory ex2 = SettlementLib.Execution({
-            fee: OrderLib.OutputToken({token: address(0), amount: 0, recipient: address(0)}),
+            fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
             minAmountOut: 600,
             data: hex""
         });
@@ -335,8 +332,12 @@ contract ExecutorTest is BaseTest {
         assertEq(token.balanceOf(address(exec)), 0);
     }
 
-    function _dummyResolvedOrder(address outToken, uint256 outAmount) public view returns (OrderLib.ResolvedOrder memory ro) {
-        OrderLib.OrderInfo memory info = OrderLib.OrderInfo({
+    function _dummyCosignedOrder(address outToken, uint256 outAmount) public view returns (OrderLib.CosignedOrder memory cosignedOrder) {
+        return _dummyCosignedOrderWithRecipient(outToken, outAmount, signer);
+    }
+
+    function _dummyCosignedOrderWithRecipient(address outToken, uint256 outAmount, address recipient) public view returns (OrderLib.CosignedOrder memory cosignedOrder) {
+        cosignedOrder.order.info = OrderLib.OrderInfo({
             reactor: address(reactor),
             swapper: signer,
             nonce: 0,
@@ -344,12 +345,21 @@ contract ExecutorTest is BaseTest {
             additionalValidationContract: address(0),
             additionalValidationData: abi.encode(address(0))
         });
-        OrderLib.InputToken memory input = OrderLib.InputToken({token: address(token), amount: 0, maxAmount: 0});
+        cosignedOrder.order.input = OrderLib.Input({
+            token: address(token),
+            amount: 0,
+            maxAmount: 0
+        });
 
-        OrderLib.OutputToken[] memory outputs = new OrderLib.OutputToken[](1);
-        outputs[0] = OrderLib.OutputToken({token: outToken, amount: outAmount, recipient: signer});
-
-        ro = OrderLib.ResolvedOrder({info: info, input: input, outputs: outputs, sig: bytes(""), hash: bytes32(uint256(123))});
+        cosignedOrder.order.output = OrderLib.Output({
+            token: outToken,
+            amount: outAmount,
+            maxAmount: type(uint256).max,
+            recipient: recipient
+        });
+        
+        cosignedOrder.signature = bytes("");
+        cosignedOrder.cosignature = bytes("");
     }
 
     function test_execution_with_gas_fee_fields() public {
@@ -378,7 +388,7 @@ contract ExecutorTest is BaseTest {
         co.order.output = OrderLib.Output({token: address(token), amount: 0, maxAmount: 0, recipient: signer});
 
         SettlementLib.Execution memory ex = SettlementLib.Execution({
-            fee: OrderLib.OutputToken({token: gasFeeToken, amount: gasFeeAmount, recipient: gasFeeRecipient}),
+            fee: OrderLib.Output({token: gasFeeToken, amount: gasFeeAmount, recipient: gasFeeRecipient, maxAmount: type(uint256).max}),
             minAmountOut: 0,
             data: hex""
         });
@@ -388,7 +398,7 @@ contract ExecutorTest is BaseTest {
 
         // Verify that the gas fee fields are properly encoded in the callback data
         assertEq(reactor.lastSender(), address(exec));
-        OrderLib.CosignedOrder memory lastOrder = reactor.lastOrder();
+        OrderLib.CosignedOrder memory lastOrder = reactor.getLastOrder();
         assertTrue(keccak256(abi.encode(lastOrder.order)) == keccak256(abi.encode(co.order)));
 
         // The callback data should include our gas fee fields

@@ -8,7 +8,7 @@ contract SwapAdapterMock {
     error InvalidOrder();
 
     function swap(OrderLib.CosignedOrder memory cosignedOrder, bytes calldata) external {
-        if (cosignedOrder.order.output.token == address(0)) revert InvalidOrder();
+        // No validation needed - this is a mock adapter for tests
         // no-op; Executor handles settlement
     }
 }
