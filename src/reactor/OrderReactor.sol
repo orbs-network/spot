@@ -3,12 +3,11 @@ pragma solidity 0.8.20;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IReactorCallback} from "src/interface/IReactorCallback.sol";
-import {ResolvedOrder, OrderInfo, InputToken, OutputToken} from "src/interface/CallbackStructs.sol";
+import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {TokenLib} from "src/executor/lib/TokenLib.sol";
 
 import {RePermit} from "src/repermit/RePermit.sol";
 import {RePermitLib} from "src/repermit/RePermitLib.sol";
-import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {OrderValidationLib} from "src/reactor/lib/OrderValidationLib.sol";
 import {CosignatureLib} from "src/reactor/lib/CosignatureLib.sol";
 import {EpochLib} from "src/reactor/lib/EpochLib.sol";
@@ -66,16 +65,16 @@ contract OrderReactor is ReentrancyGuard {
         );
 
         // Create ResolvedOrder for callback
-        ResolvedOrder[] memory resolvedOrders = new ResolvedOrder[](1);
-        OutputToken[] memory outputs = new OutputToken[](1);
-        outputs[0] = OutputToken({
+        OrderLib.ResolvedOrder[] memory resolvedOrders = new OrderLib.ResolvedOrder[](1);
+        OrderLib.OutputToken[] memory outputs = new OrderLib.OutputToken[](1);
+        outputs[0] = OrderLib.OutputToken({
             token: cosignedOrder.order.output.token,
             amount: resolvedAmountOut,
             recipient: cosignedOrder.order.output.recipient
         });
 
-        resolvedOrders[0] = ResolvedOrder({
-            info: OrderInfo({
+        resolvedOrders[0] = OrderLib.ResolvedOrder({
+            info: OrderLib.OrderInfo({
                 reactor: address(this),
                 swapper: cosignedOrder.order.info.swapper,
                 nonce: cosignedOrder.order.info.nonce,
@@ -83,7 +82,7 @@ contract OrderReactor is ReentrancyGuard {
                 additionalValidationContract: cosignedOrder.order.info.additionalValidationContract,
                 additionalValidationData: cosignedOrder.order.info.additionalValidationData
             }),
-            input: InputToken({
+            input: OrderLib.InputToken({
                 token: cosignedOrder.order.input.token,
                 amount: cosignedOrder.order.input.amount,
                 maxAmount: cosignedOrder.order.input.maxAmount

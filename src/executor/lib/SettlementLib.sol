@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import {ResolvedOrder, OutputToken} from "src/interface/CallbackStructs.sol";
+import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {TokenLib} from "src/executor/lib/TokenLib.sol";
 
 library SettlementLib {
@@ -18,12 +18,12 @@ library SettlementLib {
     );
 
     struct Execution {
-        OutputToken fee;
+        OrderLib.OutputToken fee;
         uint256 minAmountOut;
         bytes data;
     }
 
-    function settle(ResolvedOrder memory order, Execution memory execution, address reactor, address exchange)
+    function settle(OrderLib.ResolvedOrder memory order, Execution memory execution, address reactor, address exchange)
         internal
     {
         if (order.outputs.length != 1) revert InvalidOrder();

@@ -4,14 +4,14 @@ pragma solidity 0.8.20;
 import "forge-std/Test.sol";
 
 import {SettlementLib} from "src/executor/lib/SettlementLib.sol";
-import {ResolvedOrder, OrderInfo, InputToken, OutputToken} from "src/interface/CallbackStructs.sol";
+import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {IValidationCallback} from "src/interface/IValidationCallback.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 import {USDTMock} from "test/mocks/USDTMock.sol";
 
 contract SettlementWrapper {
     function settle(
-        ResolvedOrder memory order,
+        OrderLib.ResolvedOrder memory order,
         SettlementLib.Execution memory execution,
         address reactor,
         address exchange
@@ -55,14 +55,14 @@ contract SettlementLibTest is Test {
         address outToken,
         uint256 outAmount,
         address recipient
-    ) internal view returns (ResolvedOrder memory) {
-        InputToken memory input = InputToken({token: inToken, amount: inAmount, maxAmount: inAmount});
+    ) internal view returns (OrderLib.ResolvedOrder memory) {
+        OrderLib.InputToken memory input = OrderLib.InputToken({token: inToken, amount: inAmount, maxAmount: inAmount});
 
-        OutputToken[] memory outputs = new OutputToken[](1);
-        outputs[0] = OutputToken({token: outToken, amount: outAmount, recipient: recipient});
+        OrderLib.OutputToken[] memory outputs = new OrderLib.OutputToken[](1);
+        outputs[0] = OrderLib.OutputToken({token: outToken, amount: outAmount, recipient: recipient});
 
-        return ResolvedOrder({
-            info: OrderInfo({
+        return OrderLib.ResolvedOrder({
+            info: OrderLib.OrderInfo({
                 reactor: reactor,
                 swapper: swapper,
                 nonce: 1,
@@ -83,7 +83,7 @@ contract SettlementLibTest is Test {
         returns (SettlementLib.Execution memory)
     {
         return SettlementLib.Execution({
-            fee: OutputToken({token: feeToken, amount: feeAmount, recipient: recipient}),
+            fee: OrderLib.OutputToken({token: feeToken, amount: feeAmount, recipient: recipient}),
             minAmountOut: minAmountOut,
             data: ""
         });
@@ -94,7 +94,7 @@ contract SettlementLibTest is Test {
         ERC20Mock(token).mint(reactor, reactorAmount);
     }
 
-    function _expectSettledEvent(ResolvedOrder memory order, uint256 inAmount, uint256 outAmount) internal {
+    function _expectSettledEvent(OrderLib.ResolvedOrder memory order, uint256 inAmount, uint256 outAmount) internal {
         vm.expectEmit(address(wrapper));
         emit Settled(order.hash, swapper, exchange, order.input.token, order.outputs[0].token, inAmount, outAmount);
     }
@@ -104,7 +104,7 @@ contract SettlementLibTest is Test {
         uint256 outAmount = 100 ether;
         uint256 minAmountOut = 95 ether;
 
-        ResolvedOrder memory order =
+        OrderLib.ResolvedOrder memory order =
             _createResolvedOrder(address(tokenIn), inAmount, address(tokenOut), outAmount, swapper);
 
         SettlementLib.Execution memory execution = _createExecution(address(0), 0, address(0), minAmountOut);
@@ -121,7 +121,7 @@ contract SettlementLibTest is Test {
         uint256 minAmountOut = 100 ether;
         uint256 shortfall = minAmountOut - outAmount;
 
-        ResolvedOrder memory order =
+        OrderLib.ResolvedOrder memory order =
             _createResolvedOrder(address(tokenIn), inAmount, address(tokenOut), outAmount, swapper);
 
         SettlementLib.Execution memory execution = _createExecution(address(0), 0, address(0), minAmountOut);
@@ -139,7 +139,7 @@ contract SettlementLibTest is Test {
         uint256 outAmount = 100 ether;
         uint256 feeAmount = 5 ether;
 
-        ResolvedOrder memory order =
+        OrderLib.ResolvedOrder memory order =
             _createResolvedOrder(address(tokenIn), inAmount, address(tokenOut), outAmount, swapper);
 
         SettlementLib.Execution memory execution =
@@ -158,7 +158,7 @@ contract SettlementLibTest is Test {
         uint256 outAmount = 100 ether;
         uint256 feeAmount = 1 ether;
 
-        ResolvedOrder memory order =
+        OrderLib.ResolvedOrder memory order =
             _createResolvedOrder(address(tokenIn), inAmount, address(tokenOut), outAmount, swapper);
 
         SettlementLib.Execution memory execution = _createExecution(address(0), feeAmount, feeRecipient, 95 ether);
@@ -176,7 +176,7 @@ contract SettlementLibTest is Test {
         uint256 inAmount = 200 ether;
         uint256 outAmount = 100 ether;
 
-        ResolvedOrder memory order =
+        OrderLib.ResolvedOrder memory order =
             _createResolvedOrder(address(tokenIn), inAmount, address(tokenOut), outAmount, swapper);
 
         SettlementLib.Execution memory execution = _createExecution(address(tokenOut), 0, feeRecipient, 95 ether);
@@ -194,7 +194,7 @@ contract SettlementLibTest is Test {
         uint256 outAmount = 100e6;
         uint256 feeAmount = 5e6;
 
-        ResolvedOrder memory order = _createResolvedOrder(address(tokenIn), inAmount, address(usdt), outAmount, swapper);
+        OrderLib.ResolvedOrder memory order = _createResolvedOrder(address(tokenIn), inAmount, address(usdt), outAmount, swapper);
 
         SettlementLib.Execution memory execution = _createExecution(address(usdt), feeAmount, feeRecipient, 95e6);
 
@@ -208,14 +208,14 @@ contract SettlementLibTest is Test {
     }
 
     function test_settle_reverts_on_multiple_outputs() public {
-        InputToken memory input = InputToken({token: address(tokenIn), amount: 200 ether, maxAmount: 200 ether});
+        OrderLib.InputToken memory input = OrderLib.InputToken({token: address(tokenIn), amount: 200 ether, maxAmount: 200 ether});
 
-        OutputToken[] memory outputs = new OutputToken[](2);
-        outputs[0] = OutputToken({token: address(tokenOut), amount: 100 ether, recipient: swapper});
-        outputs[1] = OutputToken({token: address(tokenOut), amount: 50 ether, recipient: swapper});
+        OrderLib.OutputToken[] memory outputs = new OrderLib.OutputToken[](2);
+        outputs[0] = OrderLib.OutputToken({token: address(tokenOut), amount: 100 ether, recipient: swapper});
+        outputs[1] = OrderLib.OutputToken({token: address(tokenOut), amount: 50 ether, recipient: swapper});
 
-        ResolvedOrder memory order = ResolvedOrder({
-            info: OrderInfo({
+        OrderLib.ResolvedOrder memory order = OrderLib.ResolvedOrder({
+            info: OrderLib.OrderInfo({
                 reactor: reactor,
                 swapper: swapper,
                 nonce: 1,
@@ -243,7 +243,7 @@ contract SettlementLibTest is Test {
         uint256 shortfall = minAmountOut - outAmount;
         uint256 feeAmount = 10 ether;
 
-        ResolvedOrder memory order =
+        OrderLib.ResolvedOrder memory order =
             _createResolvedOrder(address(tokenIn), inAmount, address(tokenOut), outAmount, swapper);
 
         SettlementLib.Execution memory execution =
@@ -265,7 +265,7 @@ contract SettlementLibTest is Test {
     {
         vm.assume(inAmount > 0 && outAmount > 0);
 
-        ResolvedOrder memory order =
+        OrderLib.ResolvedOrder memory order =
             _createResolvedOrder(address(tokenIn), inAmount, address(tokenOut), outAmount, swapper);
 
         SettlementLib.Execution memory execution =

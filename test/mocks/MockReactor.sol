@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import {IReactor} from "src/interface/IOrderReactor.sol";
+import {IReactor} from "src/interface/IReactor.sol";
 import {IReactorCallback} from "src/interface/IReactorCallback.sol";
-import {ResolvedOrder, OrderInfo, InputToken, OutputToken} from "src/interface/CallbackStructs.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 
 contract MockReactor is IReactor {
@@ -22,15 +21,15 @@ contract MockReactor is IReactor {
         _lastOrder = cosignedOrder;
         lastCallbackData = callbackData;
 
-        ResolvedOrder[] memory ros = new ResolvedOrder[](1);
+        OrderLib.ResolvedOrder[] memory ros = new OrderLib.ResolvedOrder[](1);
 
-        OutputToken[] memory outs = new OutputToken[](1);
-        outs[0] = OutputToken({token: address(cosignedOrder.order.output.token), amount: 500, recipient: cosignedOrder.order.info.swapper});
+        OrderLib.OutputToken[] memory outs = new OrderLib.OutputToken[](1);
+        outs[0] = OrderLib.OutputToken({token: address(cosignedOrder.order.output.token), amount: 500, recipient: cosignedOrder.order.info.swapper});
 
         address adapter = cosignedOrder.order.exchange.adapter;
 
-        ros[0] = ResolvedOrder({
-            info: OrderInfo({
+        ros[0] = OrderLib.ResolvedOrder({
+            info: OrderLib.OrderInfo({
                 reactor: address(this),
                 swapper: cosignedOrder.order.info.swapper,
                 nonce: 1,
@@ -38,7 +37,7 @@ contract MockReactor is IReactor {
                 additionalValidationContract: address(0),
                 additionalValidationData: abi.encode(adapter)
             }),
-            input: InputToken({token: address(cosignedOrder.order.input.token), amount: 100, maxAmount: 100}),
+            input: OrderLib.InputToken({token: address(cosignedOrder.order.input.token), amount: 100, maxAmount: 100}),
             outputs: outs,
             sig: cosignedOrder.signature,
             hash: bytes32(uint256(123))

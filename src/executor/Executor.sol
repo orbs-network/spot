@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import {IReactor} from "src/interface/IOrderReactor.sol";
+import {IReactor} from "src/interface/IReactor.sol";
 import {IReactorCallback} from "src/interface/IReactorCallback.sol";
 import {IValidationCallback} from "src/interface/IValidationCallback.sol";
-import {ResolvedOrder} from "src/interface/CallbackStructs.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {IWM} from "src/interface/IWM.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
@@ -45,7 +44,7 @@ contract Executor is IReactorCallback, IValidationCallback {
         );
     }
 
-    function reactorCallback(ResolvedOrder[] memory orders, bytes memory callbackData) external override onlyReactor {
+    function reactorCallback(OrderLib.ResolvedOrder[] memory orders, bytes memory callbackData) external override onlyReactor {
         if (orders.length != 1) revert InvalidOrder();
         (address exchange, SettlementLib.Execution memory x) =
             abi.decode(callbackData, (address, SettlementLib.Execution));
@@ -55,7 +54,7 @@ contract Executor is IReactorCallback, IValidationCallback {
         SettlementLib.settle(orders[0], x, reactor, exchange);
     }
 
-    function validate(address filler, ResolvedOrder calldata) external view override {
+    function validate(address filler, OrderLib.ResolvedOrder calldata) external view override {
         if (filler != address(this)) revert InvalidSender();
     }
 

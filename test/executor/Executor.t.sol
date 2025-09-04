@@ -12,7 +12,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 
 import {IValidationCallback} from "src/interface/IValidationCallback.sol";
-import {ResolvedOrder, OrderInfo, InputToken, OutputToken} from "src/interface/CallbackStructs.sol";
+import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {USDTMock} from "test/mocks/USDTMock.sol";
 import {MockReactor} from "test/mocks/MockReactor.sol";
@@ -62,7 +62,7 @@ contract ExecutorTest is BaseTest {
         co.order.input = OrderLib.Input({token: address(token), amount: 0, maxAmount: 0});
         co.order.output = OrderLib.Output({token: address(token), amount: 0, maxAmount: 0, recipient: signer});
         SettlementLib.Execution memory ex = SettlementLib.Execution({
-            fee: OutputToken({token: address(0), amount: 0, recipient: address(0)}),
+            fee: OrderLib.OutputToken({token: address(0), amount: 0, recipient: address(0)}),
             minAmountOut: 0,
             data: hex""
         });
@@ -78,7 +78,7 @@ contract ExecutorTest is BaseTest {
                 abi.encode(
                     address(adapter),
                     SettlementLib.Execution({
-                        fee: OutputToken({token: address(0), amount: 0, recipient: address(0)}),
+                        fee: OrderLib.OutputToken({token: address(0), amount: 0, recipient: address(0)}),
                         minAmountOut: 0,
                         data: hex""
                     })
@@ -106,7 +106,7 @@ contract ExecutorTest is BaseTest {
         co.order.input = OrderLib.Input({token: address(token), amount: 0, maxAmount: 0});
         co.order.output = OrderLib.Output({token: address(token), amount: 0, maxAmount: 0, recipient: signer});
         SettlementLib.Execution memory ex = SettlementLib.Execution({
-            fee: OutputToken({token: address(0), amount: 0, recipient: address(0)}),
+            fee: OrderLib.OutputToken({token: address(0), amount: 0, recipient: address(0)}),
             minAmountOut: 0,
             data: hex""
         });
@@ -115,7 +115,7 @@ contract ExecutorTest is BaseTest {
     }
 
     function test_reactorCallback_onlyReactor() public {
-        ResolvedOrder[] memory ros = new ResolvedOrder[](1);
+        OrderLib.ResolvedOrder[] memory ros = new OrderLib.ResolvedOrder[](1);
         ros[0] = _dummyResolvedOrder(address(token), 0);
 
         vm.expectRevert(abi.encodeWithSelector(Executor.InvalidSender.selector));
@@ -124,7 +124,7 @@ contract ExecutorTest is BaseTest {
             abi.encode(
                 address(adapter),
                 SettlementLib.Execution({
-                    fee: OutputToken({token: address(0), amount: 0, recipient: address(0)}),
+                    fee: OrderLib.OutputToken({token: address(0), amount: 0, recipient: address(0)}),
                     minAmountOut: 0,
                     data: hex""
                 })
@@ -136,7 +136,7 @@ contract ExecutorTest is BaseTest {
         // mint to executor
         _mint(address(token), address(exec), 1e18);
 
-        ResolvedOrder[] memory ros = new ResolvedOrder[](1);
+        OrderLib.ResolvedOrder[] memory ros = new OrderLib.ResolvedOrder[](1);
         ros[0] = _dummyResolvedOrder(address(token), 1234);
 
         // call from reactor
@@ -146,7 +146,7 @@ contract ExecutorTest is BaseTest {
             abi.encode(
                 address(adapter),
                 SettlementLib.Execution({
-                    fee: OutputToken({token: address(0), amount: 0, recipient: address(0)}),
+                    fee: OrderLib.OutputToken({token: address(0), amount: 0, recipient: address(0)}),
                     minAmountOut: 0,
                     data: hex""
                 })
@@ -172,7 +172,7 @@ contract ExecutorTest is BaseTest {
         _mint(address(usdt), address(exec), 1e18);
 
         // resolved order outputs USDT to reactor via approval path
-        ResolvedOrder[] memory ros = new ResolvedOrder[](1);
+        OrderLib.ResolvedOrder[] memory ros = new OrderLib.ResolvedOrder[](1);
         ros[0] = _dummyResolvedOrder(address(usdt), 1234);
 
         // call from reactor; should internally forceApprove to exact amount (approve(0) then approve(1234))
@@ -182,7 +182,7 @@ contract ExecutorTest is BaseTest {
             abi.encode(
                 address(adapter),
                 SettlementLib.Execution({
-                    fee: OutputToken({token: address(0), amount: 0, recipient: address(0)}),
+                    fee: OrderLib.OutputToken({token: address(0), amount: 0, recipient: address(0)}),
                     minAmountOut: 0,
                     data: hex""
                 })
@@ -197,7 +197,7 @@ contract ExecutorTest is BaseTest {
         // fund executor to cover sendValue
         vm.deal(address(exec), 1 ether);
 
-        ResolvedOrder[] memory ros = new ResolvedOrder[](1);
+        OrderLib.ResolvedOrder[] memory ros = new OrderLib.ResolvedOrder[](1);
         ros[0] = _dummyResolvedOrder(address(0), 987);
 
         uint256 beforeBal = address(reactor).balance;
@@ -207,7 +207,7 @@ contract ExecutorTest is BaseTest {
             abi.encode(
                 address(adapter),
                 SettlementLib.Execution({
-                    fee: OutputToken({token: address(0), amount: 0, recipient: address(0)}),
+                    fee: OrderLib.OutputToken({token: address(0), amount: 0, recipient: address(0)}),
                     minAmountOut: 0,
                     data: hex""
                 })
@@ -226,10 +226,10 @@ contract ExecutorTest is BaseTest {
     }
 
     function test_reactorCallback_allows_single_output_to_non_swapper() public {
-        OutputToken[] memory outs = new OutputToken[](1);
-        outs[0] = OutputToken({token: address(token), amount: 100, recipient: other});
+        OrderLib.OutputToken[] memory outs = new OrderLib.OutputToken[](1);
+        outs[0] = OrderLib.OutputToken({token: address(token), amount: 100, recipient: other});
 
-        ResolvedOrder[] memory ros = new ResolvedOrder[](1);
+        OrderLib.ResolvedOrder[] memory ros = new OrderLib.ResolvedOrder[](1);
         ros[0] = _dummyResolvedOrder(address(token), 0);
         ros[0].outputs = outs;
 
@@ -240,7 +240,7 @@ contract ExecutorTest is BaseTest {
             abi.encode(
                 address(adapter),
                 SettlementLib.Execution({
-                    fee: OutputToken({token: address(0), amount: 0, recipient: address(0)}),
+                    fee: OrderLib.OutputToken({token: address(0), amount: 0, recipient: address(0)}),
                     minAmountOut: 0,
                     data: hex""
                 })
@@ -251,11 +251,11 @@ contract ExecutorTest is BaseTest {
 
     function test_reactorCallback_reverts_on_mixed_out_tokens_to_swapper() public {
         ERC20Mock token2 = new ERC20Mock();
-        OutputToken[] memory outs = new OutputToken[](2);
-        outs[0] = OutputToken({token: address(token), amount: 100, recipient: signer});
-        outs[1] = OutputToken({token: address(token2), amount: 1, recipient: signer});
+        OrderLib.OutputToken[] memory outs = new OrderLib.OutputToken[](2);
+        outs[0] = OrderLib.OutputToken({token: address(token), amount: 100, recipient: signer});
+        outs[1] = OrderLib.OutputToken({token: address(token2), amount: 1, recipient: signer});
 
-        ResolvedOrder[] memory ros = new ResolvedOrder[](1);
+        OrderLib.ResolvedOrder[] memory ros = new OrderLib.ResolvedOrder[](1);
         ros[0] = _dummyResolvedOrder(address(token), 0);
         ros[0].outputs = outs;
 
@@ -266,7 +266,7 @@ contract ExecutorTest is BaseTest {
             abi.encode(
                 address(adapter),
                 SettlementLib.Execution({
-                    fee: OutputToken({token: address(0), amount: 0, recipient: address(0)}),
+                    fee: OrderLib.OutputToken({token: address(0), amount: 0, recipient: address(0)}),
                     minAmountOut: 0,
                     data: hex""
                 })
@@ -278,7 +278,7 @@ contract ExecutorTest is BaseTest {
         ERC20Mock out = new ERC20Mock();
         _mint(address(out), address(exec), 100);
 
-        ResolvedOrder[] memory ros = new ResolvedOrder[](1);
+        OrderLib.ResolvedOrder[] memory ros = new OrderLib.ResolvedOrder[](1);
         ros[0] = _dummyResolvedOrder(address(out), 500);
 
         uint256 before = out.balanceOf(signer);
@@ -288,7 +288,7 @@ contract ExecutorTest is BaseTest {
             abi.encode(
                 address(adapter),
                 SettlementLib.Execution({
-                    fee: OutputToken({token: address(0), amount: 0, recipient: address(0)}),
+                    fee: OrderLib.OutputToken({token: address(0), amount: 0, recipient: address(0)}),
                     minAmountOut: 600,
                     data: hex""
                 })
@@ -320,7 +320,7 @@ contract ExecutorTest is BaseTest {
         _mint(address(token), address(exec), 200);
 
         SettlementLib.Execution memory ex2 = SettlementLib.Execution({
-            fee: OutputToken({token: address(0), amount: 0, recipient: address(0)}),
+            fee: OrderLib.OutputToken({token: address(0), amount: 0, recipient: address(0)}),
             minAmountOut: 600,
             data: hex""
         });
@@ -335,8 +335,8 @@ contract ExecutorTest is BaseTest {
         assertEq(token.balanceOf(address(exec)), 0);
     }
 
-    function _dummyResolvedOrder(address outToken, uint256 outAmount) public view returns (ResolvedOrder memory ro) {
-        OrderInfo memory info = OrderInfo({
+    function _dummyResolvedOrder(address outToken, uint256 outAmount) public view returns (OrderLib.ResolvedOrder memory ro) {
+        OrderLib.OrderInfo memory info = OrderLib.OrderInfo({
             reactor: address(reactor),
             swapper: signer,
             nonce: 0,
@@ -344,12 +344,12 @@ contract ExecutorTest is BaseTest {
             additionalValidationContract: address(0),
             additionalValidationData: abi.encode(address(0))
         });
-        InputToken memory input = InputToken({token: address(token), amount: 0, maxAmount: 0});
+        OrderLib.InputToken memory input = OrderLib.InputToken({token: address(token), amount: 0, maxAmount: 0});
 
-        OutputToken[] memory outputs = new OutputToken[](1);
-        outputs[0] = OutputToken({token: outToken, amount: outAmount, recipient: signer});
+        OrderLib.OutputToken[] memory outputs = new OrderLib.OutputToken[](1);
+        outputs[0] = OrderLib.OutputToken({token: outToken, amount: outAmount, recipient: signer});
 
-        ro = ResolvedOrder({info: info, input: input, outputs: outputs, sig: bytes(""), hash: bytes32(uint256(123))});
+        ro = OrderLib.ResolvedOrder({info: info, input: input, outputs: outputs, sig: bytes(""), hash: bytes32(uint256(123))});
     }
 
     function test_execution_with_gas_fee_fields() public {
@@ -378,7 +378,7 @@ contract ExecutorTest is BaseTest {
         co.order.output = OrderLib.Output({token: address(token), amount: 0, maxAmount: 0, recipient: signer});
 
         SettlementLib.Execution memory ex = SettlementLib.Execution({
-            fee: OutputToken({token: gasFeeToken, amount: gasFeeAmount, recipient: gasFeeRecipient}),
+            fee: OrderLib.OutputToken({token: gasFeeToken, amount: gasFeeAmount, recipient: gasFeeRecipient}),
             minAmountOut: 0,
             data: hex""
         });

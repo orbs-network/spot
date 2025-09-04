@@ -41,21 +41,34 @@ library OrderLib {
         "Cosignature(uint256 timestamp,address reactor,CosignedValue input,CosignedValue output)";
     bytes32 internal constant COSIGNATURE_TYPE_HASH = keccak256(abi.encodePacked(COSIGNATURE_TYPE, COSIGNED_VALUE_TYPE));
 
+    /// @dev generic order information
+    ///  should be included as the first field in any concrete order types
     struct OrderInfo {
+        // The address of the reactor that this order is targeting
+        // Note that this must be included in every order so the swapper
+        // signature commits to the specific reactor that they trust to fill their order properly
         address reactor;
+        // The address of the user which created the order
+        // Note that this must be included so that order hashes are unique by swapper
         address swapper;
+        // The nonce of the order, allowing for signature replay protection and cancellation
         uint256 nonce;
+        // The timestamp after which this order is no longer valid
         uint256 deadline;
+        // Custom validation contract
         address additionalValidationContract;
+        // Encoded validation params for additionalValidationContract
         bytes additionalValidationData;
     }
 
+    /// @dev tokens that need to be sent from the swapper in order to satisfy an order
     struct Input {
         address token;
         uint256 amount; // chunk
         uint256 maxAmount; // total
     }
 
+    /// @dev tokens that need to be received by the recipient in order to satisfy an order
     struct Output {
         address token;
         uint256 amount; // limit
@@ -99,6 +112,30 @@ library OrderLib {
         bytes signature;
         Cosignature cosignatureData;
         bytes cosignature;
+    }
+
+    // Aliases for compatibility with callback interfaces
+    // Use Input struct for tokens that need to be sent from the swapper
+    struct InputToken {
+        address token;
+        uint256 amount;
+        uint256 maxAmount;
+    }
+    
+    // Use Output struct for tokens that need to be received by the recipient  
+    struct OutputToken {
+        address token;
+        uint256 amount;
+        address recipient;
+    }
+
+    /// @dev generic concrete order that specifies exact tokens which need to be sent and received
+    struct ResolvedOrder {
+        OrderInfo info;
+        InputToken input;
+        OutputToken[] outputs;
+        bytes sig;
+        bytes32 hash;
     }
 
     function hash(OrderInfo memory info) internal pure returns (bytes32) {

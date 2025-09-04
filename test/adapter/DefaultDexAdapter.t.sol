@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import "forge-std/Test.sol";
 import {DefaultDexAdapter} from "src/adapter/DefaultDexAdapter.sol";
-import {ResolvedOrder, InputToken, OutputToken, OrderInfo} from "src/interface/CallbackStructs.sol";
+import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {IValidationCallback} from "src/interface/IValidationCallback.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 import {MockDexRouter} from "test/mocks/MockDexRouter.sol";
@@ -31,19 +31,19 @@ contract DefaultDexAdapterTest is Test {
     function _createOrder(address inputToken, uint256 inputAmount, address outputToken)
         internal
         view
-        returns (ResolvedOrder memory order)
+        returns (OrderLib.ResolvedOrder memory order)
     {
-        order.input = InputToken({token: inputToken, amount: inputAmount, maxAmount: inputAmount});
+        order.input = OrderLib.InputToken({token: inputToken, amount: inputAmount, maxAmount: inputAmount});
 
-        OutputToken[] memory outputs = new OutputToken[](1);
-        outputs[0] = OutputToken({
+        OrderLib.OutputToken[] memory outputs = new OrderLib.OutputToken[](1);
+        outputs[0] = OrderLib.OutputToken({
             token: outputToken,
             amount: 500 ether, // min output
             recipient: recipient
         });
         order.outputs = outputs;
 
-        order.info = OrderInfo({
+        order.info = OrderLib.OrderInfo({
             reactor: address(0),
             swapper: user,
             nonce: 1,
@@ -54,7 +54,7 @@ contract DefaultDexAdapterTest is Test {
     }
 
     function test_swap_ERC20_to_ERC20_success() public {
-        ResolvedOrder memory order = _createOrder(address(tokenA), 1000 ether, address(tokenB));
+        OrderLib.ResolvedOrder memory order = _createOrder(address(tokenA), 1000 ether, address(tokenB));
 
         bytes memory data = abi.encodeWithSelector(
             MockDexRouter.doSwap.selector, address(tokenA), 1000 ether, address(tokenB), 2000 ether, recipient
@@ -72,7 +72,7 @@ contract DefaultDexAdapterTest is Test {
     }
 
     function test_swap_reverts_invalid_data() public {
-        ResolvedOrder memory order = _createOrder(address(tokenA), 1000 ether, address(tokenB));
+        OrderLib.ResolvedOrder memory order = _createOrder(address(tokenA), 1000 ether, address(tokenB));
 
         bytes memory data = "invalid_call_data";
 
@@ -84,7 +84,7 @@ contract DefaultDexAdapterTest is Test {
     function test_swap_reverts_when_router_call_fails() public {
         router.setShouldFail(true);
 
-        ResolvedOrder memory order = _createOrder(address(tokenA), 1000 ether, address(tokenB));
+        OrderLib.ResolvedOrder memory order = _createOrder(address(tokenA), 1000 ether, address(tokenB));
 
         bytes memory data = abi.encodeWithSelector(
             MockDexRouter.doSwap.selector, address(tokenA), 1000 ether, address(tokenB), 2000 ether, recipient
@@ -99,7 +99,7 @@ contract DefaultDexAdapterTest is Test {
         USDTMock usdt = new USDTMock();
         usdt.mint(address(adapter), 1000 ether);
 
-        ResolvedOrder memory order = _createOrder(address(usdt), 1000 ether, address(tokenB));
+        OrderLib.ResolvedOrder memory order = _createOrder(address(usdt), 1000 ether, address(tokenB));
 
         // Pre-set a non-zero allowance to test forceApprove behavior
         vm.prank(address(adapter));
