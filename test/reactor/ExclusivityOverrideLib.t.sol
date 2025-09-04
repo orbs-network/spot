@@ -2,11 +2,11 @@
 pragma solidity 0.8.20;
 
 import "forge-std/Test.sol";
-import {ExclusivityOverrideLib} from "src/lib/uniswapx/lib/ExclusivityOverrideLib.sol";
+import {ExclusivityLib} from "src/reactor/lib/ExclusivityLib.sol";
 
-contract ExclusivityOverrideLibTest is Test {
+contract ExclusivityLibTest is Test {
     function _apply(uint256 base, address exec, uint32 bps) external view returns (uint256) {
-        return ExclusivityOverrideLib.applyOverride(base, exec, bps);
+        return ExclusivityLib.applyOverride(base, exec, bps);
     }
 
     function test_applyOverride_noChangeWhenExclusive() public {
@@ -27,7 +27,7 @@ contract ExclusivityOverrideLibTest is Test {
         address addr1 = makeAddr("addr1");
         address addr2 = makeAddr("addr2");
         vm.prank(addr2);
-        vm.expectRevert(ExclusivityOverrideLib.InvalidSender.selector);
+        vm.expectRevert(ExclusivityLib.InvalidSender.selector);
         this._apply(1000, addr1, 0);
     }
 }

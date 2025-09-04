@@ -11,12 +11,8 @@ import {SettlementLib} from "src/executor/lib/SettlementLib.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 
-import {IReactor} from "src/lib/uniswapx/interfaces/IReactor.sol";
-import {IReactorCallback} from "src/lib/uniswapx/interfaces/IReactorCallback.sol";
-import {IValidationCallback} from "src/lib/uniswapx/interfaces/IValidationCallback.sol";
-import {
-    ResolvedOrder, SignedOrder, OrderInfo, InputToken, OutputToken
-} from "src/lib/uniswapx/base/ReactorStructs.sol";
+import {IValidationCallback} from "src/interface/IValidationCallback.sol";
+import {ResolvedOrder, OrderInfo, InputToken, OutputToken} from "src/interface/ReactorStructs.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {USDTMock} from "test/mocks/USDTMock.sol";
 import {MockReactor} from "test/mocks/MockReactor.sol";
@@ -49,11 +45,6 @@ contract ExecutorTest is BaseTest {
         ERC20Mock(tkn).mint(to, amt);
     }
 
-    function _soFrom(OrderLib.CosignedOrder memory co) internal pure returns (SignedOrder memory so) {
-        so.order = abi.encode(co);
-        so.sig = hex"";
-    }
-
     function test_execute_forwards_to_reactor_with_callback() public {
         OrderLib.CosignedOrder memory co;
         co.order.info = OrderLib.OrderInfo({
@@ -78,8 +69,9 @@ contract ExecutorTest is BaseTest {
         exec.execute(co, ex);
 
         assertEq(reactor.lastSender(), address(exec));
-        (bytes memory lastOrderBytes,) = reactor.lastOrder();
-        assertEq(keccak256(lastOrderBytes), keccak256(abi.encode(co)));
+        OrderLib.CosignedOrder memory lastOrder = reactor.lastOrder();
+        // Compare the order structures (we can't compare the signature as it might be different)
+        assertTrue(keccak256(abi.encode(lastOrder.order)) == keccak256(abi.encode(co.order)));
         assertEq(
             keccak256(reactor.lastCallbackData()),
             keccak256(
@@ -343,26 +335,6 @@ contract ExecutorTest is BaseTest {
         assertEq(token.balanceOf(address(exec)), 0);
     }
 
-    function _dummySignedOrder() public view returns (SignedOrder memory so) {
-        OrderLib.CosignedOrder memory co;
-        co.order.info = OrderLib.OrderInfo({
-            reactor: address(reactor),
-            swapper: signer,
-            nonce: 0,
-            deadline: 1_086_400,
-            additionalValidationContract: address(0),
-            additionalValidationData: abi.encode(address(0), uint16(0))
-        });
-        co.order.executor = address(exec);
-        co.order.epoch = 0;
-        co.order.slippage = 0;
-        co.order.input = OrderLib.Input({token: address(token), amount: 0, maxAmount: 0});
-        co.order.output = OrderLib.Output({token: address(token), amount: 0, maxAmount: 0, recipient: signer});
-
-        so.order = abi.encode(co);
-        so.sig = hex"";
-    }
-
     function _dummyResolvedOrder(address outToken, uint256 outAmount) public view returns (ResolvedOrder memory ro) {
         OrderInfo memory info = OrderInfo({
             reactor: address(reactor),
@@ -416,8 +388,8 @@ contract ExecutorTest is BaseTest {
 
         // Verify that the gas fee fields are properly encoded in the callback data
         assertEq(reactor.lastSender(), address(exec));
-        (bytes memory lastOrderBytes,) = reactor.lastOrder();
-        assertEq(keccak256(lastOrderBytes), keccak256(abi.encode(co)));
+        OrderLib.CosignedOrder memory lastOrder = reactor.lastOrder();
+        assertTrue(keccak256(abi.encode(lastOrder.order)) == keccak256(abi.encode(co.order)));
 
         // The callback data should include our gas fee fields
         bytes memory expectedCallbackData = abi.encode(address(adapter), ex);

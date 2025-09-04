@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import {IReactor} from "src/lib/uniswapx/interfaces/IReactor.sol";
-import {IReactorCallback} from "src/lib/uniswapx/interfaces/IReactorCallback.sol";
-import {IValidationCallback} from "src/lib/uniswapx/interfaces/IValidationCallback.sol";
-import {ResolvedOrder, SignedOrder, OutputToken} from "src/lib/uniswapx/base/ReactorStructs.sol";
+import {IOrderReactor} from "src/interface/IOrderReactor.sol";
+import {IReactorCallback} from "src/interface/IReactorCallback.sol";
+import {IValidationCallback} from "src/interface/IValidationCallback.sol";
+import {ResolvedOrder} from "src/interface/ReactorStructs.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {IWM} from "src/interface/IWM.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
@@ -35,10 +35,7 @@ contract Executor is IReactorCallback, IValidationCallback {
     }
 
     function execute(OrderLib.CosignedOrder calldata co, SettlementLib.Execution calldata x) external onlyAllowed {
-        SignedOrder memory so;
-        so.order = abi.encode(co);
-        so.sig = co.signature;
-        IReactor(reactor).executeWithCallback(so, abi.encode(co.order.exchange.adapter, x));
+        IOrderReactor(reactor).executeWithCallback(co, abi.encode(co.order.exchange.adapter, x));
 
         SurplusLib.distribute(
             co.order.exchange.ref, co.order.info.swapper, co.order.input.token, co.order.exchange.share

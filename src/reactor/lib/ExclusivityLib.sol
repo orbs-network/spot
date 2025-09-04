@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {Constants} from "src/reactor/Constants.sol";
 
-library ExclusivityOverrideLib {
+library ExclusivityLib {
     using Math for uint256;
 
     error InvalidSender();

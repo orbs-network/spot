@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import {ResolvedOrder, OutputToken} from "src/lib/uniswapx/base/ReactorStructs.sol";
+import {ResolvedOrder, OutputToken} from "src/interface/ReactorStructs.sol";
 import {TokenLib} from "src/executor/lib/TokenLib.sol";
 
 library SettlementLib {

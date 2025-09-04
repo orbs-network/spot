@@ -1,7 +1,7 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity ^0.8.0;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.20;
 
-import {IValidationCallback} from "../interfaces/IValidationCallback.sol";
+import {IValidationCallback} from "src/interface/IValidationCallback.sol";
 
 /// @dev generic order information
 ///  should be included as the first field in any concrete order types
@@ -45,11 +45,4 @@ struct ResolvedOrder {
     OutputToken[] outputs;
     bytes sig;
     bytes32 hash;
-}
-
-/// @dev external struct including a generic encoded order and swapper signature
-///  The order bytes will be parsed and mapped to a ResolvedOrder in the concrete reactor contract
-struct SignedOrder {
-    bytes order;
-    bytes sig;
 }

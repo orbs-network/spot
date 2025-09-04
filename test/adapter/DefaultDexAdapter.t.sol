@@ -3,8 +3,8 @@ pragma solidity 0.8.20;
 
 import "forge-std/Test.sol";
 import {DefaultDexAdapter} from "src/adapter/DefaultDexAdapter.sol";
-import {ResolvedOrder, InputToken, OutputToken, OrderInfo} from "src/lib/uniswapx/base/ReactorStructs.sol";
-import {IValidationCallback} from "src/lib/uniswapx/interfaces/IValidationCallback.sol";
+import {ResolvedOrder, InputToken, OutputToken, OrderInfo} from "src/interface/ReactorStructs.sol";
+import {IValidationCallback} from "src/interface/IValidationCallback.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 import {MockDexRouter} from "test/mocks/MockDexRouter.sol";
 import {USDTMock} from "test/mocks/USDTMock.sol";
