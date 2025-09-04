@@ -1,8 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import {BaseReactor} from "src/base/BaseReactor.sol";
-import {SignedOrder} from "src/lib/uniswapx/base/ReactorStructs.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {IReactorCallback} from "src/lib/uniswapx/interfaces/IReactorCallback.sol";
+import {IValidationCallback} from "src/lib/uniswapx/interfaces/IValidationCallback.sol";
+import {
+    SignedOrder, ResolvedOrder, OrderInfo, InputToken, OutputToken
+} from "src/lib/uniswapx/base/ReactorStructs.sol";
+import {TokenLib} from "src/executor/lib/TokenLib.sol";
 
 import {RePermit} from "src/repermit/RePermit.sol";
 import {RePermitLib} from "src/repermit/RePermitLib.sol";
@@ -13,7 +18,10 @@ import {EpochLib} from "src/reactor/lib/EpochLib.sol";
 import {ResolutionLib} from "src/reactor/lib/ResolutionLib.sol";
 import {ExclusivityOverrideLib} from "src/lib/uniswapx/lib/ExclusivityOverrideLib.sol";
 
-contract OrderReactor is BaseReactor {
+contract OrderReactor is ReentrancyGuard {
+    /// @notice Event emitted when an order is filled
+    event Fill(bytes32 indexed orderHash, address indexed filler, address indexed swapper, uint256 nonce);
+
     address public immutable cosigner;
     address public immutable repermit;
 
@@ -25,48 +33,34 @@ contract OrderReactor is BaseReactor {
         repermit = _repermit;
     }
 
-    /// @notice Execute a SignedOrder (compatibility wrapper)
-    /// @param signedOrder The signed order containing encoded CosignedOrder  
-    function executeWithCallback(SignedOrder calldata signedOrder, bytes calldata /* callbackData */)
+    /// @notice Execute a SignedOrder with callback
+    /// @param signedOrder The signed order containing encoded CosignedOrder
+    /// @param callbackData Data to pass to the callback
+    function executeWithCallback(SignedOrder calldata signedOrder, bytes calldata callbackData)
         external
         payable
         nonReentrant
     {
-        // Decode SignedOrder to CosignedOrder and execute directly
+        // Decode SignedOrder to CosignedOrder
         OrderLib.CosignedOrder memory cosignedOrder = abi.decode(signedOrder.order, (OrderLib.CosignedOrder));
-        
-        // Resolve the order and get the essential parameters
-        (uint256 resolvedAmountOut, bytes32 orderHash) = _resolve(cosignedOrder);
 
-        // Prepare for order execution (validate and transfer input tokens)
-        _prepare(cosignedOrder, orderHash);
-
-        // Fill the order (handle output transfers)
-        _fill(cosignedOrder, resolvedAmountOut, orderHash);
-    }
-
-    function _resolve(OrderLib.CosignedOrder memory cosignedOrder)
-        internal
-        override
-        returns (uint256 resolvedAmountOut, bytes32 orderHash)
-    {
-        orderHash = OrderLib.hash(cosignedOrder.order);
-
+        // Validate and resolve the order
+        bytes32 orderHash = OrderLib.hash(cosignedOrder.order);
         OrderValidationLib.validate(cosignedOrder.order);
         CosignatureLib.validate(cosignedOrder, cosigner, address(repermit));
-
         EpochLib.update(epochs, orderHash, cosignedOrder.order.epoch);
 
         uint256 outAmount = ResolutionLib.resolveOutAmount(cosignedOrder);
-        resolvedAmountOut =
-            ExclusivityOverrideLib.applyOverride(outAmount, cosignedOrder.order.executor, cosignedOrder.order.exclusivity);
-    }
+        uint256 resolvedAmountOut = ExclusivityOverrideLib.applyOverride(
+            outAmount, cosignedOrder.order.executor, cosignedOrder.order.exclusivity
+        );
 
-    function _handleInputTokens(OrderLib.CosignedOrder memory cosignedOrder, bytes32 orderHash) internal override {
         // Transfer input tokens via RePermit
         RePermit(address(repermit)).repermitWitnessTransferFrom(
             RePermitLib.RePermitTransferFrom(
-                RePermitLib.TokenPermissions(address(cosignedOrder.order.input.token), cosignedOrder.order.input.maxAmount),
+                RePermitLib.TokenPermissions(
+                    address(cosignedOrder.order.input.token), cosignedOrder.order.input.maxAmount
+                ),
                 cosignedOrder.order.info.nonce,
                 cosignedOrder.order.info.deadline
             ),
@@ -76,5 +70,50 @@ contract OrderReactor is BaseReactor {
             OrderLib.WITNESS_TYPE_SUFFIX,
             cosignedOrder.signature
         );
+
+        // Create ResolvedOrder for callback
+        ResolvedOrder[] memory resolvedOrders = new ResolvedOrder[](1);
+        OutputToken[] memory outputs = new OutputToken[](1);
+        outputs[0] = OutputToken({
+            token: cosignedOrder.order.output.token,
+            amount: resolvedAmountOut,
+            recipient: cosignedOrder.order.output.recipient
+        });
+
+        resolvedOrders[0] = ResolvedOrder({
+            info: OrderInfo({
+                reactor: address(this),
+                swapper: cosignedOrder.order.info.swapper,
+                nonce: cosignedOrder.order.info.nonce,
+                deadline: cosignedOrder.order.info.deadline,
+                additionalValidationContract: IValidationCallback(cosignedOrder.order.info.additionalValidationContract),
+                additionalValidationData: cosignedOrder.order.info.additionalValidationData
+            }),
+            input: InputToken({
+                token: cosignedOrder.order.input.token,
+                amount: cosignedOrder.order.input.amount,
+                maxAmount: cosignedOrder.order.input.maxAmount
+            }),
+            outputs: outputs,
+            sig: signedOrder.sig,
+            hash: orderHash
+        });
+
+        // Call the executor callback
+        IReactorCallback(msg.sender).reactorCallback(resolvedOrders, callbackData);
+
+        // Transfer output tokens to recipient
+        TokenLib.transfer(cosignedOrder.order.output.token, cosignedOrder.order.output.recipient, resolvedAmountOut);
+
+        emit Fill(orderHash, msg.sender, cosignedOrder.order.info.swapper, cosignedOrder.order.info.nonce);
+
+        // Refund any remaining ETH to the filler
+        if (address(this).balance > 0) {
+            TokenLib.transfer(address(0), msg.sender, address(this).balance);
+        }
+    }
+
+    receive() external payable {
+        // Receive native asset to support native output
     }
 }
