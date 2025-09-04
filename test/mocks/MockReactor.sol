@@ -10,10 +10,6 @@ contract MockReactor is IReactor {
     OrderLib.CosignedOrder internal _lastOrder;
     bytes public lastCallbackData;
     address public lastSender;
-    
-    function lastOrder() public view returns (OrderLib.CosignedOrder memory) {
-        return _lastOrder;
-    }
 
     function executeWithCallback(OrderLib.CosignedOrder calldata cosignedOrder, bytes calldata callbackData) external payable {
         // record for tests

@@ -64,36 +64,10 @@ contract OrderReactor is ReentrancyGuard {
             cosignedOrder.signature
         );
 
-        // Create ResolvedOrder for callback
-        OrderLib.ResolvedOrder[] memory resolvedOrders = new OrderLib.ResolvedOrder[](1);
-        OrderLib.OutputToken[] memory outputs = new OrderLib.OutputToken[](1);
-        outputs[0] = OrderLib.OutputToken({
-            token: cosignedOrder.order.output.token,
-            amount: resolvedAmountOut,
-            recipient: cosignedOrder.order.output.recipient
-        });
-
-        resolvedOrders[0] = OrderLib.ResolvedOrder({
-            info: OrderLib.OrderInfo({
-                reactor: address(this),
-                swapper: cosignedOrder.order.info.swapper,
-                nonce: cosignedOrder.order.info.nonce,
-                deadline: cosignedOrder.order.info.deadline,
-                additionalValidationContract: cosignedOrder.order.info.additionalValidationContract,
-                additionalValidationData: cosignedOrder.order.info.additionalValidationData
-            }),
-            input: OrderLib.InputToken({
-                token: cosignedOrder.order.input.token,
-                amount: cosignedOrder.order.input.amount,
-                maxAmount: cosignedOrder.order.input.maxAmount
-            }),
-            outputs: outputs,
-            sig: cosignedOrder.signature,
-            hash: orderHash
-        });
-
-        // Call the executor callback
-        IReactorCallback(msg.sender).reactorCallback(resolvedOrders, callbackData);
+        // Call the executor callback with cosigned orders
+        OrderLib.CosignedOrder[] memory cosignedOrders = new OrderLib.CosignedOrder[](1);
+        cosignedOrders[0] = cosignedOrder;
+        IReactorCallback(msg.sender).reactorCallback(cosignedOrders, callbackData);
 
         // Transfer output tokens to recipient
         TokenLib.transfer(cosignedOrder.order.output.token, cosignedOrder.order.output.recipient, resolvedAmountOut);

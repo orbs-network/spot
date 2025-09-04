@@ -7,8 +7,8 @@ import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 contract SwapAdapterMock {
     error InvalidOrder();
 
-    function swap(OrderLib.ResolvedOrder memory order, bytes calldata) external {
-        if (order.outputs.length != 1) revert InvalidOrder();
+    function swap(OrderLib.CosignedOrder memory cosignedOrder, bytes calldata) external {
+        if (cosignedOrder.order.output.token == address(0)) revert InvalidOrder();
         // no-op; Executor handles settlement
     }
 }

@@ -6,8 +6,8 @@ import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 /// @notice Callback for executing orders through a reactor.
 interface IReactorCallback {
     /// @notice Called by the reactor during the execution of an order
-    /// @param resolvedOrders Has inputs and outputs
+    /// @param cosignedOrders The cosigned orders being executed
     /// @param callbackData The callbackData specified for an order execution
     /// @dev Must have approved each token and amount in outputs to the msg.sender
-    function reactorCallback(OrderLib.ResolvedOrder[] memory resolvedOrders, bytes memory callbackData) external;
+    function reactorCallback(OrderLib.CosignedOrder[] memory cosignedOrders, bytes memory callbackData) external;
 }

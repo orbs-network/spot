@@ -18,19 +18,17 @@ library SettlementLib {
     );
 
     struct Execution {
-        OrderLib.OutputToken fee;
+        OrderLib.Output fee;
         uint256 minAmountOut;
         bytes data;
     }
 
-    function settle(OrderLib.ResolvedOrder memory order, Execution memory execution, address reactor, address exchange)
+    function settle(OrderLib.CosignedOrder memory cosignedOrder, Execution memory execution, address reactor, address exchange)
         internal
     {
-        if (order.outputs.length != 1) revert InvalidOrder();
-
-        address outToken = address(order.outputs[0].token);
-        uint256 outAmount = order.outputs[0].amount;
-        address recipient = order.outputs[0].recipient;
+        address outToken = cosignedOrder.order.output.token;
+        uint256 outAmount = cosignedOrder.order.output.amount;
+        address recipient = cosignedOrder.order.output.recipient;
 
         TokenLib.prepareFor(outToken, reactor, outAmount);
         if (execution.minAmountOut > outAmount) {
@@ -43,12 +41,12 @@ library SettlementLib {
         }
 
         emit Settled(
-            order.hash,
-            order.info.swapper,
+            OrderLib.hash(cosignedOrder.order),
+            cosignedOrder.order.info.swapper,
             exchange,
-            address(order.input.token),
+            cosignedOrder.order.input.token,
             outToken,
-            order.input.amount,
+            cosignedOrder.order.input.amount,
             outAmount
         );
     }

@@ -44,17 +44,17 @@ contract Executor is IReactorCallback, IValidationCallback {
         );
     }
 
-    function reactorCallback(OrderLib.ResolvedOrder[] memory orders, bytes memory callbackData) external override onlyReactor {
-        if (orders.length != 1) revert InvalidOrder();
+    function reactorCallback(OrderLib.CosignedOrder[] memory cosignedOrders, bytes memory callbackData) external override onlyReactor {
+        if (cosignedOrders.length != 1) revert InvalidOrder();
         (address exchange, SettlementLib.Execution memory x) =
             abi.decode(callbackData, (address, SettlementLib.Execution));
         Address.functionDelegateCall(
-            exchange, abi.encodeWithSelector(IExchangeAdapter.swap.selector, orders[0], x.data)
+            exchange, abi.encodeWithSelector(IExchangeAdapter.swap.selector, cosignedOrders[0], x.data)
         );
-        SettlementLib.settle(orders[0], x, reactor, exchange);
+        SettlementLib.settle(cosignedOrders[0], x, reactor, exchange);
     }
 
-    function validate(address filler, OrderLib.ResolvedOrder calldata) external view override {
+    function validate(address filler, OrderLib.CosignedOrder calldata) external view override {
         if (filler != address(this)) revert InvalidSender();
     }
 

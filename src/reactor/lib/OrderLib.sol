@@ -114,29 +114,7 @@ library OrderLib {
         bytes cosignature;
     }
 
-    // Aliases for compatibility with callback interfaces
-    // Use Input struct for tokens that need to be sent from the swapper
-    struct InputToken {
-        address token;
-        uint256 amount;
-        uint256 maxAmount;
-    }
-    
-    // Use Output struct for tokens that need to be received by the recipient  
-    struct OutputToken {
-        address token;
-        uint256 amount;
-        address recipient;
-    }
 
-    /// @dev generic concrete order that specifies exact tokens which need to be sent and received
-    struct ResolvedOrder {
-        OrderInfo info;
-        InputToken input;
-        OutputToken[] outputs;
-        bytes sig;
-        bytes32 hash;
-    }
 
     function hash(OrderInfo memory info) internal pure returns (bytes32) {
         return keccak256(
