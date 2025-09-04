@@ -212,36 +212,6 @@ contract SettlementLibTest is Test {
         assertEq(usdt.balanceOf(feeRecipient), initialBalance + feeAmount);
     }
 
-    // NOTE: This test is no longer relevant as the new protocol only supports single output per order
-    // function test_settle_reverts_on_multiple_outputs() public {
-    //     OrderLib.InputToken memory input = OrderLib.InputToken({token: address(tokenIn), amount: 200 ether, maxAmount: 200 ether});
-    // 
-    //     OrderLib.OutputToken[] memory outputs = new OrderLib.OutputToken[](2);
-    //     outputs[0] = OrderLib.OutputToken({token: address(tokenOut), amount: 100 ether, recipient: swapper});
-    //     outputs[1] = OrderLib.OutputToken({token: address(tokenOut), amount: 50 ether, recipient: swapper});
-    // 
-    //     OrderLib.CosignedOrder memory order = OrderLib.CosignedOrder({
-    //         info: OrderLib.OrderInfo({
-    //             reactor: reactor,
-    //             swapper: swapper,
-    //             nonce: 1,
-    //             deadline: block.timestamp + 1000,
-    //             additionalValidationContract: address(0),
-    //             additionalValidationData: ""
-    //         }),
-    //         input: input,
-    //         outputs: outputs,
-    //         sig: "",
-    //         hash: keccak256("test")
-    //     });
-    // 
-    //     SettlementLib.Execution memory execution = _createExecution(address(0), 0, address(0), 95 ether);
-    // 
-    //     // Expect revert when multiple outputs are provided
-    //     vm.expectRevert();
-    //     wrapper.settle(order, execution, reactor, exchange);
-    // }
-
     function test_settle_with_both_shortfall_and_fee() public {
         uint256 inAmount = 200 ether;
         uint256 outAmount = 95 ether;
