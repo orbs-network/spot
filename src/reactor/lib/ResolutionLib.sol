@@ -9,6 +9,7 @@ library ResolutionLib {
     using Math for uint256;
 
     error CosignedMaxAmount();
+    error InvalidSender();
 
     function resolveOutAmount(OrderLib.CosignedOrder memory cosigned) internal pure returns (uint256 outAmount) {
         uint256 cosignedOutput = cosigned.order.input.amount.mulDiv(
@@ -19,5 +20,16 @@ library ResolutionLib {
 
         uint256 minOut = cosignedOutput.mulDiv(Constants.BPS - cosigned.order.slippage, Constants.BPS);
         outAmount = minOut.max(cosigned.order.output.amount);
+    }
+
+    function applyExclusivityOverride(uint256 minOut, address exclusiveExecutor, uint32 exclusivityBps)
+        internal
+        view
+        returns (uint256)
+    {
+        if (msg.sender != exclusiveExecutor && exclusivityBps == 0) revert InvalidSender();
+        if (msg.sender == exclusiveExecutor) return minOut;
+        uint256 bps = Constants.BPS + uint256(exclusivityBps);
+        return Math.mulDiv(minOut, bps, Constants.BPS, Math.Rounding.Up);
     }
 }

@@ -3,7 +3,6 @@ pragma solidity 0.8.20;
 
 import {IReactor} from "src/interface/IReactor.sol";
 import {IReactorCallback} from "src/interface/IReactorCallback.sol";
-import {IValidationCallback} from "src/interface/IValidationCallback.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {IWM} from "src/interface/IWM.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
@@ -11,7 +10,7 @@ import {SurplusLib} from "src/executor/lib/SurplusLib.sol";
 import {IExchangeAdapter} from "src/interface/IExchangeAdapter.sol";
 import {SettlementLib} from "src/executor/lib/SettlementLib.sol";
 
-contract Executor is IReactorCallback, IValidationCallback {
+contract Executor is IReactorCallback {
     error InvalidSender();
     error InvalidOrder();
 
@@ -34,7 +33,7 @@ contract Executor is IReactorCallback, IValidationCallback {
     }
 
     function execute(OrderLib.CosignedOrder calldata co, SettlementLib.Execution calldata x) external onlyAllowed {
-        IReactor(reactor).executeWithCallback(co, abi.encode(co.order.exchange.adapter, x));
+        IReactor(reactor).executeWithCallback(co, co.order.exchange.adapter, x);
 
         SurplusLib.distribute(
             co.order.exchange.ref, co.order.info.swapper, co.order.input.token, co.order.exchange.share
@@ -44,21 +43,16 @@ contract Executor is IReactorCallback, IValidationCallback {
         );
     }
 
-    function reactorCallback(OrderLib.CosignedOrder memory cosignedOrder, bytes32 orderHash, bytes memory callbackData)
-        external
-        override
-        onlyReactor
-    {
-        (address exchange, SettlementLib.Execution memory x) =
-            abi.decode(callbackData, (address, SettlementLib.Execution));
+    function reactorCallback(
+        OrderLib.CosignedOrder memory cosignedOrder,
+        bytes32 orderHash,
+        address exchange,
+        SettlementLib.Execution memory x
+    ) external override onlyReactor {
         Address.functionDelegateCall(
             exchange, abi.encodeWithSelector(IExchangeAdapter.swap.selector, cosignedOrder, x.data)
         );
-        SettlementLib.settle(cosignedOrder, x, reactor, exchange, orderHash);
-    }
-
-    function validate(address filler, OrderLib.CosignedOrder calldata) external view override {
-        if (filler != address(this)) revert InvalidSender();
+        SettlementLib.settle(cosignedOrder, x, orderHash);
     }
 
     receive() external payable {}

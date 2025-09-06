@@ -69,27 +69,41 @@ contract ExecutorTest is BaseTest {
         exec.execute(co, ex);
 
         assertEq(reactor.lastSender(), address(exec));
-        OrderLib.CosignedOrder memory lastOrder = reactor.getLastOrder();
+        
+        // Get the components of the lastOrder struct
+        (OrderLib.Order memory order, bytes memory signature, OrderLib.Cosignature memory cosignatureData, bytes memory cosignature) = reactor.lastOrder();
+        OrderLib.CosignedOrder memory lastOrder = OrderLib.CosignedOrder({
+            order: order,
+            signature: signature,
+            cosignatureData: cosignatureData,
+            cosignature: cosignature
+        });
+        
         // Compare the order structures (we can't compare the signature as it might be different)
         assertTrue(keccak256(abi.encode(lastOrder.order)) == keccak256(abi.encode(co.order)));
-        assertEq(
-            keccak256(reactor.lastCallbackData()),
-            keccak256(
-                abi.encode(
-                    address(adapter),
-                    SettlementLib.Execution({
-                        fee: OrderLib.Output({
-                            token: address(0),
-                            amount: 0,
-                            recipient: address(0),
-                            maxAmount: type(uint256).max
-                        }),
-                        minAmountOut: 0,
-                        data: hex""
-                    })
-                )
-            )
-        );
+        
+        // Check that the exchange and execution parameters were passed correctly
+        assertEq(reactor.lastExchange(), address(adapter));
+        
+        // Get the components of the lastExecution struct
+        (OrderLib.Output memory fee, uint256 minAmountOut, bytes memory data) = reactor.lastExecution();
+        SettlementLib.Execution memory actualExecution = SettlementLib.Execution({
+            fee: fee,
+            minAmountOut: minAmountOut,
+            data: data
+        });
+        
+        SettlementLib.Execution memory expectedExecution = SettlementLib.Execution({
+            fee: OrderLib.Output({
+                token: address(0),
+                amount: 0,
+                recipient: address(0),
+                maxAmount: type(uint256).max
+            }),
+            minAmountOut: 0,
+            data: hex""
+        });
+        assertEq(keccak256(abi.encode(actualExecution)), keccak256(abi.encode(expectedExecution)));
     }
 
     function test_execute_reverts_when_not_allowed() public {
@@ -127,14 +141,12 @@ contract ExecutorTest is BaseTest {
         exec.reactorCallback(
             co,
             orderHash,
-            abi.encode(
-                address(adapter),
-                SettlementLib.Execution({
-                    fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
-                    minAmountOut: 0,
-                    data: hex""
-                })
-            )
+            address(adapter),
+            SettlementLib.Execution({
+                fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
+                minAmountOut: 0,
+                data: hex""
+            })
         );
     }
 
@@ -150,14 +162,12 @@ contract ExecutorTest is BaseTest {
         exec.reactorCallback(
             co,
             orderHash,
-            abi.encode(
-                address(adapter),
-                SettlementLib.Execution({
-                    fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
-                    minAmountOut: 0,
-                    data: hex""
-                })
-            )
+            address(adapter),
+            SettlementLib.Execution({
+                fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
+                minAmountOut: 0,
+                data: hex""
+            })
         );
 
         // multicall executed: executor now holds minted tokens
@@ -187,14 +197,12 @@ contract ExecutorTest is BaseTest {
         exec.reactorCallback(
             co,
             orderHash,
-            abi.encode(
-                address(adapter),
-                SettlementLib.Execution({
-                    fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
-                    minAmountOut: 0,
-                    data: hex""
-                })
-            )
+            address(adapter),
+            SettlementLib.Execution({
+                fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
+                minAmountOut: 0,
+                data: hex""
+            })
         );
 
         // final allowance set to exact amount
@@ -213,25 +221,14 @@ contract ExecutorTest is BaseTest {
         exec.reactorCallback(
             co,
             orderHash,
-            abi.encode(
-                address(adapter),
-                SettlementLib.Execution({
-                    fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
-                    minAmountOut: 0,
-                    data: hex""
-                })
-            )
+            address(adapter),
+            SettlementLib.Execution({
+                fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
+                minAmountOut: 0,
+                data: hex""
+            })
         );
         assertEq(address(reactor).balance, beforeBal + 987);
-    }
-
-    function test_validate_allows_only_self_as_filler() public view {
-        exec.validate(address(exec), _dummyCosignedOrder(address(token), 0));
-    }
-
-    function test_validate_reverts_for_others() public {
-        vm.expectRevert(abi.encodeWithSelector(Executor.InvalidSender.selector));
-        exec.validate(other, _dummyCosignedOrder(address(token), 0));
     }
 
     function test_reactorCallback_allows_single_output_to_non_swapper() public {
@@ -243,14 +240,12 @@ contract ExecutorTest is BaseTest {
         exec.reactorCallback(
             co,
             orderHash,
-            abi.encode(
-                address(adapter),
-                SettlementLib.Execution({
-                    fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
-                    minAmountOut: 0,
-                    data: hex""
-                })
-            )
+            address(adapter),
+            SettlementLib.Execution({
+                fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
+                minAmountOut: 0,
+                data: hex""
+            })
         );
         assertEq(IERC20(address(token)).allowance(address(exec), address(reactor)), 100);
     }
@@ -293,14 +288,12 @@ contract ExecutorTest is BaseTest {
         exec.reactorCallback(
             co,
             orderHash,
-            abi.encode(
-                address(adapter),
-                SettlementLib.Execution({
-                    fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
-                    minAmountOut: 600,
-                    data: hex""
-                })
-            )
+            address(adapter),
+            SettlementLib.Execution({
+                fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
+                minAmountOut: 600,
+                data: hex""
+            })
         );
         assertEq(out.balanceOf(signer), before + 100);
     }
@@ -412,14 +405,30 @@ contract ExecutorTest is BaseTest {
         uint256 beforeBalance = IERC20(gasFeeToken).balanceOf(gasFeeRecipient);
         exec.execute(co, ex);
 
-        // Verify that the gas fee fields are properly encoded in the callback data
+        // Verify that the gas fee fields are properly passed in the execution parameters
         assertEq(reactor.lastSender(), address(exec));
-        OrderLib.CosignedOrder memory lastOrder = reactor.getLastOrder();
+        
+        // Get the components of the lastOrder struct
+        (OrderLib.Order memory order, bytes memory signature, OrderLib.Cosignature memory cosignatureData, bytes memory cosignature) = reactor.lastOrder();
+        OrderLib.CosignedOrder memory lastOrder = OrderLib.CosignedOrder({
+            order: order,
+            signature: signature,
+            cosignatureData: cosignatureData,
+            cosignature: cosignature
+        });
         assertTrue(keccak256(abi.encode(lastOrder.order)) == keccak256(abi.encode(co.order)));
 
-        // The callback data should include our gas fee fields
-        bytes memory expectedCallbackData = abi.encode(address(adapter), ex);
-        assertEq(keccak256(reactor.lastCallbackData()), keccak256(expectedCallbackData));
+        // Check that the exchange and execution parameters were passed correctly
+        assertEq(reactor.lastExchange(), address(adapter));
+        
+        // Get the components of the lastExecution struct  
+        (OrderLib.Output memory fee, uint256 minAmountOut, bytes memory data) = reactor.lastExecution();
+        SettlementLib.Execution memory actualExecution = SettlementLib.Execution({
+            fee: fee,
+            minAmountOut: minAmountOut,
+            data: data
+        });
+        assertEq(keccak256(abi.encode(actualExecution)), keccak256(abi.encode(ex)));
 
         // Verify that gas fee was transferred to the recipient
         uint256 afterBalance = IERC20(gasFeeToken).balanceOf(gasFeeRecipient);

@@ -26,11 +26,9 @@ library SettlementLib {
     function settle(
         OrderLib.CosignedOrder memory cosignedOrder,
         Execution memory execution,
-        address reactor,
-        address exchange,
         bytes32 orderHash
     ) internal {
-        TokenLib.prepareFor(cosignedOrder.order.output.token, reactor, cosignedOrder.order.output.amount);
+        TokenLib.prepareFor(cosignedOrder.order.output.token, msg.sender, cosignedOrder.order.output.amount);
         if (execution.minAmountOut > cosignedOrder.order.output.amount) {
             TokenLib.transfer(
                 cosignedOrder.order.output.token,
@@ -47,7 +45,7 @@ library SettlementLib {
         emit Settled(
             orderHash,
             cosignedOrder.order.info.swapper,
-            exchange,
+            cosignedOrder.order.exchange.adapter,
             cosignedOrder.order.input.token,
             cosignedOrder.order.output.token,
             cosignedOrder.order.input.amount,

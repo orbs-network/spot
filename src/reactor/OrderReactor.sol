@@ -5,6 +5,7 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
 import {IReactorCallback} from "src/interface/IReactorCallback.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {TokenLib} from "src/executor/lib/TokenLib.sol";
+import {SettlementLib} from "src/executor/lib/SettlementLib.sol";
 
 import {RePermit} from "src/repermit/RePermit.sol";
 import {RePermitLib} from "src/repermit/RePermitLib.sol";
@@ -12,11 +13,10 @@ import {OrderValidationLib} from "src/reactor/lib/OrderValidationLib.sol";
 import {CosignatureLib} from "src/reactor/lib/CosignatureLib.sol";
 import {EpochLib} from "src/reactor/lib/EpochLib.sol";
 import {ResolutionLib} from "src/reactor/lib/ResolutionLib.sol";
-import {ExclusivityLib} from "src/reactor/lib/ExclusivityLib.sol";
 
 contract OrderReactor is ReentrancyGuard {
     /// @notice Event emitted when an order is filled
-    event Fill(bytes32 indexed orderHash, address indexed filler, address indexed swapper, uint256 epoch);
+    event Fill(bytes32 indexed orderHash, address indexed executor, address indexed swapper, uint256 epoch);
 
     address public immutable cosigner;
     address public immutable repermit;
@@ -31,12 +31,13 @@ contract OrderReactor is ReentrancyGuard {
 
     /// @notice Execute a CosignedOrder with callback
     /// @param cosignedOrder The cosigned order to execute
-    /// @param callbackData Data to pass to the callback
-    function executeWithCallback(OrderLib.CosignedOrder calldata cosignedOrder, bytes calldata callbackData)
-        external
-        payable
-        nonReentrant
-    {
+    /// @param exchange The exchange adapter address to use
+    /// @param execution The execution parameters for the order
+    function executeWithCallback(
+        OrderLib.CosignedOrder calldata cosignedOrder,
+        address exchange,
+        SettlementLib.Execution calldata execution
+    ) external payable nonReentrant {
         // Validate and resolve the order
         bytes32 orderHash = OrderLib.hash(cosignedOrder.order);
         OrderValidationLib.validate(cosignedOrder.order);
@@ -45,27 +46,35 @@ contract OrderReactor is ReentrancyGuard {
 
         uint256 outAmount = ResolutionLib.resolveOutAmount(cosignedOrder);
         uint256 resolvedAmountOut =
-            ExclusivityLib.applyOverride(outAmount, cosignedOrder.order.executor, cosignedOrder.order.exclusivity);
+            ResolutionLib.applyExclusivityOverride(outAmount, cosignedOrder.order.executor, cosignedOrder.order.exclusivity);
 
         // Transfer input tokens via RePermit
-        _handleInputTokens(cosignedOrder, orderHash);
+        _transferInput(cosignedOrder, orderHash);
 
         // Call the executor callback with the cosigned order and hash
-        IReactorCallback(msg.sender).reactorCallback(cosignedOrder, orderHash, callbackData);
+        IReactorCallback(msg.sender).reactorCallback(cosignedOrder, orderHash, exchange, execution);
 
+        // Transfer output tokens and refund ETH
+        _transferOutput(cosignedOrder, resolvedAmountOut);
+
+        emit Fill(orderHash, msg.sender, cosignedOrder.order.info.swapper, currentEpoch);
+    }
+
+    /// @notice Transfer output tokens to recipient and refund remaining ETH to executor
+    /// @param cosignedOrder The cosigned order containing output details
+    /// @param resolvedAmountOut The resolved output amount to transfer
+    function _transferOutput(OrderLib.CosignedOrder calldata cosignedOrder, uint256 resolvedAmountOut) private {
         // Transfer output tokens to recipient
         TokenLib.transfer(cosignedOrder.order.output.token, cosignedOrder.order.output.recipient, resolvedAmountOut);
 
-        emit Fill(orderHash, msg.sender, cosignedOrder.order.info.swapper, currentEpoch);
-
-        // Refund any remaining ETH to the filler
+        // Refund any remaining ETH to the executor
         TokenLib.transfer(address(0), msg.sender, address(this).balance);
     }
 
     /// @notice Handle input token transfers via RePermit
     /// @param cosignedOrder The cosigned order containing input details
     /// @param orderHash The hash of the order for witness verification
-    function _handleInputTokens(OrderLib.CosignedOrder calldata cosignedOrder, bytes32 orderHash) private {
+    function _transferInput(OrderLib.CosignedOrder calldata cosignedOrder, bytes32 orderHash) private {
         RePermit(address(repermit)).repermitWitnessTransferFrom(
             RePermitLib.RePermitTransferFrom(
                 RePermitLib.TokenPermissions(
