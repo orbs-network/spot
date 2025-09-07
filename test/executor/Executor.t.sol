@@ -139,9 +139,8 @@ contract ExecutorTest is BaseTest {
 
         vm.expectRevert(abi.encodeWithSelector(Executor.InvalidSender.selector));
         exec.reactorCallback(
-            co,
             orderHash,
-            address(adapter),
+            co,
             SettlementLib.Execution({
                 fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                 minAmountOut: 0,
@@ -160,9 +159,8 @@ contract ExecutorTest is BaseTest {
         // call from reactor
         vm.prank(address(reactor));
         exec.reactorCallback(
-            co,
             orderHash,
-            address(adapter),
+            co,
             SettlementLib.Execution({
                 fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                 minAmountOut: 0,
@@ -195,9 +193,8 @@ contract ExecutorTest is BaseTest {
         // call from reactor; should internally forceApprove to exact amount (approve(0) then approve(1234))
         vm.prank(address(reactor));
         exec.reactorCallback(
-            co,
             orderHash,
-            address(adapter),
+            co,
             SettlementLib.Execution({
                 fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                 minAmountOut: 0,
@@ -219,9 +216,8 @@ contract ExecutorTest is BaseTest {
         uint256 beforeBal = address(reactor).balance;
         vm.prank(address(reactor));
         exec.reactorCallback(
-            co,
             orderHash,
-            address(adapter),
+            co,
             SettlementLib.Execution({
                 fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                 minAmountOut: 0,
@@ -238,9 +234,8 @@ contract ExecutorTest is BaseTest {
         // should not revert; also sets approval for reactor
         vm.prank(address(reactor));
         exec.reactorCallback(
-            co,
             orderHash,
-            address(adapter),
+            co,
             SettlementLib.Execution({
                 fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                 minAmountOut: 0,
@@ -286,9 +281,8 @@ contract ExecutorTest is BaseTest {
         uint256 before = out.balanceOf(signer);
         vm.prank(address(reactor));
         exec.reactorCallback(
-            co,
             orderHash,
-            address(adapter),
+            co,
             SettlementLib.Execution({
                 fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                 minAmountOut: 600,

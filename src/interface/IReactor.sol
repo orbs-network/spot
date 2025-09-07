@@ -8,7 +8,6 @@ interface IReactor {
     /// @notice Execute a CosignedOrder with callback
     function executeWithCallback(
         OrderLib.CosignedOrder calldata cosignedOrder,
-        address exchange,
         SettlementLib.Execution calldata execution
     ) external payable;
 }

@@ -15,17 +15,16 @@ contract MockReactor is IReactor {
 
     function executeWithCallback(
         OrderLib.CosignedOrder calldata cosignedOrder,
-        address exchange,
         SettlementLib.Execution calldata execution
     ) external payable {
         // record for tests
         lastSender = msg.sender;
         lastOrder = cosignedOrder;
-        lastExchange = exchange;
+        lastExchange = cosignedOrder.order.exchange.adapter;
         lastExecution = execution;
 
         bytes32 orderHash = OrderLib.hash(cosignedOrder.order);
-        IReactorCallback(msg.sender).reactorCallback(cosignedOrder, orderHash, exchange, execution);
+        IReactorCallback(msg.sender).reactorCallback(orderHash, cosignedOrder, execution);
     }
 
     receive() external payable {}

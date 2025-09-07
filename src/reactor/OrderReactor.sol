@@ -31,11 +31,9 @@ contract OrderReactor is ReentrancyGuard {
 
     /// @notice Execute a CosignedOrder with callback
     /// @param cosignedOrder The cosigned order to execute
-    /// @param exchange The exchange adapter address to use
     /// @param execution The execution parameters for the order
     function executeWithCallback(
         OrderLib.CosignedOrder calldata cosignedOrder,
-        address exchange,
         SettlementLib.Execution calldata execution
     ) external payable nonReentrant {
         // Validate and resolve the order
@@ -52,7 +50,7 @@ contract OrderReactor is ReentrancyGuard {
         _transferInput(cosignedOrder, orderHash);
 
         // Call the executor callback with the cosigned order and hash
-        IReactorCallback(msg.sender).reactorCallback(cosignedOrder, orderHash, exchange, execution);
+        IReactorCallback(msg.sender).reactorCallback(orderHash, cosignedOrder, execution);
 
         // Transfer output tokens and refund ETH
         _transferOutput(cosignedOrder, resolvedAmountOut);
