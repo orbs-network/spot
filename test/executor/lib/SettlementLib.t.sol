@@ -16,7 +16,7 @@ contract SettlementWrapper {
         address reactor,
         address exchange
     ) external {
-        SettlementLib.settle(cosignedOrder, execution, OrderLib.hash(cosignedOrder.order));
+        SettlementLib.settle(OrderLib.hash(cosignedOrder.order), cosignedOrder, execution);
     }
 }
 
@@ -85,8 +85,8 @@ contract SettlementLibTest is Test {
         returns (SettlementLib.Execution memory)
     {
         return SettlementLib.Execution({
-            fee: OrderLib.Output({token: feeToken, amount: feeAmount, recipient: recipient, maxAmount: type(uint256).max}),
             minAmountOut: minAmountOut,
+            fee: OrderLib.Output({token: feeToken, amount: feeAmount, recipient: recipient, maxAmount: type(uint256).max}),
             data: ""
         });
     }

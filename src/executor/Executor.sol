@@ -44,14 +44,14 @@ contract Executor is IReactorCallback {
     }
 
     function reactorCallback(
-        bytes32 orderHash,
-        OrderLib.CosignedOrder memory cosignedOrder,
+        bytes32 hash,
+        OrderLib.CosignedOrder memory co,
         SettlementLib.Execution memory x
     ) external override onlyReactor {
         Address.functionDelegateCall(
-            cosignedOrder.order.exchange.adapter, abi.encodeWithSelector(IExchangeAdapter.swap.selector, cosignedOrder, x.data)
+            co.order.exchange.adapter, abi.encodeWithSelector(IExchangeAdapter.swap.selector, co, x.data)
         );
-        SettlementLib.settle(cosignedOrder, x, orderHash);
+        SettlementLib.settle(hash, co, x);
     }
 
     receive() external payable {}

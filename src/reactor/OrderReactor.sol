@@ -30,62 +30,62 @@ contract OrderReactor is ReentrancyGuard {
     }
 
     /// @notice Execute a CosignedOrder with callback
-    /// @param cosignedOrder The cosigned order to execute
-    /// @param execution The execution parameters for the order
+    /// @param co The cosigned order to execute
+    /// @param x The execution parameters for the order
     function executeWithCallback(
-        OrderLib.CosignedOrder calldata cosignedOrder,
-        SettlementLib.Execution calldata execution
+        OrderLib.CosignedOrder calldata co,
+        SettlementLib.Execution calldata x
     ) external payable nonReentrant {
         // Validate and resolve the order
-        bytes32 orderHash = OrderLib.hash(cosignedOrder.order);
-        OrderValidationLib.validate(cosignedOrder.order);
-        CosignatureLib.validate(cosignedOrder, cosigner, address(repermit));
-        uint256 currentEpoch = EpochLib.update(epochs, orderHash, cosignedOrder.order.epoch);
+        bytes32 orderHash = OrderLib.hash(co.order);
+        OrderValidationLib.validate(co.order);
+        CosignatureLib.validate(co, cosigner, address(repermit));
+        uint256 currentEpoch = EpochLib.update(epochs, orderHash, co.order.epoch);
 
-        uint256 outAmount = ResolutionLib.resolveOutAmount(cosignedOrder);
+        uint256 outAmount = ResolutionLib.resolveOutAmount(co);
         uint256 resolvedAmountOut =
-            ResolutionLib.applyExclusivityOverride(outAmount, cosignedOrder.order.executor, cosignedOrder.order.exclusivity);
+            ResolutionLib.applyExclusivityOverride(outAmount, co.order.executor, co.order.exclusivity);
 
         // Transfer input tokens via RePermit
-        _transferInput(cosignedOrder, orderHash);
+        _transferInput(co, orderHash);
 
         // Call the executor callback with the cosigned order and hash
-        IReactorCallback(msg.sender).reactorCallback(orderHash, cosignedOrder, execution);
+        IReactorCallback(msg.sender).reactorCallback(orderHash, co, x);
 
         // Transfer output tokens and refund ETH
-        _transferOutput(cosignedOrder, resolvedAmountOut);
+        _transferOutput(co, resolvedAmountOut);
 
-        emit Fill(orderHash, msg.sender, cosignedOrder.order.info.swapper, currentEpoch);
+        emit Fill(orderHash, msg.sender, co.order.info.swapper, currentEpoch);
     }
 
     /// @notice Transfer output tokens to recipient and refund remaining ETH to executor
-    /// @param cosignedOrder The cosigned order containing output details
+    /// @param co The cosigned order containing output details
     /// @param resolvedAmountOut The resolved output amount to transfer
-    function _transferOutput(OrderLib.CosignedOrder calldata cosignedOrder, uint256 resolvedAmountOut) private {
+    function _transferOutput(OrderLib.CosignedOrder calldata co, uint256 resolvedAmountOut) private {
         // Transfer output tokens to recipient
-        TokenLib.transfer(cosignedOrder.order.output.token, cosignedOrder.order.output.recipient, resolvedAmountOut);
+        TokenLib.transfer(co.order.output.token, co.order.output.recipient, resolvedAmountOut);
 
         // Refund any remaining ETH to the executor
         TokenLib.transfer(address(0), msg.sender, address(this).balance);
     }
 
     /// @notice Handle input token transfers via RePermit
-    /// @param cosignedOrder The cosigned order containing input details
+    /// @param co The cosigned order containing input details
     /// @param orderHash The hash of the order for witness verification
-    function _transferInput(OrderLib.CosignedOrder calldata cosignedOrder, bytes32 orderHash) private {
+    function _transferInput(OrderLib.CosignedOrder calldata co, bytes32 orderHash) private {
         RePermit(address(repermit)).repermitWitnessTransferFrom(
             RePermitLib.RePermitTransferFrom(
                 RePermitLib.TokenPermissions(
-                    address(cosignedOrder.order.input.token), cosignedOrder.order.input.maxAmount
+                    address(co.order.input.token), co.order.input.maxAmount
                 ),
-                cosignedOrder.order.info.nonce,
-                cosignedOrder.order.info.deadline
+                co.order.info.nonce,
+                co.order.info.deadline
             ),
-            RePermitLib.TransferRequest(msg.sender, cosignedOrder.order.input.amount),
-            cosignedOrder.order.info.swapper,
+            RePermitLib.TransferRequest(msg.sender, co.order.input.amount),
+            co.order.info.swapper,
             orderHash,
             OrderLib.WITNESS_TYPE_SUFFIX,
-            cosignedOrder.signature
+            co.signature
         );
     }
 

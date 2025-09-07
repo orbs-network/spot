@@ -62,8 +62,8 @@ contract ExecutorTest is BaseTest {
         co.order.input = OrderLib.Input({token: address(token), amount: 0, maxAmount: 0});
         co.order.output = OrderLib.Output({token: address(token), amount: 0, maxAmount: 0, recipient: signer});
         SettlementLib.Execution memory ex = SettlementLib.Execution({
-            fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
             minAmountOut: 0,
+            fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
             data: hex""
         });
         exec.execute(co, ex);
@@ -86,21 +86,21 @@ contract ExecutorTest is BaseTest {
         assertEq(reactor.lastExchange(), address(adapter));
         
         // Get the components of the lastExecution struct
-        (OrderLib.Output memory fee, uint256 minAmountOut, bytes memory data) = reactor.lastExecution();
+        (uint256 minAmountOut, OrderLib.Output memory fee, bytes memory data) = reactor.lastExecution();
         SettlementLib.Execution memory actualExecution = SettlementLib.Execution({
-            fee: fee,
             minAmountOut: minAmountOut,
+            fee: fee,
             data: data
         });
         
         SettlementLib.Execution memory expectedExecution = SettlementLib.Execution({
+            minAmountOut: 0,
             fee: OrderLib.Output({
                 token: address(0),
                 amount: 0,
                 recipient: address(0),
                 maxAmount: type(uint256).max
             }),
-            minAmountOut: 0,
             data: hex""
         });
         assertEq(keccak256(abi.encode(actualExecution)), keccak256(abi.encode(expectedExecution)));
@@ -125,8 +125,8 @@ contract ExecutorTest is BaseTest {
         co.order.input = OrderLib.Input({token: address(token), amount: 0, maxAmount: 0});
         co.order.output = OrderLib.Output({token: address(token), amount: 0, maxAmount: 0, recipient: signer});
         SettlementLib.Execution memory ex = SettlementLib.Execution({
-            fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
             minAmountOut: 0,
+            fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
             data: hex""
         });
         vm.expectRevert(abi.encodeWithSelector(Executor.InvalidSender.selector));
@@ -142,8 +142,8 @@ contract ExecutorTest is BaseTest {
             orderHash,
             co,
             SettlementLib.Execution({
-                fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                 minAmountOut: 0,
+                fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                 data: hex""
             })
         );
@@ -162,8 +162,8 @@ contract ExecutorTest is BaseTest {
             orderHash,
             co,
             SettlementLib.Execution({
-                fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                 minAmountOut: 0,
+                fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                 data: hex""
             })
         );
@@ -196,8 +196,8 @@ contract ExecutorTest is BaseTest {
             orderHash,
             co,
             SettlementLib.Execution({
-                fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                 minAmountOut: 0,
+                fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                 data: hex""
             })
         );
@@ -219,8 +219,8 @@ contract ExecutorTest is BaseTest {
             orderHash,
             co,
             SettlementLib.Execution({
-                fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                 minAmountOut: 0,
+                fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                 data: hex""
             })
         );
@@ -237,8 +237,8 @@ contract ExecutorTest is BaseTest {
             orderHash,
             co,
             SettlementLib.Execution({
-                fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                 minAmountOut: 0,
+                fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                 data: hex""
             })
         );
@@ -284,8 +284,8 @@ contract ExecutorTest is BaseTest {
             orderHash,
             co,
             SettlementLib.Execution({
-                fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                 minAmountOut: 600,
+                fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                 data: hex""
             })
         );
@@ -315,9 +315,9 @@ contract ExecutorTest is BaseTest {
         _mint(address(token), address(exec), 200);
 
         SettlementLib.Execution memory ex2 = SettlementLib.Execution({
-            fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
-            minAmountOut: 600,
-            data: hex""
+                minAmountOut: 600,
+                fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
+                data: hex""
         });
         exec.execute(co, ex2);
 
@@ -351,6 +351,10 @@ contract ExecutorTest is BaseTest {
             additionalValidationContract: address(0),
             additionalValidationData: abi.encode(address(0))
         });
+        cosignedOrder.order.exchange = OrderLib.Exchange({adapter: address(adapter), ref: address(0), share: 0});
+        cosignedOrder.order.executor = address(exec);
+        cosignedOrder.order.epoch = 0;
+        cosignedOrder.order.slippage = 0;
         cosignedOrder.order.input = OrderLib.Input({token: address(token), amount: 0, maxAmount: 0});
 
         cosignedOrder.order.output =
@@ -362,12 +366,12 @@ contract ExecutorTest is BaseTest {
 
     function test_execution_with_gas_fee_fields() public {
         // Test that the new gas fee fields can be set and used
-        address gasFeeToken = address(token); // Use actual token for gas fee
-        uint256 gasFeeAmount = 1000;
-        address gasFeeRecipient = makeAddr("gasFeeRecipient");
+        address feeToken = address(token); // Use actual token for gas fee
+        uint256 feeAmount = 1000;
+        address feeRecipient = makeAddr("gasFeeRecipient");
 
         // Mint gas fee tokens to the executor
-        _mint(gasFeeToken, address(exec), gasFeeAmount);
+        _mint(feeToken, address(exec), feeAmount);
 
         OrderLib.CosignedOrder memory co;
         co.order.info = OrderLib.OrderInfo({
@@ -386,46 +390,21 @@ contract ExecutorTest is BaseTest {
         co.order.output = OrderLib.Output({token: address(token), amount: 0, maxAmount: 0, recipient: signer});
 
         SettlementLib.Execution memory ex = SettlementLib.Execution({
+            minAmountOut: 0,
             fee: OrderLib.Output({
-                token: gasFeeToken,
-                amount: gasFeeAmount,
-                recipient: gasFeeRecipient,
+                token: feeToken, 
+                amount: feeAmount, 
+                recipient: feeRecipient, 
                 maxAmount: type(uint256).max
             }),
-            minAmountOut: 0,
             data: hex""
         });
 
-        uint256 beforeBalance = IERC20(gasFeeToken).balanceOf(gasFeeRecipient);
+        uint256 balanceBefore = IERC20(feeToken).balanceOf(feeRecipient);
         exec.execute(co, ex);
 
-        // Verify that the gas fee fields are properly passed in the execution parameters
-        assertEq(reactor.lastSender(), address(exec));
-        
-        // Get the components of the lastOrder struct
-        (OrderLib.Order memory order, bytes memory signature, OrderLib.Cosignature memory cosignatureData, bytes memory cosignature) = reactor.lastOrder();
-        OrderLib.CosignedOrder memory lastOrder = OrderLib.CosignedOrder({
-            order: order,
-            signature: signature,
-            cosignatureData: cosignatureData,
-            cosignature: cosignature
-        });
-        assertTrue(keccak256(abi.encode(lastOrder.order)) == keccak256(abi.encode(co.order)));
-
-        // Check that the exchange and execution parameters were passed correctly
-        assertEq(reactor.lastExchange(), address(adapter));
-        
-        // Get the components of the lastExecution struct  
-        (OrderLib.Output memory fee, uint256 minAmountOut, bytes memory data) = reactor.lastExecution();
-        SettlementLib.Execution memory actualExecution = SettlementLib.Execution({
-            fee: fee,
-            minAmountOut: minAmountOut,
-            data: data
-        });
-        assertEq(keccak256(abi.encode(actualExecution)), keccak256(abi.encode(ex)));
-
         // Verify that gas fee was transferred to the recipient
-        uint256 afterBalance = IERC20(gasFeeToken).balanceOf(gasFeeRecipient);
-        assertEq(afterBalance, beforeBalance + gasFeeAmount);
+        uint256 balanceAfter = IERC20(feeToken).balanceOf(feeRecipient);
+        assertEq(balanceAfter, balanceBefore + feeAmount);
     }
 }

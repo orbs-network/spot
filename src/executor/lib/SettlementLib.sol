@@ -18,38 +18,38 @@ library SettlementLib {
     );
 
     struct Execution {
-        OrderLib.Output fee;
         uint256 minAmountOut;
+        OrderLib.Output fee;
         bytes data;
     }
 
     function settle(
-        OrderLib.CosignedOrder memory cosignedOrder,
-        Execution memory execution,
-        bytes32 orderHash
+        bytes32 hash,
+        OrderLib.CosignedOrder memory co,
+        Execution memory x
     ) internal {
-        TokenLib.prepareFor(cosignedOrder.order.output.token, msg.sender, cosignedOrder.order.output.amount);
-        if (execution.minAmountOut > cosignedOrder.order.output.amount) {
+        TokenLib.prepareFor(co.order.output.token, msg.sender, co.order.output.amount);
+        if (x.minAmountOut > co.order.output.amount) {
             TokenLib.transfer(
-                cosignedOrder.order.output.token,
-                cosignedOrder.order.output.recipient,
-                execution.minAmountOut - cosignedOrder.order.output.amount
+                co.order.output.token,
+                co.order.output.recipient,
+                x.minAmountOut - co.order.output.amount
             );
         }
 
         // Send gas fee to specified recipient if amount > 0
-        if (execution.fee.amount > 0) {
-            TokenLib.transfer(execution.fee.token, execution.fee.recipient, execution.fee.amount);
+        if (x.fee.amount > 0) {
+            TokenLib.transfer(x.fee.token, x.fee.recipient, x.fee.amount);
         }
 
         emit Settled(
-            orderHash,
-            cosignedOrder.order.info.swapper,
-            cosignedOrder.order.exchange.adapter,
-            cosignedOrder.order.input.token,
-            cosignedOrder.order.output.token,
-            cosignedOrder.order.input.amount,
-            cosignedOrder.order.output.amount
+            hash,
+            co.order.info.swapper,
+            co.order.exchange.adapter,
+            co.order.input.token,
+            co.order.output.token,
+            co.order.input.amount,
+            co.order.output.amount
         );
     }
 }
