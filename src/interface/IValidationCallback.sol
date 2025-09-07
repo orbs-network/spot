@@ -7,6 +7,6 @@ import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 interface IValidationCallback {
     /// @notice Called by the reactor for custom validation of an order. Will revert if validation fails
     /// @param filler The filler of the order
-    /// @param cosignedOrder The cosigned order to fill
-    function validate(address filler, OrderLib.CosignedOrder calldata cosignedOrder) external view;
+    /// @param co The cosigned order to fill
+    function validate(address filler, OrderLib.CosignedOrder calldata co) external view;
 }

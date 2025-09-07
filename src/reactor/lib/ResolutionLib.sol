@@ -11,6 +11,11 @@ library ResolutionLib {
     error CosignedMaxAmount();
     error InvalidSender();
 
+    function resolve(OrderLib.CosignedOrder memory cosigned) internal view returns (uint256) {
+        uint256 outAmount = resolveOutAmount(cosigned);
+        return applyExclusivityOverride(outAmount, cosigned.order.executor, cosigned.order.exclusivity);
+    }
+
     function resolveOutAmount(OrderLib.CosignedOrder memory cosigned) internal pure returns (uint256 outAmount) {
         uint256 cosignedOutput = cosigned.order.input.amount.mulDiv(
             cosigned.cosignatureData.output.value, cosigned.cosignatureData.input.value
