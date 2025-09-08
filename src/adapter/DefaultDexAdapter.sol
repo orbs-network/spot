@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 import {IExchangeAdapter} from "src/interface/IExchangeAdapter.sol";
-import {ResolvedOrder} from "src/lib/uniswapx/base/ReactorStructs.sol";
+import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
@@ -23,11 +23,11 @@ contract DefaultDexAdapter is IExchangeAdapter {
 
     /**
      * @notice Executes a token swap through a DEX router
-     * @param order The resolved order containing input/output token information
+     * @param co The cosigned order containing input/output token information
      * @param data Call data to pass directly to the router
      */
-    function swap(ResolvedOrder memory order, bytes calldata data) external override {
-        SafeERC20.forceApprove(IERC20(address(order.input.token)), router, order.input.amount);
+    function swap(OrderLib.CosignedOrder memory co, bytes calldata data) external override {
+        SafeERC20.forceApprove(IERC20(co.order.input.token), router, co.order.input.amount);
         Address.functionCall(router, data);
     }
 }

@@ -8,8 +8,8 @@ import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {Constants} from "src/reactor/Constants.sol";
 
 contract ResolutionLibFuzzTest is Test {
-    function callResolve(OrderLib.CosignedOrder memory co) external pure returns (uint256) {
-        return ResolutionLib.resolveOutAmount(co);
+    function callResolve(OrderLib.CosignedOrder memory co) external view returns (uint256) {
+        return ResolutionLib.resolve(co);
     }
 
     function testFuzz_resolveOutAmount_bounds(
@@ -31,6 +31,8 @@ contract ResolutionLibFuzzTest is Test {
         co.order.output.amount = limit;
         co.order.output.maxAmount = maxOut;
         co.order.slippage = uint32(slippage);
+        co.order.executor = address(this); // Set executor to this contract
+        co.order.exclusivity = 0; // No exclusivity for base testing
         co.cosignatureData.input =
             OrderLib.CosignedValue({token: makeAddr("cosignedInputToken"), value: inputValue, decimals: 18});
         co.cosignatureData.output =

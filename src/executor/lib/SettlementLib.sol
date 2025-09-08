@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import {ResolvedOrder, OutputToken} from "src/lib/uniswapx/base/ReactorStructs.sol";
+import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {TokenLib} from "src/executor/lib/TokenLib.sol";
 
 library SettlementLib {
@@ -18,38 +18,38 @@ library SettlementLib {
     );
 
     struct Execution {
-        OutputToken fee;
         uint256 minAmountOut;
+        OrderLib.Output fee;
         bytes data;
     }
 
-    function settle(ResolvedOrder memory order, Execution memory execution, address reactor, address exchange)
-        internal
-    {
-        if (order.outputs.length != 1) revert InvalidOrder();
-
-        address outToken = address(order.outputs[0].token);
-        uint256 outAmount = order.outputs[0].amount;
-        address recipient = order.outputs[0].recipient;
-
-        TokenLib.prepareFor(outToken, reactor, outAmount);
-        if (execution.minAmountOut > outAmount) {
-            TokenLib.transfer(outToken, recipient, execution.minAmountOut - outAmount);
+    function settle(
+        bytes32 hash,
+        OrderLib.CosignedOrder memory co,
+        Execution memory x
+    ) internal {
+        TokenLib.prepareFor(co.order.output.token, msg.sender, co.order.output.amount);
+        if (x.minAmountOut > co.order.output.amount) {
+            TokenLib.transfer(
+                co.order.output.token,
+                co.order.output.recipient,
+                x.minAmountOut - co.order.output.amount
+            );
         }
 
         // Send gas fee to specified recipient if amount > 0
-        if (execution.fee.amount > 0) {
-            TokenLib.transfer(execution.fee.token, execution.fee.recipient, execution.fee.amount);
+        if (x.fee.amount > 0) {
+            TokenLib.transfer(x.fee.token, x.fee.recipient, x.fee.amount);
         }
 
         emit Settled(
-            order.hash,
-            order.info.swapper,
-            exchange,
-            address(order.input.token),
-            outToken,
-            order.input.amount,
-            outAmount
+            hash,
+            co.order.info.swapper,
+            co.order.exchange.adapter,
+            co.order.input.token,
+            co.order.output.token,
+            co.order.input.amount,
+            co.order.output.amount
         );
     }
 }

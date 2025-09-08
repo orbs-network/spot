@@ -9,7 +9,18 @@ import {Constants} from "src/reactor/Constants.sol";
 
 contract OrderValidationLibTest is Test {
     function callValidate(OrderLib.Order memory order) external view {
-        OrderValidationLib.validate(order);
+        OrderLib.CosignedOrder memory co = OrderLib.CosignedOrder({
+            order: order,
+            signature: "",
+            cosignatureData: OrderLib.Cosignature({
+                timestamp: 0,
+                reactor: address(0),
+                input: OrderLib.CosignedValue({token: address(0), value: 0, decimals: 18}),
+                output: OrderLib.CosignedValue({token: address(0), value: 0, decimals: 18})
+            }),
+            cosignature: ""
+        });
+        OrderValidationLib.validate(co);
     }
 
     function _baseOrder() internal returns (OrderLib.Order memory o) {

@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import {ResolvedOrder} from "src/lib/uniswapx/base/ReactorStructs.sol";
+import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 // no-op adapter for tests
 
 contract SwapAdapterMock {
     error InvalidOrder();
 
-    function swap(ResolvedOrder memory order, bytes calldata) external {
-        if (order.outputs.length != 1) revert InvalidOrder();
+    function swap(OrderLib.CosignedOrder memory cosignedOrder, bytes calldata) external {
+        // No validation needed - this is a mock adapter for tests
         // no-op; Executor handles settlement
     }
 }
