@@ -38,7 +38,7 @@ contract OrderReactor is ReentrancyGuard {
     ) external payable nonReentrant {
         // Validate and resolve the order
         bytes32 hash = OrderLib.hash(co.order);
-        OrderValidationLib.validate(msg.sender, co);
+        OrderValidationLib.validate(co);
         CosignatureLib.validate(co, cosigner, repermit);
         
         uint256 currentEpoch = EpochLib.update(epochs, hash, co.order.epoch);

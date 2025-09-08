@@ -8,7 +8,7 @@ import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {Constants} from "src/reactor/Constants.sol";
 
 contract OrderValidationLibFuzzTest is Test {
-    function callValidate(address executor, OrderLib.Order memory order) external view {
+    function callValidate(OrderLib.Order memory order) external view {
         OrderLib.CosignedOrder memory co = OrderLib.CosignedOrder({
             order: order,
             signature: "",
@@ -20,7 +20,7 @@ contract OrderValidationLibFuzzTest is Test {
             }),
             cosignature: ""
         });
-        OrderValidationLib.validate(executor, co);
+        OrderValidationLib.validate(co);
     }
 
     function testFuzz_validate_ok(
@@ -28,7 +28,6 @@ contract OrderValidationLibFuzzTest is Test {
         address inToken,
         address outToken,
         address recipient,
-        address executor,
         uint256 inAmount,
         uint256 maxAmount,
         uint256 minOut,
@@ -55,6 +54,6 @@ contract OrderValidationLibFuzzTest is Test {
         o.slippage = uint32(slippage);
         o.executor = address(this);
 
-        this.callValidate(executor, o);
+        this.callValidate(o);
     }
 }
