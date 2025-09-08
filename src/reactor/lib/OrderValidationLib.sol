@@ -13,21 +13,18 @@ library OrderValidationLib {
     error InvalidOrderInputTokenZero();
     error InvalidOrderOutputRecipientZero();
 
-    function validate(OrderLib.Order memory order) internal pure {
+    function validate(address executor, OrderLib.CosignedOrder memory co) internal view {
+        OrderLib.Order memory order = co.order;
         if (order.input.amount == 0) revert InvalidOrderInputAmountZero();
         if (order.input.amount > order.input.maxAmount) revert InvalidOrderInputAmountGtMax();
         if (order.output.amount > order.output.maxAmount) revert InvalidOrderOutputAmountGtMax();
         if (order.slippage >= Constants.MAX_SLIPPAGE) revert InvalidOrderSlippageTooHigh();
         if (order.input.token == address(0)) revert InvalidOrderInputTokenZero();
         if (order.output.recipient == address(0)) revert InvalidOrderOutputRecipientZero();
-    }
-
-    /// @notice Call additional validation callback if specified
-    /// @param executor The executor calling the validation
-    /// @param co The cosigned order to validate
-    function validateAdditional(address executor, OrderLib.CosignedOrder memory co) internal view {
-        if (co.order.info.additionalValidationContract != address(0)) {
-            IValidationCallback(co.order.info.additionalValidationContract).validate(executor, co);
+        
+        // Call additional validation callback if specified
+        if (order.info.additionalValidationContract != address(0)) {
+            IValidationCallback(order.info.additionalValidationContract).validate(executor, co);
         }
     }
 }
