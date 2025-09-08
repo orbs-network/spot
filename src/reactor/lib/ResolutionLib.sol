@@ -16,7 +16,7 @@ library ResolutionLib {
         return applyExclusivityOverride(outAmount, cosigned.order.executor, cosigned.order.exclusivity);
     }
 
-    function resolveOutAmount(OrderLib.CosignedOrder memory cosigned) internal pure returns (uint256 outAmount) {
+    function resolveOutAmount(OrderLib.CosignedOrder memory cosigned) private pure returns (uint256 outAmount) {
         uint256 cosignedOutput = cosigned.order.input.amount.mulDiv(
             cosigned.cosignatureData.output.value, cosigned.cosignatureData.input.value
         );
@@ -28,7 +28,7 @@ library ResolutionLib {
     }
 
     function applyExclusivityOverride(uint256 minOut, address exclusiveExecutor, uint32 exclusivityBps)
-        internal
+        private
         view
         returns (uint256)
     {

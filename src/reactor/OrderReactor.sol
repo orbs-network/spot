@@ -3,7 +3,6 @@ pragma solidity 0.8.20;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IReactorCallback} from "src/interface/IReactorCallback.sol";
-import {IValidationCallback} from "src/interface/IValidationCallback.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {TokenLib} from "src/executor/lib/TokenLib.sol";
 import {SettlementLib} from "src/executor/lib/SettlementLib.sol";
@@ -40,12 +39,8 @@ contract OrderReactor is ReentrancyGuard {
         // Validate and resolve the order
         bytes32 hash = OrderLib.hash(co.order);
         OrderValidationLib.validate(co.order);
-        CosignatureLib.validate(co, cosigner, address(repermit));
-        
-        // Call additional validation if specified
-        if (co.order.info.additionalValidationContract != address(0)) {
-            IValidationCallback(co.order.info.additionalValidationContract).validate(msg.sender, co);
-        }
+        CosignatureLib.validate(co, cosigner, repermit);
+        OrderValidationLib.validateAdditional(msg.sender, co);
         
         uint256 currentEpoch = EpochLib.update(epochs, hash, co.order.epoch);
 

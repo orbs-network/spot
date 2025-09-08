@@ -7,8 +7,8 @@ import {ResolutionLib} from "src/reactor/lib/ResolutionLib.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 
 contract ResolutionLibTest is Test {
-    function callResolve(OrderLib.CosignedOrder memory co) external pure returns (uint256) {
-        return ResolutionLib.resolveOutAmount(co);
+    function callResolve(OrderLib.CosignedOrder memory co) external view returns (uint256) {
+        return ResolutionLib.resolve(co);
     }
 
     function _baseCosigned() internal returns (OrderLib.CosignedOrder memory co) {
@@ -21,7 +21,8 @@ contract ResolutionLibTest is Test {
         o.output.amount = 1_200; // limit
         o.output.maxAmount = 10_000; // trigger
         o.slippage = 100; // 1%
-        o.executor = makeAddr("executor");
+        o.executor = address(this); // Set executor to test contract
+        o.exclusivity = 0; // No exclusivity for base test
 
         co.order = o;
         co.cosignatureData.input = OrderLib.CosignedValue({token: o.input.token, value: 100, decimals: 18});
