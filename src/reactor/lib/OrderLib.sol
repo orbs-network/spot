@@ -16,7 +16,7 @@ library OrderLib {
     string internal constant ORDER_TYPE =
         "Order(address reactor,Exchange exchange,Input input,Output output,address executor,address swapper,uint256 nonce,uint256 deadline,uint32 exclusivity,uint32 epoch,uint32 slippage,uint32 freshness)";
     bytes32 internal constant ORDER_TYPE_HASH =
-        keccak256(abi.encodePacked(ORDER_TYPE, INPUT_TYPE, OUTPUT_TYPE, EXCHANGE_TYPE));
+        keccak256(abi.encodePacked(ORDER_TYPE, EXCHANGE_TYPE, INPUT_TYPE, OUTPUT_TYPE));
 
     string internal constant WITNESS_TYPE_SUFFIX = string(
         abi.encodePacked(
