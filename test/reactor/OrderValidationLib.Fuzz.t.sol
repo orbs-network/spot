@@ -35,10 +35,10 @@ contract OrderValidationLibFuzzTest is BaseTest {
         vm.assume(slippage < Constants.MAX_SLIPPAGE);
 
         OrderLib.CosignedOrder memory co;
-        co.order.info.reactor = address(0);
+        co.order.reactor = address(0);
         co.order.exchange.adapter = address(0);
         co.order.executor = address(this);
-        co.order.info.swapper = swapper;
+        co.order.swapper = swapper;
         co.order.input = OrderLib.Input({token: inToken, amount: inAmount, maxAmount: maxAmount});
         co.order.output = OrderLib.Output({token: outToken, amount: minOut, maxAmount: maxOut, recipient: recipient});
         co.order.slippage = uint32(slippage);
