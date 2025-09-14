@@ -14,7 +14,7 @@ Standard Foundry installation now works normally without network restrictions.
    ```bash
    git submodule update --init --recursive
    ```
-   - NEVER CANCEL: This takes 3-5 minutes. Set timeout to 10+ minutes.
+   - NEVER CANCEL: This takes 6-7 seconds. Set timeout to 10+ minutes.
 
 2. **Install Foundry**:
    ```bash
@@ -26,13 +26,47 @@ Standard Foundry installation now works normally without network restrictions.
    - Installs forge, cast, anvil, and chisel
    - Verifies binaries against attestation files
 
+3. **Build the Project**:
+   ```bash
+   source ~/.bashrc  # Required in new shell sessions
+   forge build
+   ```
+   - Takes ~10 seconds with 1M optimization runs
+   - Compiles 87 Solidity files with 0.8.20
+   - NEVER CANCEL: Set timeout to 60+ seconds minimum
 
+4. **Run Tests**:
+   ```bash
+   forge test
+   ```
+   - Takes <1 second (100 tests across 13 suites)
+   - All tests should pass in fresh environment
+   - NEVER CANCEL: Set timeout to 30+ seconds
+
+5. **Format Code**:
+   ```bash
+   forge fmt
+   ```
+   - Takes <0.1 seconds
+   - Always run before committing changes
 
 ## Validation Scenarios
 
 `forge fmt; forge test`
 
+After making any changes to the codebase, always run the complete validation sequence:
 
+1. **Format and Test**:
+   ```bash
+   forge fmt && forge test
+   ```
+
+2. **Gas Snapshot Validation** (optional):
+   ```bash
+   forge snapshot --check
+   ```
+   - Gas values may differ across environments
+   - Only check for major regressions, not minor differences
 
 ## Project Architecture
 
@@ -62,7 +96,19 @@ Standard Foundry installation now works normally without network restrictions.
 - **Dependencies**: Managed via git submodules (UniswapX, OpenZeppelin, Solmate, forge-std)
 - **Remappings**: See `remappings.txt` - critical for compilation
 
+## Testing Strategy
+The project has comprehensive test coverage across all components:
 
+- **Unit Tests**: Individual library and component validation
+- **Integration Tests**: End-to-end order execution flows  
+- **Fuzz Tests**: Property-based testing for edge cases
+- **Gas Tests**: Consumption tracking via `.gas-snapshot`
+
+Key test files to understand:
+- `test/base/BaseTest.sol`: Common test utilities and helpers
+- `test/executor/Executor.t.sol`: End-to-end order execution
+- `test/reactor/OrderValidationLib.t.sol`: Order validation logic
+- `test/RePermit.t.sol`: Signature and allowance management
 
 ## Deployment Process
 1. **WM (Allowlist)**: `script/00_DeployWM.s.sol`
@@ -79,6 +125,30 @@ The protocol deploys on 18+ chains. Key considerations:
 - Configuration stored in `script/input/config.json`
 - Chain-specific admin addresses and fee collectors
 - Consistent contract bytecode across all chains
+
+## Common Tasks
+
+### Repository Structure
+```
+├── src/
+│   ├── reactor/         # Order validation and settlement
+│   ├── repermit/        # EIP-712 permit system
+│   ├── executor/        # Swap execution and callbacks
+│   ├── adapter/         # Exchange adapters
+│   ├── interface/       # Contract interfaces
+│   ├── WM.sol          # Allowlist management
+│   └── Refinery.sol    # Operations utilities
+├── test/               # Comprehensive test suites
+├── script/             # Deployment scripts
+├── lib/                # Git submodule dependencies
+└── foundry.toml        # Build configuration
+```
+
+### Key Files Reference
+- `foundry.toml`: Build configuration (0.8.20, 1M runs)
+- `remappings.txt`: Import path mappings
+- `.gas-snapshot`: Gas consumption baselines
+- `script/input/config.json`: Multi-chain deployment config
 
 ## Debugging Tips
 - **Build Failures**: Check submodule initialization first
