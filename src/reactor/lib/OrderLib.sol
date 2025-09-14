@@ -10,7 +10,7 @@ library OrderLib {
     string internal constant OUTPUT_TYPE = "Output(address token,uint256 amount,uint256 maxAmount,address recipient)";
     bytes32 internal constant OUTPUT_TYPE_HASH = keccak256(bytes(OUTPUT_TYPE));
 
-    string internal constant EXCHANGE_TYPE = "Exchange(address adapter,bytes data,address ref,uint32 share)";
+    string internal constant EXCHANGE_TYPE = "Exchange(address adapter,address ref,uint32 share,bytes data)";
     bytes32 internal constant EXCHANGE_TYPE_HASH = keccak256(bytes(EXCHANGE_TYPE));
 
     string internal constant ORDER_TYPE =
@@ -48,9 +48,9 @@ library OrderLib {
 
     struct Exchange {
         address adapter;
-        bytes data;
         address ref;
         uint32 share; // bps, for referrer
+        bytes data;
     }
 
     struct Order {
@@ -109,16 +109,16 @@ library OrderLib {
     }
 
     function hash(Input memory input) internal pure returns (bytes32) {
-        return keccak256(abi.encode(INPUT_TYPE_HASH, input.token, input.amount, input.maxAmount));
+        return keccak256(abi.encode(INPUT_TYPE_HASH, input));
     }
 
     function hash(Output memory output) internal pure returns (bytes32) {
-        return keccak256(abi.encode(OUTPUT_TYPE_HASH, output.token, output.amount, output.maxAmount, output.recipient));
+        return keccak256(abi.encode(OUTPUT_TYPE_HASH, output));
     }
 
     function hash(Exchange memory exchange) internal pure returns (bytes32) {
         return keccak256(
-            abi.encode(EXCHANGE_TYPE_HASH, exchange.adapter, keccak256(exchange.data), exchange.ref, exchange.share)
+            abi.encode(EXCHANGE_TYPE_HASH, exchange.adapter, exchange.ref, exchange.share, keccak256(exchange.data))
         );
     }
 
