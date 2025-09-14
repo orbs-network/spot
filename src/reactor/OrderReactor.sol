@@ -13,6 +13,7 @@ import {OrderValidationLib} from "src/reactor/lib/OrderValidationLib.sol";
 import {CosignatureLib} from "src/reactor/lib/CosignatureLib.sol";
 import {EpochLib} from "src/reactor/lib/EpochLib.sol";
 import {ResolutionLib} from "src/reactor/lib/ResolutionLib.sol";
+import {ExclusivityOverrideLib} from "src/reactor/lib/ExclusivityOverrideLib.sol";
 
 contract OrderReactor is ReentrancyGuard {
     /// @notice Event emitted when an order is filled
@@ -44,7 +45,9 @@ contract OrderReactor is ReentrancyGuard {
 
         uint256 currentEpoch = EpochLib.update(epochs, hash, co.order.epoch);
 
-        uint256 resolvedAmountOut = ResolutionLib.resolve(co);
+        uint256 outAmount = ResolutionLib.resolve(co);
+        uint256 resolvedAmountOut =
+            ExclusivityOverrideLib.applyExclusivityOverride(outAmount, co.order.executor, co.order.exclusivity);
 
         // Transfer input tokens via RePermit
         _transferInput(co, hash);

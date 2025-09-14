@@ -10,7 +10,10 @@ import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 // Helper contract to properly test msg.sender context
 contract ResolutionCaller {
     function resolve(OrderLib.CosignedOrder memory co) external view returns (uint256) {
-        return ResolutionLib.resolve(co);
+        uint256 outAmount = ResolutionLib.resolve(co);
+        return ExclusivityOverrideLib.applyExclusivityOverride(
+            outAmount, co.order.executor, co.order.exclusivity
+        );
     }
 }
 
@@ -78,7 +81,7 @@ contract ExclusivityLibTest is BaseTest {
         co = cosign(co);
 
         vm.prank(addr2);
-        vm.expectRevert(ExclusivityOverrideLib.InvalidSender.selector);
+        vm.expectRevert(ResolutionLib.InvalidSender.selector);
         caller.resolve(co);
     }
 }

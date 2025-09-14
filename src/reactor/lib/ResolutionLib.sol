@@ -4,21 +4,15 @@ pragma solidity 0.8.20;
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {Constants} from "src/reactor/Constants.sol";
-import {ExclusivityOverrideLib} from "src/reactor/lib/ExclusivityOverrideLib.sol";
 
 library ResolutionLib {
     using Math for uint256;
 
     error CosignedMaxAmount();
+    error InvalidSender();
 
-    function resolve(OrderLib.CosignedOrder memory cosigned) internal view returns (uint256) {
-        uint256 outAmount = resolveOutAmount(cosigned);
-        return ExclusivityOverrideLib.applyExclusivityOverride(
-            outAmount, cosigned.order.executor, cosigned.order.exclusivity
-        );
-    }
-
-    function resolveOutAmount(OrderLib.CosignedOrder memory cosigned) private pure returns (uint256 outAmount) {
+    function resolve(OrderLib.CosignedOrder memory cosigned) internal pure returns (uint256) {
+        // Inline resolveOutAmount logic
         uint256 cosignedOutput = cosigned.order.input.amount.mulDiv(
             cosigned.cosignatureData.output.value, cosigned.cosignatureData.input.value
         );
@@ -26,6 +20,6 @@ library ResolutionLib {
         if (cosignedOutput > cosigned.order.output.maxAmount) revert CosignedMaxAmount();
 
         uint256 minOut = cosignedOutput.mulDiv(Constants.BPS - cosigned.order.slippage, Constants.BPS);
-        outAmount = minOut.max(cosigned.order.output.amount);
+        return minOut.max(cosigned.order.output.amount);
     }
 }
