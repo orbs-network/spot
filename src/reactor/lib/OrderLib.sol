@@ -54,16 +54,9 @@ library OrderLib {
     }
 
     struct Order {
-        // The address of the reactor that this order is targeting
-        // Note that this must be included in every order so the swapper
-        // signature commits to the specific reactor that they trust to fill their order properly
         address reactor;
-        // The address of the user which created the order
-        // Note that this must be included so that order hashes are unique by swapper
         address swapper;
-        // The nonce of the order, allowing for signature replay protection and cancellation
         uint256 nonce;
-        // The timestamp after which this order is no longer valid
         uint256 deadline;
         address executor;
         Exchange exchange;
