@@ -4,6 +4,7 @@ pragma solidity 0.8.20;
 import "forge-std/Test.sol";
 import {DefaultDexAdapter} from "src/adapter/DefaultDexAdapter.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
+import {CosignedOrder, Input, Output, OrderInfo} from "src/reactor/lib/OrderStructs.sol";
 import {IValidationCallback} from "src/interface/IValidationCallback.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 import {MockDexRouter} from "test/mocks/MockDexRouter.sol";
@@ -31,18 +32,18 @@ contract DefaultDexAdapterTest is Test {
     function _createCosignedOrder(address inputToken, uint256 inputAmount, address outputToken)
         internal
         view
-        returns (OrderLib.CosignedOrder memory cosignedOrder)
+        returns (CosignedOrder memory cosignedOrder)
     {
-        cosignedOrder.order.input = OrderLib.Input({token: inputToken, amount: inputAmount, maxAmount: inputAmount});
+        cosignedOrder.order.input = Input({token: inputToken, amount: inputAmount, maxAmount: inputAmount});
 
-        cosignedOrder.order.output = OrderLib.Output({
+        cosignedOrder.order.output = Output({
             token: outputToken,
             amount: 500 ether, // min output
             maxAmount: type(uint256).max, // no trigger
             recipient: recipient
         });
 
-        cosignedOrder.order.info = OrderLib.OrderInfo({
+        cosignedOrder.order.info = OrderInfo({
             reactor: address(0),
             swapper: user,
             nonce: 1,
@@ -57,7 +58,7 @@ contract DefaultDexAdapterTest is Test {
     }
 
     function test_swap_ERC20_to_ERC20_success() public {
-        OrderLib.CosignedOrder memory cosignedOrder = _createCosignedOrder(address(tokenA), 1000 ether, address(tokenB));
+        CosignedOrder memory cosignedOrder = _createCosignedOrder(address(tokenA), 1000 ether, address(tokenB));
 
         bytes memory data = abi.encodeWithSelector(
             MockDexRouter.doSwap.selector, address(tokenA), 1000 ether, address(tokenB), 2000 ether, recipient
@@ -75,7 +76,7 @@ contract DefaultDexAdapterTest is Test {
     }
 
     function test_swap_reverts_invalid_data() public {
-        OrderLib.CosignedOrder memory cosignedOrder = _createCosignedOrder(address(tokenA), 1000 ether, address(tokenB));
+        CosignedOrder memory cosignedOrder = _createCosignedOrder(address(tokenA), 1000 ether, address(tokenB));
 
         bytes memory data = "invalid_call_data";
 
@@ -87,7 +88,7 @@ contract DefaultDexAdapterTest is Test {
     function test_swap_reverts_when_router_call_fails() public {
         router.setShouldFail(true);
 
-        OrderLib.CosignedOrder memory cosignedOrder = _createCosignedOrder(address(tokenA), 1000 ether, address(tokenB));
+        CosignedOrder memory cosignedOrder = _createCosignedOrder(address(tokenA), 1000 ether, address(tokenB));
 
         bytes memory data = abi.encodeWithSelector(
             MockDexRouter.doSwap.selector, address(tokenA), 1000 ether, address(tokenB), 2000 ether, recipient
@@ -102,7 +103,7 @@ contract DefaultDexAdapterTest is Test {
         USDTMock usdt = new USDTMock();
         usdt.mint(address(adapter), 1000 ether);
 
-        OrderLib.CosignedOrder memory cosignedOrder = _createCosignedOrder(address(usdt), 1000 ether, address(tokenB));
+        CosignedOrder memory cosignedOrder = _createCosignedOrder(address(usdt), 1000 ether, address(tokenB));
 
         // Pre-set a non-zero allowance to test forceApprove behavior
         vm.prank(address(adapter));

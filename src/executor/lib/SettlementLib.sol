@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import {OrderLib} from "src/reactor/lib/OrderLib.sol";
+import {CosignedOrder, Output} from "src/reactor/lib/OrderStructs.sol";
 import {TokenLib} from "src/executor/lib/TokenLib.sol";
 
 library SettlementLib {
@@ -19,22 +19,14 @@ library SettlementLib {
 
     struct Execution {
         uint256 minAmountOut;
-        OrderLib.Output fee;
+        Output fee;
         bytes data;
     }
 
-    function settle(
-        bytes32 hash,
-        OrderLib.CosignedOrder memory co,
-        Execution memory x
-    ) internal {
+    function settle(bytes32 hash, CosignedOrder memory co, Execution memory x) internal {
         TokenLib.prepareFor(co.order.output.token, msg.sender, co.order.output.amount);
         if (x.minAmountOut > co.order.output.amount) {
-            TokenLib.transfer(
-                co.order.output.token,
-                co.order.output.recipient,
-                x.minAmountOut - co.order.output.amount
-            );
+            TokenLib.transfer(co.order.output.token, co.order.output.recipient, x.minAmountOut - co.order.output.amount);
         }
 
         // Send gas fee to specified recipient if amount > 0

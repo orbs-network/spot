@@ -4,6 +4,7 @@ pragma solidity 0.8.20;
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IReactorCallback} from "src/interface/IReactorCallback.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
+import {CosignedOrder} from "src/reactor/lib/OrderStructs.sol";
 import {TokenLib} from "src/executor/lib/TokenLib.sol";
 import {SettlementLib} from "src/executor/lib/SettlementLib.sol";
 
@@ -32,15 +33,16 @@ contract OrderReactor is ReentrancyGuard {
     /// @notice Execute a CosignedOrder with callback
     /// @param co The cosigned order to execute
     /// @param x The execution parameters for the order
-    function executeWithCallback(
-        OrderLib.CosignedOrder calldata co,
-        SettlementLib.Execution calldata x
-    ) external payable nonReentrant {
+    function executeWithCallback(CosignedOrder calldata co, SettlementLib.Execution calldata x)
+        external
+        payable
+        nonReentrant
+    {
         // Validate and resolve the order
         bytes32 hash = OrderLib.hash(co.order);
         OrderValidationLib.validate(co);
         CosignatureLib.validate(co, cosigner, repermit);
-        
+
         uint256 currentEpoch = EpochLib.update(epochs, hash, co.order.epoch);
 
         uint256 resolvedAmountOut = ResolutionLib.resolve(co);
@@ -60,7 +62,7 @@ contract OrderReactor is ReentrancyGuard {
     /// @notice Transfer output tokens to recipient and refund remaining ETH to executor
     /// @param co The cosigned order containing output details
     /// @param resolvedAmountOut The resolved output amount to transfer
-    function _transferOutput(OrderLib.CosignedOrder calldata co, uint256 resolvedAmountOut) private {
+    function _transferOutput(CosignedOrder calldata co, uint256 resolvedAmountOut) private {
         // Transfer output tokens to recipient
         TokenLib.transfer(co.order.output.token, co.order.output.recipient, resolvedAmountOut);
 
@@ -71,12 +73,10 @@ contract OrderReactor is ReentrancyGuard {
     /// @notice Handle input token transfers via RePermit
     /// @param co The cosigned order containing input details
     /// @param hash The hash of the order for witness verification
-    function _transferInput(OrderLib.CosignedOrder calldata co, bytes32 hash) private {
+    function _transferInput(CosignedOrder calldata co, bytes32 hash) private {
         RePermit(address(repermit)).repermitWitnessTransferFrom(
             RePermitLib.RePermitTransferFrom(
-                RePermitLib.TokenPermissions(
-                    address(co.order.input.token), co.order.input.maxAmount
-                ),
+                RePermitLib.TokenPermissions(address(co.order.input.token), co.order.input.maxAmount),
                 co.order.info.nonce,
                 co.order.info.deadline
             ),

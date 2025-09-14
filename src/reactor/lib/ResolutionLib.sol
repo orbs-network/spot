@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
-import {OrderLib} from "src/reactor/lib/OrderLib.sol";
+import {CosignedOrder} from "src/reactor/lib/OrderStructs.sol";
 import {Constants} from "src/reactor/Constants.sol";
 
 library ResolutionLib {
@@ -11,12 +11,12 @@ library ResolutionLib {
     error CosignedMaxAmount();
     error InvalidSender();
 
-    function resolve(OrderLib.CosignedOrder memory cosigned) internal view returns (uint256) {
+    function resolve(CosignedOrder memory cosigned) internal view returns (uint256) {
         uint256 outAmount = resolveOutAmount(cosigned);
         return applyExclusivityOverride(outAmount, cosigned.order.executor, cosigned.order.exclusivity);
     }
 
-    function resolveOutAmount(OrderLib.CosignedOrder memory cosigned) private pure returns (uint256 outAmount) {
+    function resolveOutAmount(CosignedOrder memory cosigned) private pure returns (uint256 outAmount) {
         uint256 cosignedOutput = cosigned.order.input.amount.mulDiv(
             cosigned.cosignatureData.output.value, cosigned.cosignatureData.input.value
         );

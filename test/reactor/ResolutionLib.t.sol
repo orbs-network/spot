@@ -5,14 +5,15 @@ import "forge-std/Test.sol";
 
 import {ResolutionLib} from "src/reactor/lib/ResolutionLib.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
+import {CosignedOrder, Order, CosignedValue} from "src/reactor/lib/OrderStructs.sol";
 
 contract ResolutionLibTest is Test {
-    function callResolve(OrderLib.CosignedOrder memory co) external view returns (uint256) {
+    function callResolve(CosignedOrder memory co) external view returns (uint256) {
         return ResolutionLib.resolve(co);
     }
 
-    function _baseCosigned() internal returns (OrderLib.CosignedOrder memory co) {
-        OrderLib.Order memory o;
+    function _baseCosigned() internal returns (CosignedOrder memory co) {
+        Order memory o;
         o.info.swapper = makeAddr("swapper");
         o.input.token = makeAddr("in");
         o.input.amount = 1_000; // chunk
@@ -25,18 +26,18 @@ contract ResolutionLibTest is Test {
         o.exclusivity = 0; // No exclusivity for base test
 
         co.order = o;
-        co.cosignatureData.input = OrderLib.CosignedValue({token: o.input.token, value: 100, decimals: 18});
-        co.cosignatureData.output = OrderLib.CosignedValue({token: o.output.token, value: 200, decimals: 18});
+        co.cosignatureData.input = CosignedValue({token: o.input.token, value: 100, decimals: 18});
+        co.cosignatureData.output = CosignedValue({token: o.output.token, value: 200, decimals: 18});
     }
 
     function test_resolveOutAmount_ok() public {
-        OrderLib.CosignedOrder memory co = _baseCosigned();
+        CosignedOrder memory co = _baseCosigned();
         uint256 outAmt = this.callResolve(co);
         assertEq(outAmt, 1_980);
     }
 
     function test_resolveOutAmount_revert_cosigned_exceeds_max() public {
-        OrderLib.CosignedOrder memory co = _baseCosigned();
+        CosignedOrder memory co = _baseCosigned();
         co.order.output.maxAmount = 1_500; // cosignedOutput is 2000 > 1500
         vm.expectRevert(ResolutionLib.CosignedMaxAmount.selector);
         this.callResolve(co);

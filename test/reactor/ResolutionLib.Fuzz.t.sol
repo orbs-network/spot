@@ -5,10 +5,11 @@ import "forge-std/Test.sol";
 
 import {ResolutionLib} from "src/reactor/lib/ResolutionLib.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
+import {CosignedOrder, CosignedValue} from "src/reactor/lib/OrderStructs.sol";
 import {Constants} from "src/reactor/Constants.sol";
 
 contract ResolutionLibFuzzTest is Test {
-    function callResolve(OrderLib.CosignedOrder memory co) external view returns (uint256) {
+    function callResolve(CosignedOrder memory co) external view returns (uint256) {
         return ResolutionLib.resolve(co);
     }
 
@@ -26,7 +27,7 @@ contract ResolutionLibFuzzTest is Test {
         vm.assume(inputValue > 0 && outputValue > 0 && inputValue < 1e36 && outputValue < 1e36);
         vm.assume(slippage < Constants.MAX_SLIPPAGE);
 
-        OrderLib.CosignedOrder memory co;
+        CosignedOrder memory co;
         co.order.input.amount = inAmount;
         co.order.output.amount = limit;
         co.order.output.maxAmount = maxOut;
@@ -34,9 +35,9 @@ contract ResolutionLibFuzzTest is Test {
         co.order.executor = address(this); // Set executor to this contract
         co.order.exclusivity = 0; // No exclusivity for base testing
         co.cosignatureData.input =
-            OrderLib.CosignedValue({token: makeAddr("cosignedInputToken"), value: inputValue, decimals: 18});
+            CosignedValue({token: makeAddr("cosignedInputToken"), value: inputValue, decimals: 18});
         co.cosignatureData.output =
-            OrderLib.CosignedValue({token: makeAddr("cosignedOutputToken"), value: outputValue, decimals: 18});
+            CosignedValue({token: makeAddr("cosignedOutputToken"), value: outputValue, decimals: 18});
 
         uint256 cosignedOutput = (inAmount * outputValue) / inputValue;
         if (cosignedOutput > maxOut) {

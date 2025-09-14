@@ -5,25 +5,35 @@ import "forge-std/Test.sol";
 
 import {OrderValidationLib} from "src/reactor/lib/OrderValidationLib.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
+import {
+    CosignedOrder,
+    Order,
+    OrderInfo,
+    Input,
+    Output,
+    Exchange,
+    Cosignature,
+    CosignedValue
+} from "src/reactor/lib/OrderStructs.sol";
 import {Constants} from "src/reactor/Constants.sol";
 
 contract OrderValidationLibTest is Test {
-    function callValidate(OrderLib.Order memory order) external view {
-        OrderLib.CosignedOrder memory co = OrderLib.CosignedOrder({
+    function callValidate(Order memory order) external view {
+        CosignedOrder memory co = CosignedOrder({
             order: order,
             signature: "",
-            cosignatureData: OrderLib.Cosignature({
+            cosignatureData: Cosignature({
                 timestamp: 0,
                 reactor: address(0),
-                input: OrderLib.CosignedValue({token: address(0), value: 0, decimals: 18}),
-                output: OrderLib.CosignedValue({token: address(0), value: 0, decimals: 18})
+                input: CosignedValue({token: address(0), value: 0, decimals: 18}),
+                output: CosignedValue({token: address(0), value: 0, decimals: 18})
             }),
             cosignature: ""
         });
         OrderValidationLib.validate(co);
     }
 
-    function _baseOrder() internal returns (OrderLib.Order memory o) {
+    function _baseOrder() internal returns (Order memory o) {
         o.info.swapper = makeAddr("swapper");
         o.input.token = makeAddr("token");
         o.input.amount = 100;
@@ -37,54 +47,54 @@ contract OrderValidationLibTest is Test {
     }
 
     function test_validate_ok() public {
-        OrderLib.Order memory o = _baseOrder();
+        Order memory o = _baseOrder();
         this.callValidate(o);
     }
 
     function test_validate_reverts_inputAmountZero() public {
-        OrderLib.Order memory o = _baseOrder();
+        Order memory o = _baseOrder();
         o.input.amount = 0;
         vm.expectRevert(OrderValidationLib.InvalidOrderInputAmountZero.selector);
         this.callValidate(o);
     }
 
     function test_validate_reverts_inputAmountGtMax() public {
-        OrderLib.Order memory o = _baseOrder();
+        Order memory o = _baseOrder();
         o.input.amount = o.input.maxAmount + 1;
         vm.expectRevert(OrderValidationLib.InvalidOrderInputAmountGtMax.selector);
         this.callValidate(o);
     }
 
     function test_validate_reverts_outputAmountGtMax() public {
-        OrderLib.Order memory o = _baseOrder();
+        Order memory o = _baseOrder();
         o.output.amount = o.output.maxAmount + 1;
         vm.expectRevert(OrderValidationLib.InvalidOrderOutputAmountGtMax.selector);
         this.callValidate(o);
     }
 
     function test_validate_reverts_slippageTooHigh() public {
-        OrderLib.Order memory o = _baseOrder();
+        Order memory o = _baseOrder();
         o.slippage = uint32(Constants.MAX_SLIPPAGE); // >= MAX_SLIPPAGE
         vm.expectRevert(OrderValidationLib.InvalidOrderSlippageTooHigh.selector);
         this.callValidate(o);
     }
 
     function test_validate_reverts_inputTokenZero() public {
-        OrderLib.Order memory o = _baseOrder();
+        Order memory o = _baseOrder();
         o.input.token = address(0);
         vm.expectRevert(OrderValidationLib.InvalidOrderInputTokenZero.selector);
         this.callValidate(o);
     }
 
     function test_validate_reverts_outputRecipientZero() public {
-        OrderLib.Order memory o = _baseOrder();
+        Order memory o = _baseOrder();
         o.output.recipient = address(0);
         vm.expectRevert(OrderValidationLib.InvalidOrderOutputRecipientZero.selector);
         this.callValidate(o);
     }
 
     function test_validate_allows_override_when_exclusivity_set() public {
-        OrderLib.Order memory o = _baseOrder();
+        Order memory o = _baseOrder();
         o.exclusivity = 100; // 1%
         address notExecutor = makeAddr("notExecutor");
         vm.prank(notExecutor);

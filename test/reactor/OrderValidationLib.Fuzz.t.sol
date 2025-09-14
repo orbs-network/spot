@@ -5,18 +5,28 @@ import "forge-std/Test.sol";
 
 import {OrderValidationLib} from "src/reactor/lib/OrderValidationLib.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
+import {
+    CosignedOrder,
+    Order,
+    OrderInfo,
+    Input,
+    Output,
+    Exchange,
+    Cosignature,
+    CosignedValue
+} from "src/reactor/lib/OrderStructs.sol";
 import {Constants} from "src/reactor/Constants.sol";
 
 contract OrderValidationLibFuzzTest is Test {
-    function callValidate(OrderLib.Order memory order) external view {
-        OrderLib.CosignedOrder memory co = OrderLib.CosignedOrder({
+    function callValidate(Order memory order) external view {
+        CosignedOrder memory co = CosignedOrder({
             order: order,
             signature: "",
-            cosignatureData: OrderLib.Cosignature({
+            cosignatureData: Cosignature({
                 timestamp: 0,
                 reactor: address(0),
-                input: OrderLib.CosignedValue({token: address(0), value: 0, decimals: 18}),
-                output: OrderLib.CosignedValue({token: address(0), value: 0, decimals: 18})
+                input: CosignedValue({token: address(0), value: 0, decimals: 18}),
+                output: CosignedValue({token: address(0), value: 0, decimals: 18})
             }),
             cosignature: ""
         });
@@ -42,7 +52,7 @@ contract OrderValidationLibFuzzTest is Test {
         vm.assume(maxOut >= minOut);
         vm.assume(slippage < Constants.MAX_SLIPPAGE);
 
-        OrderLib.Order memory o;
+        Order memory o;
         o.info.swapper = swapper;
         o.input.token = inToken;
         o.input.amount = inAmount;

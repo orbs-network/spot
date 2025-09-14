@@ -4,10 +4,11 @@ pragma solidity 0.8.20;
 import "forge-std/Test.sol";
 import {ResolutionLib} from "src/reactor/lib/ResolutionLib.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
+import {CosignedOrder, Order, CosignedValue} from "src/reactor/lib/OrderStructs.sol";
 
 // Helper contract to properly test msg.sender context
 contract ResolutionCaller {
-    function resolve(OrderLib.CosignedOrder memory co) external view returns (uint256) {
+    function resolve(CosignedOrder memory co) external view returns (uint256) {
         return ResolutionLib.resolve(co);
     }
 }
@@ -19,8 +20,8 @@ contract ExclusivityLibTest is Test {
         caller = new ResolutionCaller();
     }
 
-    function _createCosigned(address executor, uint32 exclusivityBps) internal returns (OrderLib.CosignedOrder memory co) {
-        OrderLib.Order memory o;
+    function _createCosigned(address executor, uint32 exclusivityBps) internal returns (CosignedOrder memory co) {
+        Order memory o;
         o.info.swapper = makeAddr("swapper");
         o.input.token = makeAddr("in");
         o.input.amount = 1_000;
@@ -34,14 +35,14 @@ contract ExclusivityLibTest is Test {
 
         co.order = o;
         // Set cosignature data such that cosignedOutput = input.amount (1:1 ratio)
-        co.cosignatureData.input = OrderLib.CosignedValue({token: o.input.token, value: 100, decimals: 18});
-        co.cosignatureData.output = OrderLib.CosignedValue({token: o.output.token, value: 100, decimals: 18});
+        co.cosignatureData.input = CosignedValue({token: o.input.token, value: 100, decimals: 18});
+        co.cosignatureData.output = CosignedValue({token: o.output.token, value: 100, decimals: 18});
     }
 
     function test_applyOverride_noChangeWhenExclusive() public {
         address addr1 = makeAddr("addr1");
-        OrderLib.CosignedOrder memory co = _createCosigned(addr1, 500);
-        
+        CosignedOrder memory co = _createCosigned(addr1, 500);
+
         vm.prank(addr1);
         uint256 result = caller.resolve(co);
         // Should be max(1000 (base output), 1000 (cosigned output)) = 1000 with no override
@@ -51,8 +52,8 @@ contract ExclusivityLibTest is Test {
     function test_applyOverride_increasesWhenNotExclusive() public {
         address addr1 = makeAddr("addr1");
         address addr2 = makeAddr("addr2");
-        OrderLib.CosignedOrder memory co = _createCosigned(addr1, 500);
-        
+        CosignedOrder memory co = _createCosigned(addr1, 500);
+
         vm.prank(addr2);
         uint256 result = caller.resolve(co);
         // 500 bps => +5% => 1000 * 1.05 = 1050
@@ -62,8 +63,8 @@ contract ExclusivityLibTest is Test {
     function test_applyOverride_reverts_when_nonExclusive_sender_and_zero_bps() public {
         address addr1 = makeAddr("addr1");
         address addr2 = makeAddr("addr2");
-        OrderLib.CosignedOrder memory co = _createCosigned(addr1, 0);
-        
+        CosignedOrder memory co = _createCosigned(addr1, 0);
+
         vm.prank(addr2);
         vm.expectRevert(ResolutionLib.InvalidSender.selector);
         caller.resolve(co);
