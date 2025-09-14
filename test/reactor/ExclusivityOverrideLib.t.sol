@@ -4,6 +4,7 @@ pragma solidity 0.8.20;
 import "forge-std/Test.sol";
 import {BaseTest} from "test/base/BaseTest.sol";
 import {ResolutionLib} from "src/reactor/lib/ResolutionLib.sol";
+import {ExclusivityOverrideLib} from "src/reactor/lib/ExclusivityOverrideLib.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 
 // Helper contract to properly test msg.sender context
@@ -77,7 +78,7 @@ contract ExclusivityLibTest is BaseTest {
         co = cosign(co);
 
         vm.prank(addr2);
-        vm.expectRevert(ResolutionLib.InvalidSender.selector);
+        vm.expectRevert(ExclusivityOverrideLib.InvalidSender.selector);
         caller.resolve(co);
     }
 }
