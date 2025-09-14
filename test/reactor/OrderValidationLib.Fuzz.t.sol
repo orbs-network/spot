@@ -43,7 +43,7 @@ contract OrderValidationLibFuzzTest is Test {
         vm.assume(slippage < Constants.MAX_SLIPPAGE);
 
         OrderLib.Order memory o;
-        o.info.swapper = swapper;
+        o.swapper = swapper;
         o.input.token = inToken;
         o.input.amount = inAmount;
         o.input.maxAmount = maxAmount;

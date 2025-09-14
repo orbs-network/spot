@@ -21,10 +21,10 @@ library OrderValidationLib {
         if (order.slippage >= Constants.MAX_SLIPPAGE) revert InvalidOrderSlippageTooHigh();
         if (order.input.token == address(0)) revert InvalidOrderInputTokenZero();
         if (order.output.recipient == address(0)) revert InvalidOrderOutputRecipientZero();
-        
+
         // Call additional validation callback if specified
-        if (order.info.additionalValidationContract != address(0)) {
-            IValidationCallback(order.info.additionalValidationContract).validate(msg.sender, co);
+        if (order.additionalValidationContract != address(0)) {
+            IValidationCallback(order.additionalValidationContract).validate(msg.sender, co);
         }
     }
 }

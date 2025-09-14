@@ -19,9 +19,12 @@ contract ExclusivityLibTest is Test {
         caller = new ResolutionCaller();
     }
 
-    function _createCosigned(address executor, uint32 exclusivityBps) internal returns (OrderLib.CosignedOrder memory co) {
+    function _createCosigned(address executor, uint32 exclusivityBps)
+        internal
+        returns (OrderLib.CosignedOrder memory co)
+    {
         OrderLib.Order memory o;
-        o.info.swapper = makeAddr("swapper");
+        o.swapper = makeAddr("swapper");
         o.input.token = makeAddr("in");
         o.input.amount = 1_000;
         o.input.maxAmount = 2_000;
@@ -41,7 +44,7 @@ contract ExclusivityLibTest is Test {
     function test_applyOverride_noChangeWhenExclusive() public {
         address addr1 = makeAddr("addr1");
         OrderLib.CosignedOrder memory co = _createCosigned(addr1, 500);
-        
+
         vm.prank(addr1);
         uint256 result = caller.resolve(co);
         // Should be max(1000 (base output), 1000 (cosigned output)) = 1000 with no override
@@ -52,7 +55,7 @@ contract ExclusivityLibTest is Test {
         address addr1 = makeAddr("addr1");
         address addr2 = makeAddr("addr2");
         OrderLib.CosignedOrder memory co = _createCosigned(addr1, 500);
-        
+
         vm.prank(addr2);
         uint256 result = caller.resolve(co);
         // 500 bps => +5% => 1000 * 1.05 = 1050
@@ -63,7 +66,7 @@ contract ExclusivityLibTest is Test {
         address addr1 = makeAddr("addr1");
         address addr2 = makeAddr("addr2");
         OrderLib.CosignedOrder memory co = _createCosigned(addr1, 0);
-        
+
         vm.prank(addr2);
         vm.expectRevert(ResolutionLib.InvalidSender.selector);
         caller.resolve(co);

@@ -13,7 +13,7 @@ contract ResolutionLibTest is Test {
 
     function _baseCosigned() internal returns (OrderLib.CosignedOrder memory co) {
         OrderLib.Order memory o;
-        o.info.swapper = makeAddr("swapper");
+        o.swapper = makeAddr("swapper");
         o.input.token = makeAddr("in");
         o.input.amount = 1_000; // chunk
         o.input.maxAmount = 2_000;

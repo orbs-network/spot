@@ -24,7 +24,7 @@ contract OrderValidationLibTest is Test {
     }
 
     function _baseOrder() internal returns (OrderLib.Order memory o) {
-        o.info.swapper = makeAddr("swapper");
+        o.swapper = makeAddr("swapper");
         o.input.token = makeAddr("token");
         o.input.amount = 100;
         o.input.maxAmount = 200;

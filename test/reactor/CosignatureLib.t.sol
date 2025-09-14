@@ -32,8 +32,8 @@ contract CosignatureLibTest is Test {
 
     function _baseCosignedWithSig() internal returns (OrderLib.CosignedOrder memory co, bytes32 orderHash) {
         OrderLib.Order memory o;
-        o.info.reactor = makeAddr("reactor");
-        o.info.swapper = signer;
+        o.reactor = makeAddr("reactor");
+        o.swapper = signer;
         o.input.token = makeAddr("in");
         o.input.amount = 1_000;
         o.input.maxAmount = 2_000;
@@ -49,7 +49,7 @@ contract CosignatureLibTest is Test {
 
         OrderLib.Cosignature memory c;
         c.timestamp = 1_000_000;
-        c.reactor = o.info.reactor;
+        c.reactor = o.reactor;
         c.input = OrderLib.CosignedValue({token: o.input.token, value: 100, decimals: 18});
         c.output = OrderLib.CosignedValue({token: o.output.token, value: 200, decimals: 18});
         co.cosignatureData = c;

@@ -4,10 +4,6 @@ pragma solidity 0.8.20;
 import {RePermitLib} from "src/repermit/RePermitLib.sol";
 
 library OrderLib {
-    string internal constant ORDER_INFO_TYPE =
-        "OrderInfo(address reactor,address swapper,uint256 nonce,uint256 deadline,address additionalValidationContract,bytes additionalValidationData)";
-    bytes32 internal constant ORDER_INFO_TYPE_HASH = keccak256(bytes(ORDER_INFO_TYPE));
-
     string internal constant INPUT_TYPE = "Input(address token,uint256 amount,uint256 maxAmount)";
     bytes32 internal constant INPUT_TYPE_HASH = keccak256(bytes(INPUT_TYPE));
 
@@ -18,19 +14,13 @@ library OrderLib {
     bytes32 internal constant EXCHANGE_TYPE_HASH = keccak256(bytes(EXCHANGE_TYPE));
 
     string internal constant ORDER_TYPE =
-        "Order(OrderInfo info,address executor,Exchange exchange,uint32 exclusivity,uint32 epoch,uint32 slippage,uint32 freshness,Input input,Output output)";
+        "Order(address reactor,address swapper,uint256 nonce,uint256 deadline,address additionalValidationContract,bytes additionalValidationData,address executor,Exchange exchange,uint32 exclusivity,uint32 epoch,uint32 slippage,uint32 freshness,Input input,Output output)";
     bytes32 internal constant ORDER_TYPE_HASH =
-        keccak256(abi.encodePacked(ORDER_TYPE, INPUT_TYPE, ORDER_INFO_TYPE, OUTPUT_TYPE, EXCHANGE_TYPE));
+        keccak256(abi.encodePacked(ORDER_TYPE, INPUT_TYPE, OUTPUT_TYPE, EXCHANGE_TYPE));
 
     string internal constant WITNESS_TYPE_SUFFIX = string(
         abi.encodePacked(
-            "Order witness)",
-            EXCHANGE_TYPE,
-            INPUT_TYPE,
-            ORDER_TYPE,
-            ORDER_INFO_TYPE,
-            OUTPUT_TYPE,
-            RePermitLib.TOKEN_PERMISSIONS_TYPE
+            "Order witness)", EXCHANGE_TYPE, INPUT_TYPE, ORDER_TYPE, OUTPUT_TYPE, RePermitLib.TOKEN_PERMISSIONS_TYPE
         )
     );
 
@@ -40,26 +30,6 @@ library OrderLib {
     string internal constant COSIGNATURE_TYPE =
         "Cosignature(uint256 timestamp,address reactor,CosignedValue input,CosignedValue output)";
     bytes32 internal constant COSIGNATURE_TYPE_HASH = keccak256(abi.encodePacked(COSIGNATURE_TYPE, COSIGNED_VALUE_TYPE));
-
-    /// @dev generic order information
-    ///  should be included as the first field in any concrete order types
-    struct OrderInfo {
-        // The address of the reactor that this order is targeting
-        // Note that this must be included in every order so the swapper
-        // signature commits to the specific reactor that they trust to fill their order properly
-        address reactor;
-        // The address of the user which created the order
-        // Note that this must be included so that order hashes are unique by swapper
-        address swapper;
-        // The nonce of the order, allowing for signature replay protection and cancellation
-        uint256 nonce;
-        // The timestamp after which this order is no longer valid
-        uint256 deadline;
-        // Custom validation contract
-        address additionalValidationContract;
-        // Encoded validation params for additionalValidationContract
-        bytes additionalValidationData;
-    }
 
     /// @dev tokens that need to be sent from the swapper in order to satisfy an order
     struct Input {
@@ -83,7 +53,21 @@ library OrderLib {
     }
 
     struct Order {
-        OrderInfo info;
+        // The address of the reactor that this order is targeting
+        // Note that this must be included in every order so the swapper
+        // signature commits to the specific reactor that they trust to fill their order properly
+        address reactor;
+        // The address of the user which created the order
+        // Note that this must be included so that order hashes are unique by swapper
+        address swapper;
+        // The nonce of the order, allowing for signature replay protection and cancellation
+        uint256 nonce;
+        // The timestamp after which this order is no longer valid
+        uint256 deadline;
+        // Custom validation contract
+        address additionalValidationContract;
+        // Encoded validation params for additionalValidationContract
+        bytes additionalValidationData;
         address executor;
         Exchange exchange;
         uint32 exclusivity;
@@ -114,26 +98,23 @@ library OrderLib {
         bytes cosignature;
     }
 
-    function hash(OrderInfo memory info) internal pure returns (bytes32) {
-        return keccak256(
-            abi.encode(
-                ORDER_INFO_TYPE_HASH,
-                info.reactor,
-                info.swapper,
-                info.nonce,
-                info.deadline,
-                info.additionalValidationContract,
-                keccak256(info.additionalValidationData)
-            )
-        );
-    }
-
     function hash(Order memory order) internal pure returns (bytes32) {
-        return keccak256(
+        // Split encoding to avoid stack too deep error
+        bytes32 part1 = keccak256(
             abi.encode(
                 ORDER_TYPE_HASH,
-                hash(order.info),
-                order.executor,
+                order.reactor,
+                order.swapper,
+                order.nonce,
+                order.deadline,
+                order.additionalValidationContract,
+                keccak256(order.additionalValidationData),
+                order.executor
+            )
+        );
+
+        bytes32 part2 = keccak256(
+            abi.encode(
                 hash(order.exchange),
                 order.exclusivity,
                 order.epoch,
@@ -143,6 +124,8 @@ library OrderLib {
                 hash(order.output)
             )
         );
+
+        return keccak256(abi.encode(part1, part2));
     }
 
     function hash(Input memory input) internal pure returns (bytes32) {
