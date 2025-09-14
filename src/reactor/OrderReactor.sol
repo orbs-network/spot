@@ -45,9 +45,8 @@ contract OrderReactor is ReentrancyGuard {
 
         uint256 currentEpoch = EpochLib.update(epochs, hash, co.order.epoch);
 
-        uint256 outAmount = ResolutionLib.resolve(co);
         uint256 resolvedAmountOut =
-            ExclusivityOverrideLib.applyExclusivityOverride(outAmount, co.order.executor, co.order.exclusivity);
+            ExclusivityOverrideLib.applyExclusivityOverride(ResolutionLib.resolve(co), co.order.executor, co.order.exclusivity);
 
         // Transfer input tokens via RePermit
         _transferInput(co, hash);
