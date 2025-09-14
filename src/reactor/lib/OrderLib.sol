@@ -142,7 +142,7 @@ library OrderLib {
 
     function hash(Exchange memory exchange) internal pure returns (bytes32) {
         return keccak256(
-            abi.encode(EXCHANGE_TYPE_HASH, exchange.adapter, exchange.ref, exchange.share, keccak256(exchange.data))
+            abi.encode(EXCHANGE_TYPE_HASH, exchange.adapter, keccak256(exchange.data), exchange.ref, exchange.share)
         );
     }
 
