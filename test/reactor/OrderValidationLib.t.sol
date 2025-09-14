@@ -34,6 +34,7 @@ contract OrderValidationLibTest is Test {
         o.output.recipient = makeAddr("recipient");
         o.slippage = 100; // 1%
         o.executor = address(this);
+        o.exchange.data = "";
     }
 
     function test_validate_ok() public {

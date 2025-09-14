@@ -32,15 +32,16 @@ contract OrderReactor is ReentrancyGuard {
     /// @notice Execute a CosignedOrder with callback
     /// @param co The cosigned order to execute
     /// @param x The execution parameters for the order
-    function executeWithCallback(
-        OrderLib.CosignedOrder calldata co,
-        SettlementLib.Execution calldata x
-    ) external payable nonReentrant {
+    function executeWithCallback(OrderLib.CosignedOrder calldata co, SettlementLib.Execution calldata x)
+        external
+        payable
+        nonReentrant
+    {
         // Validate and resolve the order
         bytes32 hash = OrderLib.hash(co.order);
         OrderValidationLib.validate(co);
         CosignatureLib.validate(co, cosigner, repermit);
-        
+
         uint256 currentEpoch = EpochLib.update(epochs, hash, co.order.epoch);
 
         uint256 resolvedAmountOut = ResolutionLib.resolve(co);
@@ -74,9 +75,7 @@ contract OrderReactor is ReentrancyGuard {
     function _transferInput(OrderLib.CosignedOrder calldata co, bytes32 hash) private {
         RePermit(address(repermit)).repermitWitnessTransferFrom(
             RePermitLib.RePermitTransferFrom(
-                RePermitLib.TokenPermissions(
-                    address(co.order.input.token), co.order.input.maxAmount
-                ),
+                RePermitLib.TokenPermissions(address(co.order.input.token), co.order.input.maxAmount),
                 co.order.info.nonce,
                 co.order.info.deadline
             ),

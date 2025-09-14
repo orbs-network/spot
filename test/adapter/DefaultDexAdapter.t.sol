@@ -42,14 +42,8 @@ contract DefaultDexAdapterTest is Test {
             recipient: recipient
         });
 
-        cosignedOrder.order.info = OrderLib.OrderInfo({
-            reactor: address(0),
-            swapper: user,
-            nonce: 1,
-            deadline: block.timestamp + 1000,
-            additionalValidationContract: address(0),
-            additionalValidationData: ""
-        });
+        cosignedOrder.order.info =
+            OrderLib.OrderInfo({reactor: address(0), swapper: user, nonce: 1, deadline: block.timestamp + 1000});
 
         // Add minimal required fields for CosignedOrder
         cosignedOrder.signature = "";

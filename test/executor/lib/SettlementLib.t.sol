@@ -57,22 +57,12 @@ contract SettlementLibTest is Test {
         address recipient
     ) internal view returns (OrderLib.CosignedOrder memory) {
         OrderLib.CosignedOrder memory cosignedOrder;
-        cosignedOrder.order.info = OrderLib.OrderInfo({
-            reactor: reactor,
-            swapper: swapper,
-            nonce: 1,
-            deadline: block.timestamp + 1000,
-            additionalValidationContract: address(0),
-            additionalValidationData: ""
-        });
+        cosignedOrder.order.info =
+            OrderLib.OrderInfo({reactor: reactor, swapper: swapper, nonce: 1, deadline: block.timestamp + 1000});
         cosignedOrder.order.input = OrderLib.Input({token: inToken, amount: inAmount, maxAmount: inAmount});
         cosignedOrder.order.output =
             OrderLib.Output({token: outToken, amount: outAmount, maxAmount: type(uint256).max, recipient: recipient});
-        cosignedOrder.order.exchange = OrderLib.Exchange({
-            adapter: exchange,
-            ref: address(0),
-            share: 0
-        });
+        cosignedOrder.order.exchange = OrderLib.Exchange({adapter: exchange, ref: address(0), share: 0, data: ""});
         cosignedOrder.signature = "";
         cosignedOrder.cosignature = "";
 
