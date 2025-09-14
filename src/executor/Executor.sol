@@ -41,7 +41,7 @@ contract Executor is IReactorCallback {
 
     function reactorCallback(
         bytes32 hash,
-        uint256 resolvedAmountOut, // Available for future use by exchange adapters
+        uint256 resolvedAmountOut,
         OrderLib.CosignedOrder memory co,
         SettlementLib.Execution memory x
     ) external override onlyReactor {
