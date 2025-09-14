@@ -45,7 +45,7 @@ contract RePermitTest is BaseTest {
 
     function setUp() public override {
         super.setUp();
-        vm.warp(1_000_000);
+        vm.warp(1 days);
         uut = RePermit(address(repermit));
     }
 
@@ -57,7 +57,7 @@ contract RePermitTest is BaseTest {
     }
 
     function test_revert_expired() public {
-        permit.deadline = 999_999;
+        permit.deadline = 1 days - 1;
         bytes memory signature = signEIP712(repermit, signerPK, witness);
 
         vm.expectRevert(RePermit.Expired.selector);
@@ -65,7 +65,7 @@ contract RePermitTest is BaseTest {
     }
 
     function test_revert_invalidSignature() public {
-        permit.deadline = 1_000_000;
+        permit.deadline = 1 days;
         bytes memory signature = signEIP712(repermit, signerPK, witness);
 
         vm.expectRevert(RePermit.InvalidSignature.selector);
@@ -75,7 +75,7 @@ contract RePermitTest is BaseTest {
     }
 
     function test_revert_insufficientAllowance() public {
-        permit.deadline = 1_000_000;
+        permit.deadline = 1 days;
         permit.permitted.token = address(token);
         permit.permitted.amount = 1 ether;
         request.amount = 1.1 ether;
@@ -91,7 +91,7 @@ contract RePermitTest is BaseTest {
         hoax(signer);
         token.approve(address(uut), 1 ether);
 
-        permit.deadline = 1_000_000;
+        permit.deadline = 1 days;
         permit.permitted.amount = 1 ether;
         permit.permitted.token = address(token);
         request.amount = 0.7 ether;
@@ -112,7 +112,7 @@ contract RePermitTest is BaseTest {
         hoax(signer);
         token.approve(address(uut), 1 ether);
 
-        permit.deadline = 1_000_000;
+        permit.deadline = 1 days;
         permit.permitted.amount = 1 ether;
         permit.permitted.token = address(token);
         request.amount = 0.7 ether;
@@ -136,7 +136,7 @@ contract RePermitTest is BaseTest {
         hoax(signer);
         token.approve(address(uut), 1 ether);
 
-        permit.deadline = 1_000_000;
+        permit.deadline = 1 days;
         permit.permitted.amount = 1 ether;
         permit.permitted.token = address(token);
         request.amount = 0.25 ether;
@@ -157,7 +157,7 @@ contract RePermitTest is BaseTest {
         hoax(signer);
         token.approve(address(uut), 1 ether);
 
-        permit.deadline = 1_000_000;
+        permit.deadline = 1 days;
         permit.permitted.amount = 1 ether;
         permit.permitted.token = address(token);
         request.amount = 0.1 ether;
@@ -179,7 +179,7 @@ contract RePermitTest is BaseTest {
         hoax(signer);
         token.approve(address(uut), 1 ether);
 
-        permit.deadline = 1_000_000;
+        permit.deadline = 1 days;
         permit.permitted.amount = 1 ether;
         permit.permitted.token = address(token);
         request.to = other;
@@ -203,7 +203,7 @@ contract RePermitTest is BaseTest {
         hoax(signer);
         token.approve(address(uut), 3 ether);
 
-        permit.deadline = 1_000_000;
+        permit.deadline = 1 days;
         permit.permitted.token = address(token);
         request.to = other;
 
@@ -234,7 +234,7 @@ contract RePermitTest is BaseTest {
         hoax(signer);
         token.approve(address(uut), 1 ether);
 
-        permit.deadline = 1_000_000;
+        permit.deadline = 1 days;
         permit.permitted.amount = 1 ether;
         permit.permitted.token = address(token);
         request.to = other;
@@ -258,7 +258,7 @@ contract RePermitTest is BaseTest {
     }
 
     function test_revert_invalidSignature_when_witnessType_suffix_mismatch() public {
-        permit.deadline = 1_000_000;
+        permit.deadline = 1 days;
         permit.permitted.token = address(token);
         permit.permitted.amount = 1 ether;
         request.amount = 0.1 ether;
@@ -276,7 +276,7 @@ contract RePermitTest is BaseTest {
         hoax(signer);
         token.approve(address(uut), 1 ether);
 
-        permit.deadline = 1_000_000;
+        permit.deadline = 1 days;
         permit.permitted.amount = 1 ether;
         permit.permitted.token = address(token);
         request.amount = 0.1 ether;
@@ -300,7 +300,7 @@ contract RePermitTest is BaseTest {
     }
 
     function test_cancel_multiple_structHashes_sets_spent_max_for_each() public {
-        permit.deadline = 1_000_000;
+        permit.deadline = 1 days;
         permit.permitted.token = address(token);
         permit.permitted.amount = 1 ether;
 
@@ -322,7 +322,7 @@ contract RePermitTest is BaseTest {
     }
 
     function test_cancel_blocks_even_zero_amount() public {
-        permit.deadline = 1_000_000;
+        permit.deadline = 1 days;
         permit.permitted.token = address(token);
         permit.permitted.amount = 1 ether;
         request.to = other;
@@ -345,7 +345,7 @@ contract RePermitTest is BaseTest {
         hoax(signer);
         token.approve(address(uut), 3 ether);
 
-        permit.deadline = 1_000_000;
+        permit.deadline = 1 days;
         permit.permitted.token = address(token);
         request.to = other;
 

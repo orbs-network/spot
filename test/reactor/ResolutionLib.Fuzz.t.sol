@@ -2,12 +2,13 @@
 pragma solidity 0.8.20;
 
 import "forge-std/Test.sol";
+import {BaseTest} from "test/base/BaseTest.sol";
 
 import {ResolutionLib} from "src/reactor/lib/ResolutionLib.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {Constants} from "src/reactor/Constants.sol";
 
-contract ResolutionLibFuzzTest is Test {
+contract ResolutionLibFuzzTest is BaseTest {
     function callResolve(OrderLib.CosignedOrder memory co) external view returns (uint256) {
         return ResolutionLib.resolve(co);
     }
@@ -26,13 +27,16 @@ contract ResolutionLibFuzzTest is Test {
         vm.assume(inputValue > 0 && outputValue > 0 && inputValue < 1e36 && outputValue < 1e36);
         vm.assume(slippage < Constants.MAX_SLIPPAGE);
 
-        OrderLib.CosignedOrder memory co;
-        co.order.input.amount = inAmount;
-        co.order.output.amount = limit;
-        co.order.output.maxAmount = maxOut;
-        co.order.slippage = uint32(slippage);
-        co.order.executor = address(this); // Set executor to this contract
-        co.order.exclusivity = 0; // No exclusivity for base testing
+        BaseTest.slippage = uint32(slippage);
+        // default freshness is 1
+        BaseTest.executor = address(this);
+        BaseTest.inToken = address(token);
+        BaseTest.inAmount = inAmount;
+        BaseTest.inMax = inAmount;
+        BaseTest.outToken = address(token2);
+        BaseTest.outAmount = limit;
+        BaseTest.outMax = maxOut;
+        OrderLib.CosignedOrder memory co = order();
         co.cosignatureData.input =
             OrderLib.CosignedValue({token: makeAddr("cosignedInputToken"), value: inputValue, decimals: 18});
         co.cosignatureData.output =

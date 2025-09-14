@@ -13,7 +13,7 @@ contract EpochLibTest is Test {
     }
 
     function setUp() public {
-        vm.warp(1_000_000);
+        vm.warp(1 days);
     }
 
     function test_epoch_zero_allows_once() public {
@@ -30,7 +30,7 @@ contract EpochLibTest is Test {
         vm.expectRevert(EpochLib.InvalidEpoch.selector);
         this.callEpoch(h, interval);
         // Warp to a known next bucket for this base timestamp
-        vm.warp(1_000_059);
+        vm.warp(1 days + 59);
         this.callEpoch(h, interval);
     }
 
@@ -44,13 +44,13 @@ contract EpochLibTest is Test {
         this.callEpoch(h1, interval);
         vm.expectRevert(EpochLib.InvalidEpoch.selector);
         this.callEpoch(h2, interval);
-        // Advance to a bucket where h2 advances first
-        vm.warp(1_000_018);
+        // Advance to a bucket where h2 advances first (delta 58s for base divisible by 60)
+        vm.warp(1 days + 58);
         this.callEpoch(h2, interval);
         vm.expectRevert(EpochLib.InvalidEpoch.selector);
         this.callEpoch(h1, interval);
         // Then advance to a bucket where h1 advances
-        vm.warp(1_000_019);
+        vm.warp(1 days + 59);
         this.callEpoch(h1, interval);
     }
 }

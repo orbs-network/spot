@@ -6,8 +6,7 @@ import {SettlementLib} from "src/executor/lib/SettlementLib.sol";
 
 interface IReactor {
     /// @notice Execute a CosignedOrder with callback
-    function executeWithCallback(
-        OrderLib.CosignedOrder calldata co,
-        SettlementLib.Execution calldata x
-    ) external payable;
+    function executeWithCallback(OrderLib.CosignedOrder calldata co, SettlementLib.Execution calldata x)
+        external
+        payable;
 }

@@ -12,17 +12,39 @@ import {DeployTestInfra} from "./DeployTestInfra.sol";
 
 import {WM} from "src/WM.sol";
 import {RePermit} from "src/repermit/RePermit.sol";
+import {OrderLib} from "src/reactor/lib/OrderLib.sol";
+import {SettlementLib} from "src/executor/lib/SettlementLib.sol";
+import {IEIP712} from "src/interface/IEIP712.sol";
 
 abstract contract BaseTest is Test, BaseScript, DeployTestInfra {
     address public multicall;
 
     address public wm;
     address public repermit;
+    // Base vars used by helpers; suites may override
+    address public reactor;
+    address public adapter;
+    address public executor;
+    address public swapper;
+    address public recipient;
+    address public inToken;
+    address public outToken;
+    uint256 public inAmount;
+    uint256 public inMax;
+    uint256 public outAmount;
+    uint256 public outMax;
+    uint256 public cosignInValue;
+    uint256 public cosignOutValue;
+    uint32 public slippage;
+    uint32 public freshness;
 
     ERC20Mock public token;
+    ERC20Mock public token2;
     address public signer;
     uint256 public signerPK;
     address public other;
+
+    uint256 internal _nextNonce;
 
     function setUp() public virtual override {
         super.setUp();
@@ -36,10 +58,27 @@ abstract contract BaseTest is Test, BaseScript, DeployTestInfra {
 
         token = new ERC20Mock();
         vm.label(address(token), "token");
+        token2 = new ERC20Mock();
+        vm.label(address(token2), "token2");
 
         (signer, signerPK) = makeAddrAndKey("signer");
 
         other = makeAddr("other");
+        _nextNonce = 1;
+        swapper = signer;
+        recipient = signer;
+        // Base tokens used across tests unless overridden
+        inToken = address(token);
+        outToken = address(token2);
+        // Sensible defaults to reduce boilerplate in tests
+        inAmount = 100;
+        inMax = 100;
+        outAmount = 100;
+        outMax = 100;
+        cosignInValue = 0;
+        cosignOutValue = 0;
+        slippage = 100;
+        freshness = 1;
     }
 
     // helpers to manage WM allowlist in tests
@@ -61,6 +100,57 @@ abstract contract BaseTest is Test, BaseScript, DeployTestInfra {
 
     function disallowThis() internal {
         disallow(address(this));
+    }
+
+    // Single cosign helper using base vars
+    function cosign(OrderLib.CosignedOrder memory co) internal view returns (OrderLib.CosignedOrder memory updated) {
+        OrderLib.Cosignature memory c;
+        c.timestamp = block.timestamp;
+        c.reactor = co.order.info.reactor;
+        c.input = OrderLib.CosignedValue({token: co.order.input.token, value: cosignInValue, decimals: 18});
+        c.output = OrderLib.CosignedValue({token: co.order.output.token, value: cosignOutValue, decimals: 18});
+        bytes32 digest = IEIP712(repermit).hashTypedData(OrderLib.hash(c));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPK, digest);
+        co.cosignatureData = c;
+        co.cosignature = bytes.concat(r, s, bytes1(v));
+        return co;
+    }
+
+    // Single order() helper: builds and signs using BaseTest vars
+    function order() internal returns (OrderLib.CosignedOrder memory co) {
+        co.order.info.reactor = reactor;
+        co.order.info.swapper = swapper == address(0) ? signer : swapper;
+        co.order.info.nonce = _nextNonce;
+        co.order.info.deadline = block.timestamp + 1 days;
+        co.order.info.additionalValidationContract = address(0);
+        co.order.info.additionalValidationData = "";
+        co.order.exchange = OrderLib.Exchange({adapter: adapter, ref: address(0), share: 0});
+        co.order.executor = executor;
+        co.order.exclusivity = 0;
+        co.order.epoch = 0;
+        co.order.slippage = slippage;
+        co.order.freshness = freshness == 0 ? 1 : freshness;
+        co.order.input = OrderLib.Input({token: inToken, amount: inAmount, maxAmount: inMax});
+        co.order.output = OrderLib.Output({token: outToken, amount: outAmount, maxAmount: outMax, recipient: recipient});
+        bytes32 digest = IEIP712(repermit).hashTypedData(OrderLib.hash(co.order));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPK, digest);
+        co.signature = bytes.concat(r, s, bytes1(v));
+        unchecked {
+            _nextNonce++;
+        }
+    }
+
+    // Single execution() helper
+    function execution(uint256 minOut, address feeToken, uint256 feeAmount, address feeRecipient)
+        internal
+        pure
+        returns (SettlementLib.Execution memory ex)
+    {
+        ex = SettlementLib.Execution({
+            minAmountOut: minOut,
+            fee: OrderLib.Output({token: feeToken, amount: feeAmount, recipient: feeRecipient, maxAmount: type(uint256).max}),
+            data: hex""
+        });
     }
 
     // uint256 private nonce;

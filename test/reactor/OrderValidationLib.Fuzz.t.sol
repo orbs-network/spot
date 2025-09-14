@@ -6,22 +6,14 @@ import "forge-std/Test.sol";
 import {OrderValidationLib} from "src/reactor/lib/OrderValidationLib.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {Constants} from "src/reactor/Constants.sol";
+import {BaseTest} from "test/base/BaseTest.sol";
 
-contract OrderValidationLibFuzzTest is Test {
-    function callValidate(OrderLib.Order memory order) external view {
-        OrderLib.CosignedOrder memory co = OrderLib.CosignedOrder({
-            order: order,
-            signature: "",
-            cosignatureData: OrderLib.Cosignature({
-                timestamp: 0,
-                reactor: address(0),
-                input: OrderLib.CosignedValue({token: address(0), value: 0, decimals: 18}),
-                output: OrderLib.CosignedValue({token: address(0), value: 0, decimals: 18})
-            }),
-            cosignature: ""
-        });
+contract OrderValidationLibFuzzTest is BaseTest {
+    function callValidate(OrderLib.CosignedOrder memory co) external view {
         OrderValidationLib.validate(co);
     }
+
+    // Keep sequential builder updates in fuzz to avoid stack-too-deep
 
     function testFuzz_validate_ok(
         address swapper,
@@ -42,18 +34,14 @@ contract OrderValidationLibFuzzTest is Test {
         vm.assume(maxOut >= minOut);
         vm.assume(slippage < Constants.MAX_SLIPPAGE);
 
-        OrderLib.Order memory o;
-        o.info.swapper = swapper;
-        o.input.token = inToken;
-        o.input.amount = inAmount;
-        o.input.maxAmount = maxAmount;
-        o.output.token = outToken;
-        o.output.amount = minOut;
-        o.output.maxAmount = maxOut;
-        o.output.recipient = recipient;
-        o.slippage = uint32(slippage);
-        o.executor = address(this);
-
-        this.callValidate(o);
+        OrderLib.CosignedOrder memory co;
+        co.order.info.reactor = address(0);
+        co.order.exchange.adapter = address(0);
+        co.order.executor = address(this);
+        co.order.info.swapper = swapper;
+        co.order.input = OrderLib.Input({token: inToken, amount: inAmount, maxAmount: maxAmount});
+        co.order.output = OrderLib.Output({token: outToken, amount: minOut, maxAmount: maxOut, recipient: recipient});
+        co.order.slippage = uint32(slippage);
+        this.callValidate(co);
     }
 }

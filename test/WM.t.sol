@@ -20,7 +20,7 @@ contract WMTest is BaseTest {
         uut = WM(payable(wm));
     }
 
-    function test_owned() public {
+    function test_owned() public view {
         assertNotEq(uut.owner(), address(0));
         assertEq(uut.owner(), address(this));
     }

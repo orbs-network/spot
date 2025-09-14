@@ -2,41 +2,42 @@
 pragma solidity 0.8.20;
 
 import "forge-std/Test.sol";
+import {BaseTest} from "test/base/BaseTest.sol";
 
 import {ResolutionLib} from "src/reactor/lib/ResolutionLib.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 
-contract ResolutionLibTest is Test {
+contract ResolutionLibTest is BaseTest {
     function callResolve(OrderLib.CosignedOrder memory co) external view returns (uint256) {
         return ResolutionLib.resolve(co);
     }
 
-    function _baseCosigned() internal returns (OrderLib.CosignedOrder memory co) {
-        OrderLib.Order memory o;
-        o.info.swapper = makeAddr("swapper");
-        o.input.token = makeAddr("in");
-        o.input.amount = 1_000; // chunk
-        o.input.maxAmount = 2_000;
-        o.output.token = makeAddr("out");
-        o.output.amount = 1_200; // limit
-        o.output.maxAmount = 10_000; // trigger
-        o.slippage = 100; // 1%
-        o.executor = address(this); // Set executor to test contract
-        o.exclusivity = 0; // No exclusivity for base test
-
-        co.order = o;
-        co.cosignatureData.input = OrderLib.CosignedValue({token: o.input.token, value: 100, decimals: 18});
-        co.cosignatureData.output = OrderLib.CosignedValue({token: o.output.token, value: 200, decimals: 18});
-    }
+    // No per-test builders; tests set BaseTest vars and use order()/cosign()
 
     function test_resolveOutAmount_ok() public {
-        OrderLib.CosignedOrder memory co = _baseCosigned();
+        executor = address(this);
+        inAmount = 1_000;
+        inMax = 2_000;
+        outAmount = 1_200;
+        outMax = 10_000;
+        cosignInValue = 100;
+        cosignOutValue = 200;
+        OrderLib.CosignedOrder memory co = order();
+        co = cosign(co);
         uint256 outAmt = this.callResolve(co);
         assertEq(outAmt, 1_980);
     }
 
     function test_resolveOutAmount_revert_cosigned_exceeds_max() public {
-        OrderLib.CosignedOrder memory co = _baseCosigned();
+        executor = address(this);
+        inAmount = 1_000;
+        inMax = 2_000;
+        outAmount = 1_200;
+        outMax = 10_000;
+        cosignInValue = 100;
+        cosignOutValue = 200;
+        OrderLib.CosignedOrder memory co = order();
+        co = cosign(co);
         co.order.output.maxAmount = 1_500; // cosignedOutput is 2000 > 1500
         vm.expectRevert(ResolutionLib.CosignedMaxAmount.selector);
         this.callResolve(co);
