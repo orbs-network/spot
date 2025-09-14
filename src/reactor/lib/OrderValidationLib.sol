@@ -12,8 +12,7 @@ library OrderValidationLib {
     error InvalidOrderInputTokenZero();
     error InvalidOrderOutputRecipientZero();
 
-    function validate(OrderLib.CosignedOrder memory co) internal pure {
-        OrderLib.Order memory order = co.order;
+    function validate(OrderLib.Order memory order) internal pure {
         if (order.input.amount == 0) revert InvalidOrderInputAmountZero();
         if (order.input.amount > order.input.maxAmount) revert InvalidOrderInputAmountGtMax();
         if (order.output.amount > order.output.maxAmount) revert InvalidOrderOutputAmountGtMax();

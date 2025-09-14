@@ -39,7 +39,7 @@ contract OrderReactor is ReentrancyGuard {
     {
         // Validate and resolve the order
         bytes32 hash = OrderLib.hash(co.order);
-        OrderValidationLib.validate(co);
+        OrderValidationLib.validate(co.order);
         CosignatureLib.validate(co, cosigner, repermit);
 
         uint256 currentEpoch = EpochLib.update(epochs, hash, co.order.epoch);

@@ -14,7 +14,7 @@ library OrderLib {
     string internal constant OUTPUT_TYPE = "Output(address token,uint256 amount,uint256 maxAmount,address recipient)";
     bytes32 internal constant OUTPUT_TYPE_HASH = keccak256(bytes(OUTPUT_TYPE));
 
-    string internal constant EXCHANGE_TYPE = "Exchange(address adapter,address ref,uint32 share,bytes data)";
+    string internal constant EXCHANGE_TYPE = "Exchange(address adapter,bytes data,address ref,uint32 share)";
     bytes32 internal constant EXCHANGE_TYPE_HASH = keccak256(bytes(EXCHANGE_TYPE));
 
     string internal constant ORDER_TYPE =
@@ -74,9 +74,9 @@ library OrderLib {
 
     struct Exchange {
         address adapter;
+        bytes data;
         address ref;
         uint32 share; // bps, for referrer
-        bytes data;
     }
 
     struct Order {
