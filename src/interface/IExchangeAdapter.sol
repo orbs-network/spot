@@ -5,5 +5,5 @@ import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {CosignedOrder} from "src/Structs.sol";
 
 interface IExchangeAdapter {
-    function swap(CosignedOrder memory co, bytes calldata data) external;
+    function swap(bytes32 hash, uint256 resolvedAmountOut, CosignedOrder memory co, bytes calldata data) external;
 }

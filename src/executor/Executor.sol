@@ -40,13 +40,15 @@ contract Executor is IReactorCallback {
         SurplusLib.distribute(co.order.exchange.ref, co.order.swapper, co.order.output.token, co.order.exchange.share);
     }
 
-    function reactorCallback(bytes32 hash, CosignedOrder memory co, SettlementLib.Execution memory x)
-        external
-        override
-        onlyReactor
-    {
+    function reactorCallback(
+        bytes32 hash,
+        uint256 resolvedAmountOut,
+        CosignedOrder memory co,
+        SettlementLib.Execution memory x
+    ) external override onlyReactor {
         Address.functionDelegateCall(
-            co.order.exchange.adapter, abi.encodeWithSelector(IExchangeAdapter.swap.selector, co, x.data)
+            co.order.exchange.adapter,
+            abi.encodeWithSelector(IExchangeAdapter.swap.selector, hash, resolvedAmountOut, co, x.data)
         );
         SettlementLib.settle(hash, co, x);
     }
