@@ -9,10 +9,8 @@ library ResolutionLib {
     using Math for uint256;
 
     error CosignedMaxAmount();
-    error InvalidSender();
 
     function resolve(OrderLib.CosignedOrder memory cosigned) internal pure returns (uint256) {
-        // Inline resolveOutAmount logic
         uint256 cosignedOutput = cosigned.order.input.amount.mulDiv(
             cosigned.cosignatureData.output.value, cosigned.cosignatureData.input.value
         );
