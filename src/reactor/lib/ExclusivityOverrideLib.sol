@@ -3,9 +3,9 @@ pragma solidity 0.8.20;
 
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {Constants} from "src/reactor/Constants.sol";
-import {ResolutionLib} from "src/reactor/lib/ResolutionLib.sol";
 
 library ExclusivityOverrideLib {
+    error InvalidSender();
     /// @notice Apply exclusivity override to the minimum output amount
     /// @param minOut The base minimum output amount
     /// @param exclusiveExecutor The address that has exclusive execution rights
@@ -16,7 +16,7 @@ library ExclusivityOverrideLib {
         view
         returns (uint256)
     {
-        if (msg.sender != exclusiveExecutor && exclusivityBps == 0) revert ResolutionLib.InvalidSender();
+        if (msg.sender != exclusiveExecutor && exclusivityBps == 0) revert InvalidSender();
         if (msg.sender == exclusiveExecutor) return minOut;
         uint256 bps = Constants.BPS + uint256(exclusivityBps);
         return Math.mulDiv(minOut, bps, Constants.BPS, Math.Rounding.Up);
