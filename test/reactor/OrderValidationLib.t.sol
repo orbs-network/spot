@@ -9,7 +9,7 @@ import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {Constants} from "src/reactor/Constants.sol";
 
 contract OrderValidationLibTest is BaseTest {
-    function callValidate(OrderLib.CosignedOrder memory co) external view {
+    function callValidate(OrderLib.CosignedOrder memory co) external pure {
         OrderValidationLib.validate(co.order);
     }
 
