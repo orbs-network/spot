@@ -55,7 +55,7 @@ contract OrderReactor is ReentrancyGuard {
         // Transfer output tokens and refund ETH
         _transferOutput(co, resolvedAmountOut);
 
-        emit Fill(hash, msg.sender, co.order.info.swapper, currentEpoch);
+        emit Fill(hash, msg.sender, co.order.swapper, currentEpoch);
     }
 
     /// @notice Transfer output tokens to recipient and refund remaining ETH to executor
@@ -76,11 +76,11 @@ contract OrderReactor is ReentrancyGuard {
         RePermit(address(repermit)).repermitWitnessTransferFrom(
             RePermitLib.RePermitTransferFrom(
                 RePermitLib.TokenPermissions(address(co.order.input.token), co.order.input.maxAmount),
-                co.order.info.nonce,
-                co.order.info.deadline
+                co.order.nonce,
+                co.order.deadline
             ),
             RePermitLib.TransferRequest(msg.sender, co.order.input.amount),
-            co.order.info.swapper,
+            co.order.swapper,
             hash,
             OrderLib.WITNESS_TYPE_SUFFIX,
             co.signature

@@ -106,7 +106,7 @@ abstract contract BaseTest is Test, BaseScript, DeployTestInfra {
     function cosign(OrderLib.CosignedOrder memory co) internal view returns (OrderLib.CosignedOrder memory updated) {
         OrderLib.Cosignature memory c;
         c.timestamp = block.timestamp;
-        c.reactor = co.order.info.reactor;
+        c.reactor = co.order.reactor;
         c.input = OrderLib.CosignedValue({token: co.order.input.token, value: cosignInValue, decimals: 18});
         c.output = OrderLib.CosignedValue({token: co.order.output.token, value: cosignOutValue, decimals: 18});
         bytes32 digest = IEIP712(repermit).hashTypedData(OrderLib.hash(c));
@@ -118,10 +118,10 @@ abstract contract BaseTest is Test, BaseScript, DeployTestInfra {
 
     // Single order() helper: builds and signs using BaseTest vars
     function order() internal returns (OrderLib.CosignedOrder memory co) {
-        co.order.info.reactor = reactor;
-        co.order.info.swapper = swapper == address(0) ? signer : swapper;
-        co.order.info.nonce = _nextNonce;
-        co.order.info.deadline = block.timestamp + 1 days;
+        co.order.reactor = reactor;
+        co.order.swapper = swapper == address(0) ? signer : swapper;
+        co.order.nonce = _nextNonce;
+        co.order.deadline = block.timestamp + 1 days;
         co.order.exchange = OrderLib.Exchange({adapter: adapter, ref: address(0), share: 0, data: hex""});
         co.order.executor = executor;
         co.order.exclusivity = 0;

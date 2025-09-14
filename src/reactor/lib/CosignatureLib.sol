@@ -23,7 +23,7 @@ library CosignatureLib {
         if (cosigned.order.epoch != 0 && cosigned.order.freshness >= cosigned.order.epoch) {
             revert InvalidFreshnessVsEpoch();
         }
-        if (cosigned.cosignatureData.reactor != cosigned.order.info.reactor) revert InvalidCosignatureReactor();
+        if (cosigned.cosignatureData.reactor != cosigned.order.reactor) revert InvalidCosignatureReactor();
         if (cosigned.cosignatureData.input.token != cosigned.order.input.token) revert InvalidCosignatureInputToken();
         if (cosigned.cosignatureData.output.token != cosigned.order.output.token) {
             revert InvalidCosignatureOutputToken();
