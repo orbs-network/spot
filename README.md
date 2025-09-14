@@ -11,10 +11,10 @@
 
 ## What It Does
 
-- 🎯 **Limit Orders**: Execute at or above a target output amount with slippage protection
+- 🎯 **Limit Orders**: Execute at or above a target output amount with oracle price protection
 - ⏱️ **TWAP Orders**: Slice total size into fixed "chunks" per configurable epoch intervals
 - 🛡️ **Stop-Loss/Take-Profit**: Block execution when cosigned price breaches trigger boundaries
-- 🔄 **Composable Execution**: Mix and match order types with custom exchange adapters
+- 🔄 **Composable Execution**: Mix and match the above order types with custom exchange adapters
 
 ## Why It Wins
 
