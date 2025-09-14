@@ -14,7 +14,7 @@ library OrderLib {
     bytes32 internal constant EXCHANGE_TYPE_HASH = keccak256(bytes(EXCHANGE_TYPE));
 
     string internal constant ORDER_TYPE =
-        "Order(address reactor,address swapper,uint256 nonce,uint256 deadline,address executor,Exchange exchange,uint32 exclusivity,uint32 epoch,uint32 slippage,uint32 freshness,Input input,Output output)";
+        "Order(address reactor,address executor,Exchange exchange,address swapper,uint256 nonce,uint256 deadline,uint32 exclusivity,uint32 epoch,uint32 slippage,uint32 freshness,Input input,Output output)";
     bytes32 internal constant ORDER_TYPE_HASH =
         keccak256(abi.encodePacked(ORDER_TYPE, INPUT_TYPE, OUTPUT_TYPE, EXCHANGE_TYPE));
 
@@ -55,11 +55,11 @@ library OrderLib {
 
     struct Order {
         address reactor;
+        address executor;
+        Exchange exchange;
         address swapper;
         uint256 nonce;
         uint256 deadline;
-        address executor;
-        Exchange exchange;
         uint32 exclusivity;
         uint32 epoch; // seconds per chunk; 0 = single-use
         uint32 slippage; // bps
@@ -93,11 +93,11 @@ library OrderLib {
             abi.encode(
                 ORDER_TYPE_HASH,
                 order.reactor,
+                order.executor,
+                hash(order.exchange),
                 order.swapper,
                 order.nonce,
                 order.deadline,
-                order.executor,
-                hash(order.exchange),
                 order.exclusivity,
                 order.epoch,
                 order.slippage,
