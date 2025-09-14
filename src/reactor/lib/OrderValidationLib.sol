@@ -2,6 +2,7 @@
 pragma solidity 0.8.20;
 
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
+import {Order} from "src/Structs.sol";
 import {Constants} from "src/reactor/Constants.sol";
 
 library OrderValidationLib {
@@ -12,7 +13,7 @@ library OrderValidationLib {
     error InvalidOrderInputTokenZero();
     error InvalidOrderOutputRecipientZero();
 
-    function validate(OrderLib.Order memory order) internal pure {
+    function validate(Order memory order) internal pure {
         if (order.input.amount == 0) revert InvalidOrderInputAmountZero();
         if (order.input.amount > order.input.maxAmount) revert InvalidOrderInputAmountGtMax();
         if (order.output.amount > order.output.maxAmount) revert InvalidOrderOutputAmountGtMax();

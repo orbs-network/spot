@@ -4,6 +4,7 @@ pragma solidity 0.8.20;
 import {IReactor} from "src/interface/IReactor.sol";
 import {IReactorCallback} from "src/interface/IReactorCallback.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
+import {CosignedOrder} from "src/Structs.sol";
 import {IWM} from "src/interface/IWM.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {SurplusLib} from "src/executor/lib/SurplusLib.sol";
@@ -32,14 +33,14 @@ contract Executor is IReactorCallback {
         _;
     }
 
-    function execute(OrderLib.CosignedOrder calldata co, SettlementLib.Execution calldata x) external onlyAllowed {
+    function execute(CosignedOrder calldata co, SettlementLib.Execution calldata x) external onlyAllowed {
         IReactor(reactor).executeWithCallback(co, x);
 
         SurplusLib.distribute(co.order.exchange.ref, co.order.swapper, co.order.input.token, co.order.exchange.share);
         SurplusLib.distribute(co.order.exchange.ref, co.order.swapper, co.order.output.token, co.order.exchange.share);
     }
 
-    function reactorCallback(bytes32 hash, OrderLib.CosignedOrder memory co, SettlementLib.Execution memory x)
+    function reactorCallback(bytes32 hash, CosignedOrder memory co, SettlementLib.Execution memory x)
         external
         override
         onlyReactor

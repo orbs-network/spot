@@ -15,6 +15,7 @@ import {RePermit} from "src/repermit/RePermit.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {SettlementLib} from "src/executor/lib/SettlementLib.sol";
 import {IEIP712} from "src/interface/IEIP712.sol";
+import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/Structs.sol";
 
 abstract contract BaseTest is Test, BaseScript, DeployTestInfra {
     address public multicall;
@@ -103,12 +104,12 @@ abstract contract BaseTest is Test, BaseScript, DeployTestInfra {
     }
 
     // Single cosign helper using base vars
-    function cosign(OrderLib.CosignedOrder memory co) internal view returns (OrderLib.CosignedOrder memory updated) {
-        OrderLib.Cosignature memory c;
+    function cosign(CosignedOrder memory co) internal view returns (CosignedOrder memory updated) {
+        Cosignature memory c;
         c.timestamp = block.timestamp;
         c.reactor = co.order.reactor;
-        c.input = OrderLib.CosignedValue({token: co.order.input.token, value: cosignInValue, decimals: 18});
-        c.output = OrderLib.CosignedValue({token: co.order.output.token, value: cosignOutValue, decimals: 18});
+        c.input = CosignedValue({token: co.order.input.token, value: cosignInValue, decimals: 18});
+        c.output = CosignedValue({token: co.order.output.token, value: cosignOutValue, decimals: 18});
         bytes32 digest = IEIP712(repermit).hashTypedData(OrderLib.hash(c));
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPK, digest);
         co.cosignatureData = c;
@@ -117,19 +118,19 @@ abstract contract BaseTest is Test, BaseScript, DeployTestInfra {
     }
 
     // Single order() helper: builds and signs using BaseTest vars
-    function order() internal returns (OrderLib.CosignedOrder memory co) {
+    function order() internal returns (CosignedOrder memory co) {
         co.order.reactor = reactor;
         co.order.swapper = swapper == address(0) ? signer : swapper;
         co.order.nonce = _nextNonce;
         co.order.deadline = block.timestamp + 1 days;
-        co.order.exchange = OrderLib.Exchange({adapter: adapter, ref: address(0), share: 0, data: hex""});
+        co.order.exchange = Exchange({adapter: adapter, ref: address(0), share: 0, data: hex""});
         co.order.executor = executor;
         co.order.exclusivity = 0;
         co.order.epoch = 0;
         co.order.slippage = slippage;
         co.order.freshness = freshness == 0 ? 1 : freshness;
-        co.order.input = OrderLib.Input({token: inToken, amount: inAmount, maxAmount: inMax});
-        co.order.output = OrderLib.Output({token: outToken, amount: outAmount, maxAmount: outMax, recipient: recipient});
+        co.order.input = Input({token: inToken, amount: inAmount, maxAmount: inMax});
+        co.order.output = Output({token: outToken, amount: outAmount, maxAmount: outMax, recipient: recipient});
         bytes32 digest = IEIP712(repermit).hashTypedData(OrderLib.hash(co.order));
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPK, digest);
         co.signature = bytes.concat(r, s, bytes1(v));
@@ -146,7 +147,7 @@ abstract contract BaseTest is Test, BaseScript, DeployTestInfra {
     {
         ex = SettlementLib.Execution({
             minAmountOut: minOut,
-            fee: OrderLib.Output({token: feeToken, amount: feeAmount, recipient: feeRecipient, maxAmount: type(uint256).max}),
+            fee: Output({token: feeToken, amount: feeAmount, recipient: feeRecipient, maxAmount: type(uint256).max}),
             data: hex""
         });
     }

@@ -9,6 +9,7 @@ import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {IEIP712} from "src/interface/IEIP712.sol";
 import {RePermitLib} from "src/repermit/RePermitLib.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
+import {Order} from "src/Structs.sol";
 
 abstract contract BaseScript is Script {
     function setUp() public virtual {}
@@ -36,7 +37,7 @@ abstract contract BaseScript is Script {
         );
     }
 
-    function hashRePermit(OrderLib.Order memory order, address spender) internal pure returns (bytes32) {
+    function hashRePermit(Order memory order, address spender) internal pure returns (bytes32) {
         return hashRePermit(
             order.input.token,
             order.input.maxAmount,
