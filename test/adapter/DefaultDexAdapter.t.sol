@@ -39,7 +39,9 @@ contract DefaultDexAdapterTest is BaseTest {
 
         uint256 beforeBalance = ERC20Mock(address(token2)).balanceOf(signer);
 
-        adapterUut.swap(cosignedOrder, data);
+        bytes32 hash = OrderLib.hash(cosignedOrder.order);
+        uint256 resolvedAmountOut = cosignedOrder.order.output.amount;
+        adapterUut.swap(hash, resolvedAmountOut, cosignedOrder, data);
 
         // Check output token was minted to recipient
         assertEq(ERC20Mock(address(token2)).balanceOf(signer), beforeBalance + 2000 ether);
@@ -58,8 +60,10 @@ contract DefaultDexAdapterTest is BaseTest {
         bytes memory data = "invalid_call_data";
 
         // Invalid call data should revert
+        bytes32 hash = OrderLib.hash(cosignedOrder.order);
+        uint256 resolvedAmountOut = cosignedOrder.order.output.amount;
         vm.expectRevert();
-        adapterUut.swap(cosignedOrder, data);
+        adapterUut.swap(hash, resolvedAmountOut, cosignedOrder, data);
     }
 
     function test_swap_reverts_when_router_call_fails() public {
@@ -75,8 +79,10 @@ contract DefaultDexAdapterTest is BaseTest {
             MockDexRouter.doSwap.selector, address(token), 1000 ether, address(token2), 2000 ether, signer
         );
 
+        bytes32 hash = OrderLib.hash(cosignedOrder.order);
+        uint256 resolvedAmountOut = cosignedOrder.order.output.amount;
         vm.expectRevert("Mock swap failed");
-        adapterUut.swap(cosignedOrder, data);
+        adapterUut.swap(hash, resolvedAmountOut, cosignedOrder, data);
     }
 
     function test_swap_handles_USDT_like_tokens() public {
@@ -101,7 +107,9 @@ contract DefaultDexAdapterTest is BaseTest {
         );
 
         // Should not revert despite USDT-like behavior
-        adapterUut.swap(cosignedOrder, data);
+        bytes32 hash = OrderLib.hash(cosignedOrder.order);
+        uint256 resolvedAmountOut = cosignedOrder.order.output.amount;
+        adapterUut.swap(hash, resolvedAmountOut, cosignedOrder, data);
 
         // After swap, allowance should be 0 (consumed by transferFrom)
         assertEq(usdt.allowance(address(adapterUut), address(router)), 0);

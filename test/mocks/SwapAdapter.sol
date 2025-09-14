@@ -8,7 +8,9 @@ import {CosignedOrder} from "src/Structs.sol";
 contract SwapAdapterMock {
     error InvalidOrder();
 
-    function swap(CosignedOrder memory cosignedOrder, bytes calldata) external {
+    function swap(bytes32 hash, uint256 resolvedAmountOut, CosignedOrder memory cosignedOrder, bytes calldata)
+        external
+    {
         // No validation needed - this is a mock adapter for tests
         // no-op; Executor handles settlement
     }

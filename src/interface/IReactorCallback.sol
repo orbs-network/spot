@@ -9,8 +9,14 @@ import {CosignedOrder} from "src/Structs.sol";
 interface IReactorCallback {
     /// @notice Called by the reactor during the execution of an order
     /// @param hash The hash of the order
+    /// @param resolvedAmountOut The resolved output amount
     /// @param co The cosigned order being executed
     /// @param x The execution parameters
     /// @dev Must have approved each token and amount in outputs to the msg.sender
-    function reactorCallback(bytes32 hash, CosignedOrder memory co, SettlementLib.Execution memory x) external;
+    function reactorCallback(
+        bytes32 hash,
+        uint256 resolvedAmountOut,
+        CosignedOrder memory co,
+        SettlementLib.Execution memory x
+    ) external;
 }
