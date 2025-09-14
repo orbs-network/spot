@@ -69,38 +69,35 @@ contract ExecutorTest is BaseTest {
         exec.execute(co, ex);
 
         assertEq(reactor.lastSender(), address(exec));
-        
+
         // Get the components of the lastOrder struct
-        (OrderLib.Order memory order, bytes memory signature, OrderLib.Cosignature memory cosignatureData, bytes memory cosignature) = reactor.lastOrder();
+        (
+            OrderLib.Order memory order,
+            bytes memory signature,
+            OrderLib.Cosignature memory cosignatureData,
+            bytes memory cosignature
+        ) = reactor.lastOrder();
         OrderLib.CosignedOrder memory lastOrder = OrderLib.CosignedOrder({
             order: order,
             signature: signature,
             cosignatureData: cosignatureData,
             cosignature: cosignature
         });
-        
+
         // Compare the order structures (we can't compare the signature as it might be different)
         assertTrue(keccak256(abi.encode(lastOrder.order)) == keccak256(abi.encode(co.order)));
-        
+
         // Check that the exchange and execution parameters were passed correctly
         assertEq(reactor.lastExchange(), address(adapter));
-        
+
         // Get the components of the lastExecution struct
         (uint256 minAmountOut, OrderLib.Output memory fee, bytes memory data) = reactor.lastExecution();
-        SettlementLib.Execution memory actualExecution = SettlementLib.Execution({
-            minAmountOut: minAmountOut,
-            fee: fee,
-            data: data
-        });
-        
+        SettlementLib.Execution memory actualExecution =
+            SettlementLib.Execution({minAmountOut: minAmountOut, fee: fee, data: data});
+
         SettlementLib.Execution memory expectedExecution = SettlementLib.Execution({
             minAmountOut: 0,
-            fee: OrderLib.Output({
-                token: address(0),
-                amount: 0,
-                recipient: address(0),
-                maxAmount: type(uint256).max
-            }),
+            fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
             data: hex""
         });
         assertEq(keccak256(abi.encode(actualExecution)), keccak256(abi.encode(expectedExecution)));
@@ -315,9 +312,9 @@ contract ExecutorTest is BaseTest {
         _mint(address(token), address(exec), 200);
 
         SettlementLib.Execution memory ex2 = SettlementLib.Execution({
-                minAmountOut: 600,
-                fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
-                data: hex""
+            minAmountOut: 600,
+            fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
+            data: hex""
         });
         exec.execute(co, ex2);
 
@@ -391,12 +388,7 @@ contract ExecutorTest is BaseTest {
 
         SettlementLib.Execution memory ex = SettlementLib.Execution({
             minAmountOut: 0,
-            fee: OrderLib.Output({
-                token: feeToken, 
-                amount: feeAmount, 
-                recipient: feeRecipient, 
-                maxAmount: type(uint256).max
-            }),
+            fee: OrderLib.Output({token: feeToken, amount: feeAmount, recipient: feeRecipient, maxAmount: type(uint256).max}),
             data: hex""
         });
 

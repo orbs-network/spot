@@ -2,10 +2,22 @@
 pragma solidity 0.8.20;
 
 import "forge-std/Test.sol";
+import {ExclusivityLib} from "src/reactor/lib/ExclusivityLib.sol";
 import {ResolutionLib} from "src/reactor/lib/ResolutionLib.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 
 // Helper contract to properly test msg.sender context
+contract ExclusivityCaller {
+    function applyExclusivityOverride(uint256 minOut, address exclusiveExecutor, uint32 exclusivityBps)
+        external
+        view
+        returns (uint256)
+    {
+        return ExclusivityLib.applyExclusivityOverride(minOut, exclusiveExecutor, exclusivityBps);
+    }
+}
+
+// Helper contract to properly test msg.sender context for ResolutionLib
 contract ResolutionCaller {
     function resolve(OrderLib.CosignedOrder memory co) external view returns (uint256) {
         return ResolutionLib.resolve(co);
@@ -13,13 +25,18 @@ contract ResolutionCaller {
 }
 
 contract ExclusivityLibTest is Test {
-    ResolutionCaller public caller;
+    ExclusivityCaller public exclusivityCaller;
+    ResolutionCaller public resolutionCaller;
 
     function setUp() public {
-        caller = new ResolutionCaller();
+        exclusivityCaller = new ExclusivityCaller();
+        resolutionCaller = new ResolutionCaller();
     }
 
-    function _createCosigned(address executor, uint32 exclusivityBps) internal returns (OrderLib.CosignedOrder memory co) {
+    function _createCosigned(address executor, uint32 exclusivityBps)
+        internal
+        returns (OrderLib.CosignedOrder memory co)
+    {
         OrderLib.Order memory o;
         o.info.swapper = makeAddr("swapper");
         o.input.token = makeAddr("in");
@@ -41,9 +58,9 @@ contract ExclusivityLibTest is Test {
     function test_applyOverride_noChangeWhenExclusive() public {
         address addr1 = makeAddr("addr1");
         OrderLib.CosignedOrder memory co = _createCosigned(addr1, 500);
-        
+
         vm.prank(addr1);
-        uint256 result = caller.resolve(co);
+        uint256 result = resolutionCaller.resolve(co);
         // Should be max(1000 (base output), 1000 (cosigned output)) = 1000 with no override
         assertEq(result, 1000);
     }
@@ -52,9 +69,9 @@ contract ExclusivityLibTest is Test {
         address addr1 = makeAddr("addr1");
         address addr2 = makeAddr("addr2");
         OrderLib.CosignedOrder memory co = _createCosigned(addr1, 500);
-        
+
         vm.prank(addr2);
-        uint256 result = caller.resolve(co);
+        uint256 result = resolutionCaller.resolve(co);
         // 500 bps => +5% => 1000 * 1.05 = 1050
         assertEq(result, 1050);
     }
@@ -63,9 +80,37 @@ contract ExclusivityLibTest is Test {
         address addr1 = makeAddr("addr1");
         address addr2 = makeAddr("addr2");
         OrderLib.CosignedOrder memory co = _createCosigned(addr1, 0);
-        
+
         vm.prank(addr2);
-        vm.expectRevert(ResolutionLib.InvalidSender.selector);
-        caller.resolve(co);
+        vm.expectRevert(ExclusivityLib.InvalidSender.selector);
+        resolutionCaller.resolve(co);
+    }
+
+    // Direct ExclusivityLib tests
+    function test_exclusivityLib_noChangeWhenExclusive() public {
+        address addr1 = makeAddr("addr1");
+
+        vm.prank(addr1);
+        uint256 result = exclusivityCaller.applyExclusivityOverride(1000, addr1, 500);
+        assertEq(result, 1000);
+    }
+
+    function test_exclusivityLib_increasesWhenNotExclusive() public {
+        address addr1 = makeAddr("addr1");
+        address addr2 = makeAddr("addr2");
+
+        vm.prank(addr2);
+        uint256 result = exclusivityCaller.applyExclusivityOverride(1000, addr1, 500);
+        // 500 bps => +5% => 1000 * 1.05 = 1050
+        assertEq(result, 1050);
+    }
+
+    function test_exclusivityLib_reverts_when_nonExclusive_sender_and_zero_bps() public {
+        address addr1 = makeAddr("addr1");
+        address addr2 = makeAddr("addr2");
+
+        vm.prank(addr2);
+        vm.expectRevert(ExclusivityLib.InvalidSender.selector);
+        exclusivityCaller.applyExclusivityOverride(1000, addr1, 0);
     }
 }

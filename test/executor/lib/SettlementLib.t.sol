@@ -68,11 +68,7 @@ contract SettlementLibTest is Test {
         cosignedOrder.order.input = OrderLib.Input({token: inToken, amount: inAmount, maxAmount: inAmount});
         cosignedOrder.order.output =
             OrderLib.Output({token: outToken, amount: outAmount, maxAmount: type(uint256).max, recipient: recipient});
-        cosignedOrder.order.exchange = OrderLib.Exchange({
-            adapter: exchange,
-            ref: address(0),
-            share: 0
-        });
+        cosignedOrder.order.exchange = OrderLib.Exchange({adapter: exchange, ref: address(0), share: 0});
         cosignedOrder.signature = "";
         cosignedOrder.cosignature = "";
 
