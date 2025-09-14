@@ -49,7 +49,8 @@ contract Executor is IReactorCallback {
         onlyReactor
     {
         Address.functionDelegateCall(
-            co.order.exchange.adapter, abi.encodeWithSelector(IExchangeAdapter.swap.selector, co, co.order.exchange.data)
+            co.order.exchange.adapter,
+            abi.encodeWithSelector(IExchangeAdapter.swap.selector, co, co.order.exchange.data)
         );
         SettlementLib.settle(hash, co, x);
     }

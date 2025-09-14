@@ -112,15 +112,7 @@ library OrderLib {
     }
 
     function hash(OrderInfo memory info) internal pure returns (bytes32) {
-        return keccak256(
-            abi.encode(
-                ORDER_INFO_TYPE_HASH,
-                info.reactor,
-                info.swapper,
-                info.nonce,
-                info.deadline
-            )
-        );
+        return keccak256(abi.encode(ORDER_INFO_TYPE_HASH, info.reactor, info.swapper, info.nonce, info.deadline));
     }
 
     function hash(Order memory order) internal pure returns (bytes32) {
@@ -149,7 +141,9 @@ library OrderLib {
     }
 
     function hash(Exchange memory exchange) internal pure returns (bytes32) {
-        return keccak256(abi.encode(EXCHANGE_TYPE_HASH, exchange.adapter, exchange.ref, exchange.share, keccak256(exchange.data)));
+        return keccak256(
+            abi.encode(EXCHANGE_TYPE_HASH, exchange.adapter, exchange.ref, exchange.share, keccak256(exchange.data))
+        );
     }
 
     function hash(Cosignature memory cosignature) internal pure returns (bytes32) {
