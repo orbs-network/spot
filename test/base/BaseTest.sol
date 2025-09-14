@@ -122,9 +122,7 @@ abstract contract BaseTest is Test, BaseScript, DeployTestInfra {
         co.order.info.swapper = swapper == address(0) ? signer : swapper;
         co.order.info.nonce = _nextNonce;
         co.order.info.deadline = block.timestamp + 1 days;
-        co.order.info.additionalValidationContract = address(0);
-        co.order.info.additionalValidationData = "";
-        co.order.exchange = OrderLib.Exchange({adapter: adapter, ref: address(0), share: 0});
+        co.order.exchange = OrderLib.Exchange({adapter: adapter, ref: address(0), share: 0, data: hex""});
         co.order.executor = executor;
         co.order.exclusivity = 0;
         co.order.epoch = 0;
