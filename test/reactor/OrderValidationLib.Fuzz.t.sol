@@ -9,7 +9,7 @@ import {Constants} from "src/reactor/Constants.sol";
 import {BaseTest} from "test/base/BaseTest.sol";
 
 contract OrderValidationLibFuzzTest is BaseTest {
-    function callValidate(OrderLib.CosignedOrder memory co) external view {
+    function callValidate(OrderLib.CosignedOrder memory co) external pure {
         OrderValidationLib.validate(co.order);
     }
 

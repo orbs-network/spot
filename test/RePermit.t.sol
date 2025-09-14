@@ -49,7 +49,7 @@ contract RePermitTest is BaseTest {
         uut = RePermit(address(repermit));
     }
 
-    function test_meta() public {
+    function test_meta() public view {
         assertNotEq(uut.DOMAIN_SEPARATOR().length, 0, "domain separator");
         (, string memory name, string memory version,,,,) = uut.eip712Domain();
         assertEq(name, "RePermit", "name");
@@ -223,7 +223,7 @@ contract RePermitTest is BaseTest {
         assertEq(token.balanceOf(other), 0.7 ether + 1.5 ether);
     }
 
-    function test_hashTypedData_digest_matches_ECDSA() public {
+    function test_hashTypedData_digest_matches_ECDSA() public view {
         bytes32 structHash = keccak256("example-struct-hash");
         bytes32 expected = ECDSA.toTypedDataHash(uut.DOMAIN_SEPARATOR(), structHash);
         assertEq(uut.hashTypedData(structHash), expected, "digest");
