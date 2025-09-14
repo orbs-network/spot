@@ -7,10 +7,10 @@ import {ExclusivityOverrideLib} from "src/reactor/lib/ExclusivityOverrideLib.sol
 
 // Helper contract to properly test msg.sender context
 contract ExclusivityCaller {
-    function applyExclusivityOverride(uint256 minOut, address exclusiveExecutor, uint32 exclusivityBps) 
-        external 
-        view 
-        returns (uint256) 
+    function applyExclusivityOverride(uint256 minOut, address exclusiveExecutor, uint32 exclusivityBps)
+        external
+        view
+        returns (uint256)
     {
         return ExclusivityOverrideLib.applyExclusivityOverride(minOut, exclusiveExecutor, exclusivityBps);
     }
