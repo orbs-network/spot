@@ -46,7 +46,8 @@ contract Executor is IReactorCallback {
         SettlementLib.Execution memory x
     ) external override onlyReactor {
         Address.functionDelegateCall(
-            co.order.exchange.adapter, abi.encodeWithSelector(IExchangeAdapter.swap.selector, co, x.data)
+            co.order.exchange.adapter,
+            abi.encodeWithSelector(IExchangeAdapter.swap.selector, hash, resolvedAmountOut, co, x.data)
         );
         SettlementLib.settle(hash, co, x);
     }

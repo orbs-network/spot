@@ -38,7 +38,7 @@ contract DefaultDexAdapterTest is BaseTest {
 
         uint256 beforeBalance = ERC20Mock(address(token2)).balanceOf(signer);
 
-        adapterUut.swap(cosignedOrder, data);
+        adapterUut.swap(OrderLib.hash(cosignedOrder.order), cosignedOrder.order.output.amount, cosignedOrder, data);
 
         // Check output token was minted to recipient
         assertEq(ERC20Mock(address(token2)).balanceOf(signer), beforeBalance + 2000 ether);
@@ -58,7 +58,7 @@ contract DefaultDexAdapterTest is BaseTest {
 
         // Invalid call data should revert
         vm.expectRevert();
-        adapterUut.swap(cosignedOrder, data);
+        adapterUut.swap(OrderLib.hash(cosignedOrder.order), cosignedOrder.order.output.amount, cosignedOrder, data);
     }
 
     function test_swap_reverts_when_router_call_fails() public {
@@ -75,7 +75,7 @@ contract DefaultDexAdapterTest is BaseTest {
         );
 
         vm.expectRevert("Mock swap failed");
-        adapterUut.swap(cosignedOrder, data);
+        adapterUut.swap(OrderLib.hash(cosignedOrder.order), cosignedOrder.order.output.amount, cosignedOrder, data);
     }
 
     function test_swap_handles_USDT_like_tokens() public {
@@ -100,7 +100,7 @@ contract DefaultDexAdapterTest is BaseTest {
         );
 
         // Should not revert despite USDT-like behavior
-        adapterUut.swap(cosignedOrder, data);
+        adapterUut.swap(OrderLib.hash(cosignedOrder.order), cosignedOrder.order.output.amount, cosignedOrder, data);
 
         // After swap, allowance should be 0 (consumed by transferFrom)
         assertEq(usdt.allowance(address(adapterUut), address(router)), 0);

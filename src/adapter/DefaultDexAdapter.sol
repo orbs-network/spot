@@ -23,10 +23,15 @@ contract DefaultDexAdapter is IExchangeAdapter {
 
     /**
      * @notice Executes a token swap through a DEX router
+     * @param hash The order hash
+     * @param resolvedAmountOut The resolved output amount
      * @param co The cosigned order containing input/output token information
      * @param data Call data to pass directly to the router
      */
-    function swap(OrderLib.CosignedOrder memory co, bytes calldata data) external override {
+    function swap(bytes32 hash, uint256 resolvedAmountOut, OrderLib.CosignedOrder memory co, bytes calldata data)
+        external
+        override
+    {
         SafeERC20.forceApprove(IERC20(co.order.input.token), router, co.order.input.amount);
         Address.functionCall(router, data);
     }
