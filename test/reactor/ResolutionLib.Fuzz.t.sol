@@ -10,7 +10,7 @@ import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValu
 import {Constants} from "src/reactor/Constants.sol";
 
 contract ResolutionLibFuzzTest is BaseTest {
-    function callResolve(CosignedOrder memory co) external view returns (uint256) {
+    function callResolve(CosignedOrder memory co) external pure returns (uint256) {
         return ResolutionLib.resolve(co);
     }
 
