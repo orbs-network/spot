@@ -52,7 +52,7 @@
 
 1. **Order Creation**: User signs EIP-712 order with chunk size, total amount, limits, epochs, and execution parameters
 2. **Price Attestation**: Cosigner provides fresh price signatures with input/output token rates and timestamps
-3. **Allowance Binding**: RePermit creates witness-bound spending allowance tied to exact order hash (not just cosignature)
+3. **Allowance Binding**: RePermit creates witness-bound spending allowance tied to exact order hash
 4. **Execution**: Whitelisted executor calls reactor with order and execution parameters
 5. **Validation**: Reactor validates order fields, epoch timing, cosignature freshness, and slippage bounds
 6. **Settlement**: Executor runs exchange adapter via delegatecall, then reactor settles with minimum output checks
