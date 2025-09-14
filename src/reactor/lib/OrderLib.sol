@@ -14,7 +14,7 @@ library OrderLib {
     bytes32 internal constant EXCHANGE_TYPE_HASH = keccak256(bytes(EXCHANGE_TYPE));
 
     string internal constant ORDER_TYPE =
-        "Order(address reactor,Exchange exchange,Input input,Output output,address executor,address swapper,uint256 nonce,uint256 deadline,uint32 exclusivity,uint32 epoch,uint32 slippage,uint32 freshness)";
+        "Order(address reactor,Exchange exchange,address executor,address swapper,uint256 nonce,uint256 deadline,uint32 exclusivity,uint32 epoch,uint32 slippage,uint32 freshness,Input input,Output output)";
     bytes32 internal constant ORDER_TYPE_HASH =
         keccak256(abi.encodePacked(ORDER_TYPE, EXCHANGE_TYPE, INPUT_TYPE, OUTPUT_TYPE));
 
