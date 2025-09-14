@@ -8,9 +8,14 @@ import {SettlementLib} from "src/executor/lib/SettlementLib.sol";
 interface IReactorCallback {
     /// @notice Called by the reactor during the execution of an order
     /// @param hash The hash of the order
+    /// @param resolvedAmountOut The resolved output amount that will be transferred
     /// @param co The cosigned order being executed
     /// @param x The execution parameters
     /// @dev Must have approved each token and amount in outputs to the msg.sender
-    function reactorCallback(bytes32 hash, OrderLib.CosignedOrder memory co, SettlementLib.Execution memory x)
-        external;
+    function reactorCallback(
+        bytes32 hash,
+        uint256 resolvedAmountOut,
+        OrderLib.CosignedOrder memory co,
+        SettlementLib.Execution memory x
+    ) external;
 }

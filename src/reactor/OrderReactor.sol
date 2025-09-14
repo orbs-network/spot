@@ -53,7 +53,7 @@ contract OrderReactor is ReentrancyGuard {
         _transferInput(co, hash);
 
         // Call the executor callback with the cosigned order and hash
-        IReactorCallback(msg.sender).reactorCallback(hash, co, x);
+        IReactorCallback(msg.sender).reactorCallback(hash, resolvedAmountOut, co, x);
 
         // Transfer output tokens and refund ETH
         _transferOutput(co, resolvedAmountOut);

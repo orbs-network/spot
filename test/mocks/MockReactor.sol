@@ -24,7 +24,7 @@ contract MockReactor is IReactor {
         lastExecution = execution;
 
         bytes32 orderHash = OrderLib.hash(cosignedOrder.order);
-        IReactorCallback(msg.sender).reactorCallback(orderHash, cosignedOrder, execution);
+        IReactorCallback(msg.sender).reactorCallback(orderHash, 0, cosignedOrder, execution);
     }
 
     receive() external payable {}

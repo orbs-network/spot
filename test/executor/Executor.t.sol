@@ -117,6 +117,7 @@ contract ExecutorTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Executor.InvalidSender.selector));
         exec.reactorCallback(
             orderHash,
+            0,
             co,
             SettlementLib.Execution({
                 minAmountOut: 0,
@@ -145,6 +146,7 @@ contract ExecutorTest is BaseTest {
         vm.prank(address(reactorMock));
         exec.reactorCallback(
             orderHash,
+            0,
             co,
             SettlementLib.Execution({
                 minAmountOut: 0,
@@ -187,6 +189,7 @@ contract ExecutorTest is BaseTest {
         vm.prank(address(reactorMock));
         exec.reactorCallback(
             orderHash,
+            1234,
             co,
             SettlementLib.Execution({
                 minAmountOut: 0,
@@ -218,6 +221,7 @@ contract ExecutorTest is BaseTest {
         vm.prank(address(reactorMock));
         exec.reactorCallback(
             orderHash,
+            987,
             co,
             SettlementLib.Execution({
                 minAmountOut: 0,
@@ -245,6 +249,7 @@ contract ExecutorTest is BaseTest {
         vm.prank(address(reactorMock));
         exec.reactorCallback(
             orderHash,
+            100,
             co,
             SettlementLib.Execution({
                 minAmountOut: 0,
@@ -299,6 +304,7 @@ contract ExecutorTest is BaseTest {
         vm.prank(address(reactorMock));
         exec.reactorCallback(
             orderHash,
+            100,
             co,
             SettlementLib.Execution({
                 minAmountOut: 600,
