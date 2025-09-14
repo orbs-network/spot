@@ -19,7 +19,7 @@
 ## Why It Wins
 
 - ✅ **Non-custodial**: Per-order allowances via RePermit with witness-bound spending authorization
-- 🔒 **Battle-tested Security**: Cosigned prices, slippage caps (max 50%), deadlines, and epoch gating
+- 🔒 **Battle-tested Security**: Cosigned prices, slippage caps, deadlines, and epoch gating
 - ⚙️ **Modular Architecture**: Inlined reactor settlement + pluggable executor strategies
 - 📈 **Built-in Revenue**: Configurable referral shares and automatic surplus distribution
 - 🏗️ **Production Ready**: 1M optimization runs, comprehensive test coverage, multi-chain deployments
