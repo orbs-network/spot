@@ -35,12 +35,8 @@ contract Executor is IReactorCallback {
     function execute(OrderLib.CosignedOrder calldata co, SettlementLib.Execution calldata x) external onlyAllowed {
         IReactor(reactor).executeWithCallback(co, x);
 
-        SurplusLib.distribute(
-            co.order.exchange.ref, co.order.info.swapper, co.order.input.token, co.order.exchange.share
-        );
-        SurplusLib.distribute(
-            co.order.exchange.ref, co.order.info.swapper, co.order.output.token, co.order.exchange.share
-        );
+        SurplusLib.distribute(co.order.exchange.ref, co.order.swapper, co.order.input.token, co.order.exchange.share);
+        SurplusLib.distribute(co.order.exchange.ref, co.order.swapper, co.order.output.token, co.order.exchange.share);
     }
 
     function reactorCallback(bytes32 hash, OrderLib.CosignedOrder memory co, SettlementLib.Execution memory x)
