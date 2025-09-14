@@ -1,6 +1,6 @@
 # Spot — Limit, TWAP, Stop-Loss DeFi Protocol
 
-**A Foundry-based Solidity protocol for advanced order types on Ethereum and L2s.**
+**A Solidity protocol for noncustodial advanced order types on EVM.**
 
 ## Who It's For
 
