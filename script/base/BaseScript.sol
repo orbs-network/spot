@@ -40,8 +40,8 @@ abstract contract BaseScript is Script {
         return hashRePermit(
             order.input.token,
             order.input.maxAmount,
-            order.info.nonce,
-            order.info.deadline,
+            order.nonce,
+            order.deadline,
             OrderLib.hash(order),
             OrderLib.WITNESS_TYPE_SUFFIX,
             spender

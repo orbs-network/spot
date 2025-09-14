@@ -36,7 +36,7 @@ library SettlementLib {
 
         emit Settled(
             hash,
-            co.order.info.swapper,
+            co.order.swapper,
             co.order.exchange.adapter,
             co.order.input.token,
             co.order.output.token,
