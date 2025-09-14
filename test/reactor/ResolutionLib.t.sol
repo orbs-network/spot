@@ -9,7 +9,7 @@ import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/Structs.sol";
 
 contract ResolutionLibTest is BaseTest {
-    function callResolve(CosignedOrder memory co) external view returns (uint256) {
+    function callResolve(CosignedOrder memory co) external pure returns (uint256) {
         return ResolutionLib.resolve(co);
     }
 
