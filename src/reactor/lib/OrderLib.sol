@@ -94,8 +94,6 @@ library OrderLib {
                 ORDER_TYPE_HASH,
                 order.reactor,
                 hash(order.exchange),
-                hash(order.input),
-                hash(order.output),
                 order.executor,
                 order.swapper,
                 order.nonce,
@@ -103,7 +101,9 @@ library OrderLib {
                 order.exclusivity,
                 order.epoch,
                 order.slippage,
-                order.freshness
+                order.freshness,
+                hash(order.input),
+                hash(order.output)
             )
         );
     }
