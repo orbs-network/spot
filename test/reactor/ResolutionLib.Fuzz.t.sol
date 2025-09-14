@@ -9,7 +9,7 @@ import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {Constants} from "src/reactor/Constants.sol";
 
 contract ResolutionLibFuzzTest is BaseTest {
-    function callResolve(OrderLib.CosignedOrder memory co) external view returns (uint256) {
+    function callResolve(OrderLib.CosignedOrder memory co) external pure returns (uint256) {
         return ResolutionLib.resolve(co);
     }
 

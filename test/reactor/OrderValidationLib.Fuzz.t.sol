@@ -25,7 +25,7 @@ contract OrderValidationLibFuzzTest is BaseTest {
         uint256 minOut,
         uint256 maxOut,
         uint256 slippage
-    ) external {
+    ) external view {
         vm.assume(swapper != address(0));
         vm.assume(inToken != address(0));
         vm.assume(recipient != address(0));

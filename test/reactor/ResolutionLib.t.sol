@@ -8,7 +8,7 @@ import {ResolutionLib} from "src/reactor/lib/ResolutionLib.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 
 contract ResolutionLibTest is BaseTest {
-    function callResolve(OrderLib.CosignedOrder memory co) external view returns (uint256) {
+    function callResolve(OrderLib.CosignedOrder memory co) external pure returns (uint256) {
         return ResolutionLib.resolve(co);
     }
 
