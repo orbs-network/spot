@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {TokenLib} from "src/executor/lib/TokenLib.sol";
-import {Output, CosignedOrder} from "src/types/OrderTypes.sol";
+import {Output, CosignedOrder} from "src/Structs.sol";
 
 library SettlementLib {
     error InvalidOrder();

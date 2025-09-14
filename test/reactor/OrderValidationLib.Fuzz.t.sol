@@ -5,7 +5,7 @@ import "forge-std/Test.sol";
 
 import {OrderValidationLib} from "src/reactor/lib/OrderValidationLib.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
-import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/types/OrderTypes.sol";
+import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/Structs.sol";
 import {Constants} from "src/reactor/Constants.sol";
 import {BaseTest} from "test/base/BaseTest.sol";
 

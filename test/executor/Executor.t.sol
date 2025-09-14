@@ -12,7 +12,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
-import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/types/OrderTypes.sol";
+import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/Structs.sol";
 import {USDTMock} from "test/mocks/USDTMock.sol";
 import {MockReactor} from "test/mocks/MockReactor.sol";
 import {SwapAdapterMock} from "test/mocks/SwapAdapter.sol";

@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IReactorCallback} from "src/interface/IReactorCallback.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
-import {CosignedOrder} from "src/types/OrderTypes.sol";
+import {CosignedOrder} from "src/Structs.sol";
 import {TokenLib} from "src/executor/lib/TokenLib.sol";
 import {SettlementLib} from "src/executor/lib/SettlementLib.sol";
 

@@ -5,7 +5,7 @@ import "forge-std/Test.sol";
 import {BaseTest} from "test/base/BaseTest.sol";
 import {DefaultDexAdapter} from "src/adapter/DefaultDexAdapter.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
-import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/types/OrderTypes.sol";
+import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/Structs.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 import {MockDexRouter} from "test/mocks/MockDexRouter.sol";
 import {USDTMock} from "test/mocks/USDTMock.sol";

@@ -15,7 +15,7 @@ import {RePermit} from "src/repermit/RePermit.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {SettlementLib} from "src/executor/lib/SettlementLib.sol";
 import {IEIP712} from "src/interface/IEIP712.sol";
-import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/types/OrderTypes.sol";
+import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/Structs.sol";
 
 abstract contract BaseTest is Test, BaseScript, DeployTestInfra {
     address public multicall;

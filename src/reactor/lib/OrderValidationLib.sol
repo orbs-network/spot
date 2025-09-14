@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
-import {Order} from "src/types/OrderTypes.sol";
+import {Order} from "src/Structs.sol";
 import {Constants} from "src/reactor/Constants.sol";
 
 library OrderValidationLib {

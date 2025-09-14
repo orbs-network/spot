@@ -6,7 +6,7 @@ import {BaseTest} from "test/base/BaseTest.sol";
 
 import {CosignatureLib} from "src/reactor/lib/CosignatureLib.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
-import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/types/OrderTypes.sol";
+import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/Structs.sol";
 import {RePermit} from "src/repermit/RePermit.sol";
 
 contract CosignatureLibTest is BaseTest {
