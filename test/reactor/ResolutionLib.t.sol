@@ -6,9 +6,10 @@ import {BaseTest} from "test/base/BaseTest.sol";
 
 import {ResolutionLib} from "src/reactor/lib/ResolutionLib.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
+import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/types/OrderTypes.sol";
 
 contract ResolutionLibTest is BaseTest {
-    function callResolve(OrderLib.CosignedOrder memory co) external view returns (uint256) {
+    function callResolve(CosignedOrder memory co) external view returns (uint256) {
         return ResolutionLib.resolve(co);
     }
 
@@ -22,7 +23,7 @@ contract ResolutionLibTest is BaseTest {
         outMax = 10_000;
         cosignInValue = 100;
         cosignOutValue = 200;
-        OrderLib.CosignedOrder memory co = order();
+        CosignedOrder memory co = order();
         co = cosign(co);
         uint256 outAmt = this.callResolve(co);
         assertEq(outAmt, 1_980);
@@ -36,7 +37,7 @@ contract ResolutionLibTest is BaseTest {
         outMax = 10_000;
         cosignInValue = 100;
         cosignOutValue = 200;
-        OrderLib.CosignedOrder memory co = order();
+        CosignedOrder memory co = order();
         co = cosign(co);
         co.order.output.maxAmount = 1_500; // cosignedOutput is 2000 > 1500
         vm.expectRevert(ResolutionLib.CosignedMaxAmount.selector);

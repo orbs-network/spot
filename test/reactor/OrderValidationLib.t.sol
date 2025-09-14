@@ -6,10 +6,11 @@ import {BaseTest} from "test/base/BaseTest.sol";
 
 import {OrderValidationLib} from "src/reactor/lib/OrderValidationLib.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
+import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/types/OrderTypes.sol";
 import {Constants} from "src/reactor/Constants.sol";
 
 contract OrderValidationLibTest is BaseTest {
-    function callValidate(OrderLib.CosignedOrder memory co) external pure {
+    function callValidate(CosignedOrder memory co) external pure {
         OrderValidationLib.validate(co.order);
     }
 
@@ -27,7 +28,7 @@ contract OrderValidationLibTest is BaseTest {
         inMax = 200;
         outAmount = 50;
         outMax = 100;
-        OrderLib.CosignedOrder memory co = order();
+        CosignedOrder memory co = order();
         vm.expectRevert(OrderValidationLib.InvalidOrderInputAmountZero.selector);
         this.callValidate(co);
     }
@@ -37,7 +38,7 @@ contract OrderValidationLibTest is BaseTest {
         inMax = 200;
         outAmount = 50;
         outMax = 100;
-        OrderLib.CosignedOrder memory co = order();
+        CosignedOrder memory co = order();
         vm.expectRevert(OrderValidationLib.InvalidOrderInputAmountGtMax.selector);
         this.callValidate(co);
     }
@@ -47,7 +48,7 @@ contract OrderValidationLibTest is BaseTest {
         inMax = 200;
         outAmount = 101;
         outMax = 100;
-        OrderLib.CosignedOrder memory co = order();
+        CosignedOrder memory co = order();
         vm.expectRevert(OrderValidationLib.InvalidOrderOutputAmountGtMax.selector);
         this.callValidate(co);
     }
@@ -58,7 +59,7 @@ contract OrderValidationLibTest is BaseTest {
         inMax = 200;
         outAmount = 50;
         outMax = 100;
-        OrderLib.CosignedOrder memory co = order();
+        CosignedOrder memory co = order();
         vm.expectRevert(OrderValidationLib.InvalidOrderSlippageTooHigh.selector);
         this.callValidate(co);
     }
@@ -69,7 +70,7 @@ contract OrderValidationLibTest is BaseTest {
         inMax = 200;
         outAmount = 50;
         outMax = 100;
-        OrderLib.CosignedOrder memory co = order();
+        CosignedOrder memory co = order();
         vm.expectRevert(OrderValidationLib.InvalidOrderInputTokenZero.selector);
         this.callValidate(co);
     }
@@ -82,7 +83,7 @@ contract OrderValidationLibTest is BaseTest {
         outAmount = 50;
         outMax = 100;
         recipient = address(0);
-        OrderLib.CosignedOrder memory co = order();
+        CosignedOrder memory co = order();
         vm.expectRevert(OrderValidationLib.InvalidOrderOutputRecipientZero.selector);
         this.callValidate(co);
     }
@@ -92,7 +93,7 @@ contract OrderValidationLibTest is BaseTest {
         inMax = 200;
         outAmount = 50;
         outMax = 100;
-        OrderLib.CosignedOrder memory co = order();
+        CosignedOrder memory co = order();
         co.order.exclusivity = 100;
         address notExecutor = makeAddr("notExecutor");
         vm.prank(notExecutor);

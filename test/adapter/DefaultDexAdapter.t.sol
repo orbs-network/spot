@@ -5,6 +5,7 @@ import "forge-std/Test.sol";
 import {BaseTest} from "test/base/BaseTest.sol";
 import {DefaultDexAdapter} from "src/adapter/DefaultDexAdapter.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
+import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/types/OrderTypes.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 import {MockDexRouter} from "test/mocks/MockDexRouter.sol";
 import {USDTMock} from "test/mocks/USDTMock.sol";
@@ -30,7 +31,7 @@ contract DefaultDexAdapterTest is BaseTest {
         inMax = inAmount;
         outAmount = 500 ether;
         outMax = type(uint256).max;
-        OrderLib.CosignedOrder memory cosignedOrder = order();
+        CosignedOrder memory cosignedOrder = order();
 
         bytes memory data = abi.encodeWithSelector(
             MockDexRouter.doSwap.selector, address(token), 1000 ether, address(token2), 2000 ether, signer
@@ -52,7 +53,7 @@ contract DefaultDexAdapterTest is BaseTest {
         inMax = inAmount;
         outAmount = 500 ether;
         outMax = type(uint256).max;
-        OrderLib.CosignedOrder memory cosignedOrder = order();
+        CosignedOrder memory cosignedOrder = order();
 
         bytes memory data = "invalid_call_data";
 
@@ -68,7 +69,7 @@ contract DefaultDexAdapterTest is BaseTest {
         inMax = inAmount;
         outAmount = 500 ether;
         outMax = type(uint256).max;
-        OrderLib.CosignedOrder memory cosignedOrder = order();
+        CosignedOrder memory cosignedOrder = order();
 
         bytes memory data = abi.encodeWithSelector(
             MockDexRouter.doSwap.selector, address(token), 1000 ether, address(token2), 2000 ether, signer
@@ -89,7 +90,7 @@ contract DefaultDexAdapterTest is BaseTest {
         outToken = address(token2);
         outAmount = 500 ether;
         outMax = type(uint256).max;
-        OrderLib.CosignedOrder memory cosignedOrder = order();
+        CosignedOrder memory cosignedOrder = order();
 
         // Pre-set a non-zero allowance to test forceApprove behavior
         vm.prank(address(adapterUut));

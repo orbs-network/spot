@@ -6,6 +6,7 @@ import {BaseTest} from "test/base/BaseTest.sol";
 
 import {CosignatureLib} from "src/reactor/lib/CosignatureLib.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
+import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/types/OrderTypes.sol";
 import {RePermit} from "src/repermit/RePermit.sol";
 
 contract CosignatureLibTest is BaseTest {
@@ -14,7 +15,7 @@ contract CosignatureLibTest is BaseTest {
         vm.warp(1 days);
     }
 
-    function callValidateCosignature(OrderLib.CosignedOrder memory co, address cosigner) external view {
+    function callValidateCosignature(CosignedOrder memory co, address cosigner) external view {
         CosignatureLib.validate(co, cosigner, repermit);
     }
 
@@ -27,7 +28,7 @@ contract CosignatureLibTest is BaseTest {
         outMax = 5_000;
         cosignInValue = 100;
         cosignOutValue = 200;
-        OrderLib.CosignedOrder memory co = order();
+        CosignedOrder memory co = order();
         co = cosign(co);
         this.callValidateCosignature(co, signer);
     }
@@ -39,7 +40,7 @@ contract CosignatureLibTest is BaseTest {
         outMax = 5_000;
         cosignInValue = 100;
         cosignOutValue = 200;
-        OrderLib.CosignedOrder memory co = order();
+        CosignedOrder memory co = order();
         co = cosign(co);
         vm.warp(1 days + 400); // freshness=300 from build time
         vm.expectRevert(CosignatureLib.StaleCosignature.selector);
@@ -53,7 +54,7 @@ contract CosignatureLibTest is BaseTest {
         outMax = 5_000;
         cosignInValue = 100;
         cosignOutValue = 200;
-        OrderLib.CosignedOrder memory co = order();
+        CosignedOrder memory co = order();
         co = cosign(co);
         co.cosignatureData.input.token = makeAddr("wrongIn");
         vm.expectRevert(CosignatureLib.InvalidCosignatureInputToken.selector);
@@ -67,7 +68,7 @@ contract CosignatureLibTest is BaseTest {
         outMax = 5_000;
         cosignInValue = 100;
         cosignOutValue = 200;
-        OrderLib.CosignedOrder memory co = order();
+        CosignedOrder memory co = order();
         co = cosign(co);
         co.cosignatureData.output.token = makeAddr("wrongOut");
         vm.expectRevert(CosignatureLib.InvalidCosignatureOutputToken.selector);
@@ -81,7 +82,7 @@ contract CosignatureLibTest is BaseTest {
         outMax = 5_000;
         cosignInValue = 100;
         cosignOutValue = 200;
-        OrderLib.CosignedOrder memory co = order();
+        CosignedOrder memory co = order();
         co = cosign(co);
         co.cosignatureData.input.value = 0;
         vm.expectRevert(CosignatureLib.InvalidCosignatureZeroInputValue.selector);
@@ -95,7 +96,7 @@ contract CosignatureLibTest is BaseTest {
         outMax = 5_000;
         cosignInValue = 100;
         cosignOutValue = 200;
-        OrderLib.CosignedOrder memory co = order();
+        CosignedOrder memory co = order();
         co = cosign(co);
         co.cosignatureData.output.value = 0;
         vm.expectRevert(CosignatureLib.InvalidCosignatureZeroOutputValue.selector);
@@ -109,7 +110,7 @@ contract CosignatureLibTest is BaseTest {
         outMax = 5_000;
         cosignInValue = 100;
         cosignOutValue = 200;
-        OrderLib.CosignedOrder memory co = order();
+        CosignedOrder memory co = order();
         co = cosign(co);
         vm.expectRevert(CosignatureLib.InvalidCosignature.selector);
         this.callValidateCosignature(co, other);
@@ -122,7 +123,7 @@ contract CosignatureLibTest is BaseTest {
         outMax = 5_000;
         cosignInValue = 100;
         cosignOutValue = 200;
-        OrderLib.CosignedOrder memory co = order();
+        CosignedOrder memory co = order();
         co = cosign(co);
         co.cosignatureData.reactor = makeAddr("wrongReactor");
         vm.expectRevert(CosignatureLib.InvalidCosignatureReactor.selector);
@@ -137,7 +138,7 @@ contract CosignatureLibTest is BaseTest {
         outMax = 5_000;
         cosignInValue = 100;
         cosignOutValue = 200;
-        OrderLib.CosignedOrder memory co = order();
+        CosignedOrder memory co = order();
         co = cosign(co);
         co.cosignatureData.timestamp = 1 days + 1; // future vs warped base
         vm.expectRevert(CosignatureLib.FutureCosignatureTimestamp.selector);
@@ -151,7 +152,7 @@ contract CosignatureLibTest is BaseTest {
         outMax = 5_000;
         cosignInValue = 100;
         cosignOutValue = 200;
-        OrderLib.CosignedOrder memory co = order();
+        CosignedOrder memory co = order();
         co = cosign(co);
         co.order.freshness = 0;
         vm.expectRevert(CosignatureLib.InvalidFreshness.selector);
@@ -165,7 +166,7 @@ contract CosignatureLibTest is BaseTest {
         outMax = 5_000;
         cosignInValue = 100;
         cosignOutValue = 200;
-        OrderLib.CosignedOrder memory co = order();
+        CosignedOrder memory co = order();
         co = cosign(co);
         co.order.epoch = 60;
         co.order.freshness = 60; // >= epoch

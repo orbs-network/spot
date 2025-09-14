@@ -6,16 +6,14 @@ import {BaseTest} from "test/base/BaseTest.sol";
 
 import {SettlementLib} from "src/executor/lib/SettlementLib.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
+import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/types/OrderTypes.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 import {USDTMock} from "test/mocks/USDTMock.sol";
 
 contract SettlementWrapper {
-    function settle(
-        OrderLib.CosignedOrder memory cosignedOrder,
-        SettlementLib.Execution memory execution,
-        address,
-        address
-    ) external {
+    function settle(CosignedOrder memory cosignedOrder, SettlementLib.Execution memory execution, address, address)
+        external
+    {
         SettlementLib.settle(OrderLib.hash(cosignedOrder.order), cosignedOrder, execution);
     }
 }
@@ -68,7 +66,7 @@ contract SettlementLibTest is BaseTest {
         BaseTest.outAmount = outAmount;
         BaseTest.outMax = type(uint256).max;
         recipient = swapper;
-        OrderLib.CosignedOrder memory order = order();
+        CosignedOrder memory order = order();
 
         SettlementLib.Execution memory execution = execution(minAmountOut, address(0), 0, address(0));
 
@@ -102,7 +100,7 @@ contract SettlementLibTest is BaseTest {
         BaseTest.outAmount = outAmount;
         BaseTest.outMax = type(uint256).max;
         recipient = swapper;
-        OrderLib.CosignedOrder memory order = order();
+        CosignedOrder memory order = order();
 
         SettlementLib.Execution memory execution = execution(minAmountOut, address(0), 0, address(0));
 
@@ -128,7 +126,7 @@ contract SettlementLibTest is BaseTest {
         BaseTest.outAmount = outAmount;
         BaseTest.outMax = type(uint256).max;
         recipient = swapper;
-        OrderLib.CosignedOrder memory order = order();
+        CosignedOrder memory order = order();
 
         SettlementLib.Execution memory execution = execution(95 ether, address(token2), feeAmount, feeRecipient);
 
@@ -154,7 +152,7 @@ contract SettlementLibTest is BaseTest {
         BaseTest.outAmount = outAmount;
         BaseTest.outMax = type(uint256).max;
         recipient = swapper;
-        OrderLib.CosignedOrder memory order = order();
+        CosignedOrder memory order = order();
 
         SettlementLib.Execution memory execution = execution(95 ether, address(0), feeAmount, feeRecipient);
 
@@ -180,7 +178,7 @@ contract SettlementLibTest is BaseTest {
         BaseTest.outAmount = outAmount;
         BaseTest.outMax = type(uint256).max;
         recipient = swapper;
-        OrderLib.CosignedOrder memory order = order();
+        CosignedOrder memory order = order();
 
         SettlementLib.Execution memory execution = execution(95 ether, address(token2), 0, feeRecipient);
 
@@ -206,7 +204,7 @@ contract SettlementLibTest is BaseTest {
         BaseTest.outAmount = outAmount;
         BaseTest.outMax = type(uint256).max;
         recipient = swapper;
-        OrderLib.CosignedOrder memory order = order();
+        CosignedOrder memory order = order();
 
         SettlementLib.Execution memory execution = execution(95e6, address(usdt), feeAmount, feeRecipient);
 
@@ -237,7 +235,7 @@ contract SettlementLibTest is BaseTest {
         BaseTest.outAmount = outAmount;
         BaseTest.outMax = type(uint256).max;
         recipient = swapper;
-        OrderLib.CosignedOrder memory order = order();
+        CosignedOrder memory order = order();
 
         SettlementLib.Execution memory execution = execution(minAmountOut, address(token2), feeAmount, feeRecipient);
 
@@ -269,7 +267,7 @@ contract SettlementLibTest is BaseTest {
         BaseTest.outAmount = outAmount;
         BaseTest.outMax = type(uint256).max;
         recipient = swapper;
-        OrderLib.CosignedOrder memory order = order();
+        CosignedOrder memory order = order();
 
         SettlementLib.Execution memory execution = execution(minAmountOut, address(token2), feeAmount, feeRecipient);
 

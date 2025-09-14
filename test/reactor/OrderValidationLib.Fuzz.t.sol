@@ -5,11 +5,12 @@ import "forge-std/Test.sol";
 
 import {OrderValidationLib} from "src/reactor/lib/OrderValidationLib.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
+import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/types/OrderTypes.sol";
 import {Constants} from "src/reactor/Constants.sol";
 import {BaseTest} from "test/base/BaseTest.sol";
 
 contract OrderValidationLibFuzzTest is BaseTest {
-    function callValidate(OrderLib.CosignedOrder memory co) external pure {
+    function callValidate(CosignedOrder memory co) external pure {
         OrderValidationLib.validate(co.order);
     }
 
@@ -34,13 +35,13 @@ contract OrderValidationLibFuzzTest is BaseTest {
         vm.assume(maxOut >= minOut);
         vm.assume(slippage < Constants.MAX_SLIPPAGE);
 
-        OrderLib.CosignedOrder memory co;
+        CosignedOrder memory co;
         co.order.reactor = address(0);
         co.order.exchange.adapter = address(0);
         co.order.executor = address(this);
         co.order.swapper = swapper;
-        co.order.input = OrderLib.Input({token: inToken, amount: inAmount, maxAmount: maxAmount});
-        co.order.output = OrderLib.Output({token: outToken, amount: minOut, maxAmount: maxOut, recipient: recipient});
+        co.order.input = Input({token: inToken, amount: inAmount, maxAmount: maxAmount});
+        co.order.output = Output({token: outToken, amount: minOut, maxAmount: maxOut, recipient: recipient});
         co.order.slippage = uint32(slippage);
         this.callValidate(co);
     }

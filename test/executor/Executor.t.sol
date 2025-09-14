@@ -12,6 +12,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
+import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/types/OrderTypes.sol";
 import {USDTMock} from "test/mocks/USDTMock.sol";
 import {MockReactor} from "test/mocks/MockReactor.sol";
 import {SwapAdapterMock} from "test/mocks/SwapAdapter.sol";
@@ -50,20 +51,16 @@ contract ExecutorTest is BaseTest {
         inMax = 0;
         outToken = address(token);
         outMax = 0;
-        OrderLib.CosignedOrder memory co = order();
+        CosignedOrder memory co = order();
         SettlementLib.Execution memory ex = execution(0, address(0), 0, address(0));
         exec.execute(co, ex);
 
         assertEq(reactorMock.lastSender(), address(exec));
 
         // Get the components of the lastOrder struct
-        (
-            OrderLib.Order memory order,
-            bytes memory signature,
-            OrderLib.Cosignature memory cosignatureData,
-            bytes memory cosignature
-        ) = reactorMock.lastOrder();
-        OrderLib.CosignedOrder memory lastOrder = OrderLib.CosignedOrder({
+        (Order memory order, bytes memory signature, Cosignature memory cosignatureData, bytes memory cosignature) =
+            reactorMock.lastOrder();
+        CosignedOrder memory lastOrder = CosignedOrder({
             order: order,
             signature: signature,
             cosignatureData: cosignatureData,
@@ -77,13 +74,13 @@ contract ExecutorTest is BaseTest {
         assertEq(reactorMock.lastExchange(), address(adapterMock));
 
         // Get the components of the lastExecution struct
-        (uint256 minAmountOut, OrderLib.Output memory fee, bytes memory data) = reactorMock.lastExecution();
+        (uint256 minAmountOut, Output memory fee, bytes memory data) = reactorMock.lastExecution();
         SettlementLib.Execution memory actualExecution =
             SettlementLib.Execution({minAmountOut: minAmountOut, fee: fee, data: data});
 
         SettlementLib.Execution memory expectedExecution = SettlementLib.Execution({
             minAmountOut: 0,
-            fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
+            fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
             data: hex""
         });
         assertEq(keccak256(abi.encode(actualExecution)), keccak256(abi.encode(expectedExecution)));
@@ -96,7 +93,7 @@ contract ExecutorTest is BaseTest {
         inMax = 0;
         outToken = address(token);
         outMax = 0;
-        OrderLib.CosignedOrder memory co = order();
+        CosignedOrder memory co = order();
         SettlementLib.Execution memory ex = execution(0, address(0), 0, address(0));
         vm.expectRevert(abi.encodeWithSelector(Executor.InvalidSender.selector));
         exec.execute(co, ex);
@@ -111,7 +108,7 @@ contract ExecutorTest is BaseTest {
         outToken = address(token);
         outAmount = 0;
         outMax = type(uint256).max;
-        OrderLib.CosignedOrder memory co = order();
+        CosignedOrder memory co = order();
         bytes32 orderHash = OrderLib.hash(co.order);
 
         vm.expectRevert(abi.encodeWithSelector(Executor.InvalidSender.selector));
@@ -120,7 +117,7 @@ contract ExecutorTest is BaseTest {
             co,
             SettlementLib.Execution({
                 minAmountOut: 0,
-                fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
+                fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                 data: hex""
             })
         );
@@ -138,7 +135,7 @@ contract ExecutorTest is BaseTest {
         outToken = address(token);
         outAmount = 1234;
         outMax = type(uint256).max;
-        OrderLib.CosignedOrder memory co = order();
+        CosignedOrder memory co = order();
         bytes32 orderHash = OrderLib.hash(co.order);
 
         // call from reactor
@@ -148,7 +145,7 @@ contract ExecutorTest is BaseTest {
             co,
             SettlementLib.Execution({
                 minAmountOut: 0,
-                fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
+                fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                 data: hex""
             })
         );
@@ -180,7 +177,7 @@ contract ExecutorTest is BaseTest {
         outToken = address(usdt);
         outAmount = 1234;
         outMax = type(uint256).max;
-        OrderLib.CosignedOrder memory co = order();
+        CosignedOrder memory co = order();
         bytes32 orderHash = OrderLib.hash(co.order);
 
         // call from reactor; should internally forceApprove to exact amount (approve(0) then approve(1234))
@@ -190,7 +187,7 @@ contract ExecutorTest is BaseTest {
             co,
             SettlementLib.Execution({
                 minAmountOut: 0,
-                fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
+                fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                 data: hex""
             })
         );
@@ -211,7 +208,7 @@ contract ExecutorTest is BaseTest {
         outToken = address(0);
         outAmount = 987;
         outMax = type(uint256).max;
-        OrderLib.CosignedOrder memory co = order();
+        CosignedOrder memory co = order();
         bytes32 orderHash = OrderLib.hash(co.order);
 
         uint256 beforeBal = address(reactorMock).balance;
@@ -221,7 +218,7 @@ contract ExecutorTest is BaseTest {
             co,
             SettlementLib.Execution({
                 minAmountOut: 0,
-                fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
+                fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                 data: hex""
             })
         );
@@ -238,7 +235,7 @@ contract ExecutorTest is BaseTest {
         outAmount = 100;
         outMax = type(uint256).max;
         recipient = other;
-        OrderLib.CosignedOrder memory co = order();
+        CosignedOrder memory co = order();
         bytes32 orderHash = OrderLib.hash(co.order);
 
         // should not revert; also sets approval for reactor
@@ -248,7 +245,7 @@ contract ExecutorTest is BaseTest {
             co,
             SettlementLib.Execution({
                 minAmountOut: 0,
-                fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
+                fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                 data: hex""
             })
         );
@@ -258,11 +255,11 @@ contract ExecutorTest is BaseTest {
     // NOTE: This test is no longer relevant as the new protocol only supports single output per order
     // function test_reactorCallback_reverts_on_mixed_out_tokens_to_swapper() public {
     //     ERC20Mock token2 = new ERC20Mock();
-    //     OrderLib.OutputToken[] memory outs = new OrderLib.OutputToken[](2);
-    //     outs[0] = OrderLib.Output({token: address(token), amount: 100, recipient: signer, maxAmount: type(uint256).max});
-    //     outs[1] = OrderLib.Output({token: address(token2), amount: 1, recipient: signer, maxAmount: type(uint256).max});
+    //     OutputToken[] memory outs = new OutputToken[](2);
+    //     outs[0] = Output({token: address(token), amount: 100, recipient: signer, maxAmount: type(uint256).max});
+    //     outs[1] = Output({token: address(token2), amount: 1, recipient: signer, maxAmount: type(uint256).max});
     //
-    //     OrderLib.CosignedOrder[] memory ros = new OrderLib.CosignedOrder[](1);
+    //     CosignedOrder[] memory ros = new CosignedOrder[](1);
     //     ros[0] = _dummyCosignedOrder(address(token), 0);
     //     ros[0].outputs = outs;
     //
@@ -273,7 +270,7 @@ contract ExecutorTest is BaseTest {
     //         abi.encode(
     //             address(adapter),
     //             SettlementLib.Execution({
-    //                 fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
+    //                 fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
     //                 minAmountOut: 0,
     //                 data: hex""
     //             })
@@ -292,7 +289,7 @@ contract ExecutorTest is BaseTest {
         outToken = address(token2);
         outAmount = 500;
         outMax = type(uint256).max;
-        OrderLib.CosignedOrder memory co = order();
+        CosignedOrder memory co = order();
         bytes32 orderHash = OrderLib.hash(co.order);
 
         uint256 before = ERC20Mock(address(token2)).balanceOf(signer);
@@ -302,7 +299,7 @@ contract ExecutorTest is BaseTest {
             co,
             SettlementLib.Execution({
                 minAmountOut: 600,
-                fee: OrderLib.Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
+                fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                 data: hex""
             })
         );
@@ -315,7 +312,7 @@ contract ExecutorTest is BaseTest {
         executor = address(exec);
         outAmount = 500;
         outMax = 500;
-        OrderLib.CosignedOrder memory co = order();
+        CosignedOrder memory co = order();
         co.order.exchange.ref = ref;
         co.order.exchange.share = refShare;
 
@@ -354,7 +351,7 @@ contract ExecutorTest is BaseTest {
         inMax = 0;
         outToken = address(token);
         outMax = 0;
-        OrderLib.CosignedOrder memory co = order();
+        CosignedOrder memory co = order();
 
         SettlementLib.Execution memory ex = execution(0, feeToken, feeAmount, feeRecipient);
 

@@ -6,10 +6,11 @@ import {BaseTest} from "test/base/BaseTest.sol";
 
 import {ResolutionLib} from "src/reactor/lib/ResolutionLib.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
+import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/types/OrderTypes.sol";
 import {Constants} from "src/reactor/Constants.sol";
 
 contract ResolutionLibFuzzTest is BaseTest {
-    function callResolve(OrderLib.CosignedOrder memory co) external view returns (uint256) {
+    function callResolve(CosignedOrder memory co) external view returns (uint256) {
         return ResolutionLib.resolve(co);
     }
 
@@ -36,11 +37,11 @@ contract ResolutionLibFuzzTest is BaseTest {
         BaseTest.outToken = address(token2);
         BaseTest.outAmount = limit;
         BaseTest.outMax = maxOut;
-        OrderLib.CosignedOrder memory co = order();
+        CosignedOrder memory co = order();
         co.cosignatureData.input =
-            OrderLib.CosignedValue({token: makeAddr("cosignedInputToken"), value: inputValue, decimals: 18});
+            CosignedValue({token: makeAddr("cosignedInputToken"), value: inputValue, decimals: 18});
         co.cosignatureData.output =
-            OrderLib.CosignedValue({token: makeAddr("cosignedOutputToken"), value: outputValue, decimals: 18});
+            CosignedValue({token: makeAddr("cosignedOutputToken"), value: outputValue, decimals: 18});
 
         uint256 cosignedOutput = (inAmount * outputValue) / inputValue;
         if (cosignedOutput > maxOut) {
