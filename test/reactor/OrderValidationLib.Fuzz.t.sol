@@ -10,7 +10,7 @@ import {BaseTest} from "test/base/BaseTest.sol";
 
 contract OrderValidationLibFuzzTest is BaseTest {
     function callValidate(OrderLib.CosignedOrder memory co) external view {
-        OrderValidationLib.validate(co);
+        OrderValidationLib.validate(co.order);
     }
 
     // Keep sequential builder updates in fuzz to avoid stack-too-deep

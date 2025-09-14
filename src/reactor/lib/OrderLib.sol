@@ -5,7 +5,7 @@ import {RePermitLib} from "src/repermit/RePermitLib.sol";
 
 library OrderLib {
     string internal constant ORDER_INFO_TYPE =
-        "OrderInfo(address reactor,address swapper,uint256 nonce,uint256 deadline,address additionalValidationContract,bytes additionalValidationData)";
+        "OrderInfo(address reactor,address swapper,uint256 nonce,uint256 deadline)";
     bytes32 internal constant ORDER_INFO_TYPE_HASH = keccak256(bytes(ORDER_INFO_TYPE));
 
     string internal constant INPUT_TYPE = "Input(address token,uint256 amount,uint256 maxAmount)";
@@ -14,7 +14,7 @@ library OrderLib {
     string internal constant OUTPUT_TYPE = "Output(address token,uint256 amount,uint256 maxAmount,address recipient)";
     bytes32 internal constant OUTPUT_TYPE_HASH = keccak256(bytes(OUTPUT_TYPE));
 
-    string internal constant EXCHANGE_TYPE = "Exchange(address adapter,address ref,uint32 share)";
+    string internal constant EXCHANGE_TYPE = "Exchange(address adapter,bytes data,address ref,uint32 share)";
     bytes32 internal constant EXCHANGE_TYPE_HASH = keccak256(bytes(EXCHANGE_TYPE));
 
     string internal constant ORDER_TYPE =
@@ -55,10 +55,6 @@ library OrderLib {
         uint256 nonce;
         // The timestamp after which this order is no longer valid
         uint256 deadline;
-        // Custom validation contract
-        address additionalValidationContract;
-        // Encoded validation params for additionalValidationContract
-        bytes additionalValidationData;
     }
 
     /// @dev tokens that need to be sent from the swapper in order to satisfy an order
@@ -78,6 +74,7 @@ library OrderLib {
 
     struct Exchange {
         address adapter;
+        bytes data;
         address ref;
         uint32 share; // bps, for referrer
     }
@@ -115,17 +112,7 @@ library OrderLib {
     }
 
     function hash(OrderInfo memory info) internal pure returns (bytes32) {
-        return keccak256(
-            abi.encode(
-                ORDER_INFO_TYPE_HASH,
-                info.reactor,
-                info.swapper,
-                info.nonce,
-                info.deadline,
-                info.additionalValidationContract,
-                keccak256(info.additionalValidationData)
-            )
-        );
+        return keccak256(abi.encode(ORDER_INFO_TYPE_HASH, info.reactor, info.swapper, info.nonce, info.deadline));
     }
 
     function hash(Order memory order) internal pure returns (bytes32) {
@@ -154,7 +141,9 @@ library OrderLib {
     }
 
     function hash(Exchange memory exchange) internal pure returns (bytes32) {
-        return keccak256(abi.encode(EXCHANGE_TYPE_HASH, exchange.adapter, exchange.ref, exchange.share));
+        return keccak256(
+            abi.encode(EXCHANGE_TYPE_HASH, exchange.adapter, keccak256(exchange.data), exchange.ref, exchange.share)
+        );
     }
 
     function hash(Cosignature memory cosignature) internal pure returns (bytes32) {
