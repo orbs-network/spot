@@ -112,7 +112,7 @@ contract CosignatureLibTest is BaseTest {
         cosignOutValue = 200;
         CosignedOrder memory co = order();
         co = cosign(co);
-        vm.expectRevert(CosignatureLib.InvalidCosignature.selector);
+        vm.expectRevert(CosignatureLib.InvalidCosignatureCosigner.selector);
         this.callValidateCosignature(co, other);
     }
 
@@ -171,6 +171,20 @@ contract CosignatureLibTest is BaseTest {
         co.order.epoch = 60;
         co.order.freshness = 60; // >= epoch
         vm.expectRevert(CosignatureLib.InvalidFreshnessVsEpoch.selector);
+        this.callValidateCosignature(co, signer);
+    }
+
+    function test_validateCosignature_reverts_invalidChainid() public {
+        freshness = 300;
+        inMax = 2_000;
+        outAmount = 500;
+        outMax = 5_000;
+        cosignInValue = 100;
+        cosignOutValue = 200;
+        CosignedOrder memory co = order();
+        co = cosign(co);
+        co.cosignatureData.chainid = 999; // Wrong chainid
+        vm.expectRevert(CosignatureLib.InvalidCosignatureChainid.selector);
         this.callValidateCosignature(co, signer);
     }
 }

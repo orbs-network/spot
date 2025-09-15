@@ -15,7 +15,7 @@ library OrderLib {
     bytes32 internal constant EXCHANGE_TYPE_HASH = keccak256(bytes(EXCHANGE_TYPE));
 
     string internal constant ORDER_TYPE =
-        "Order(address reactor,address executor,Exchange exchange,address swapper,uint256 nonce,uint256 deadline,uint32 exclusivity,uint32 epoch,uint32 slippage,uint32 freshness,Input input,Output output)";
+        "Order(address reactor,address executor,Exchange exchange,address swapper,uint256 nonce,uint256 deadline,uint256 chainid,uint32 exclusivity,uint32 epoch,uint32 slippage,uint32 freshness,Input input,Output output)";
     bytes32 internal constant ORDER_TYPE_HASH =
         keccak256(abi.encodePacked(ORDER_TYPE, EXCHANGE_TYPE, INPUT_TYPE, OUTPUT_TYPE));
 
@@ -29,7 +29,7 @@ library OrderLib {
     bytes32 internal constant COSIGNED_VALUE_TYPE_HASH = keccak256(bytes(COSIGNED_VALUE_TYPE));
 
     string internal constant COSIGNATURE_TYPE =
-        "Cosignature(uint256 timestamp,address reactor,CosignedValue input,CosignedValue output)";
+        "Cosignature(address cosigner,address reactor,uint256 chainid,uint256 timestamp,CosignedValue input,CosignedValue output)";
     bytes32 internal constant COSIGNATURE_TYPE_HASH = keccak256(abi.encodePacked(COSIGNATURE_TYPE, COSIGNED_VALUE_TYPE));
 
     function hash(Order memory order) internal pure returns (bytes32) {
@@ -42,6 +42,7 @@ library OrderLib {
                 order.swapper,
                 order.nonce,
                 order.deadline,
+                order.chainid,
                 order.exclusivity,
                 order.epoch,
                 order.slippage,
@@ -70,8 +71,10 @@ library OrderLib {
         return keccak256(
             abi.encode(
                 COSIGNATURE_TYPE_HASH,
-                cosignature.timestamp,
+                cosignature.cosigner,
                 cosignature.reactor,
+                cosignature.chainid,
+                cosignature.timestamp,
                 keccak256(abi.encode(COSIGNED_VALUE_TYPE_HASH, cosignature.input)),
                 keccak256(abi.encode(COSIGNED_VALUE_TYPE_HASH, cosignature.output))
             )
