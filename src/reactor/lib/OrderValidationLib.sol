@@ -20,6 +20,7 @@ library OrderValidationLib {
     error InvalidOrderOutputRecipientZero();
     error InvalidOrderReactorMismatch();
     error InvalidOrderDeadlineExpired();
+    error InvalidOrderChainid();
 
     function validate(Order memory order) internal view {
         // Validate non-zero critical addresses
@@ -29,6 +30,7 @@ library OrderValidationLib {
         if (order.swapper == address(0)) revert InvalidOrderSwapperZero();
 
         if (order.deadline <= block.timestamp) revert InvalidOrderDeadlineExpired();
+        if (order.chainid != block.chainid) revert InvalidOrderChainid();
 
         if (order.reactor != address(this)) revert InvalidOrderReactorMismatch();
         if (order.input.amount == 0) revert InvalidOrderInputAmountZero();

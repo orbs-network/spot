@@ -87,6 +87,10 @@
                 "type": "uint256"
             },
             {
+                "name": "chainid",
+                "type": "uint256"
+            },
+            {
                 "name": "exclusivity",
                 "type": "uint32"
             },
@@ -160,6 +164,7 @@
             "swapper": "<SWAPPER>",
             "nonce": "<NONCE>",
             "deadline": "<DEADLINE>",
+            "chainid": "<CHAINID>",
             "exclusivity": "<EXCLUSIVITYBPS>",
             "epoch": "<EPOCHSECONDS>",
             "slippage": "<SLIPPAGEBPS>",

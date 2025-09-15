@@ -30,6 +30,7 @@ struct Order {
     address swapper;
     uint256 nonce;
     uint256 deadline;
+    uint256 chainid;
     uint32 exclusivity;
     uint32 epoch; // seconds per chunk; 0 = single-use
     uint32 slippage; // bps
@@ -45,8 +46,10 @@ struct CosignedValue {
 }
 
 struct Cosignature {
-    uint256 timestamp;
+    address cosigner;
     address reactor;
+    uint256 chainid;
+    uint256 timestamp;
     CosignedValue input;
     CosignedValue output;
 }

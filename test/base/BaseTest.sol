@@ -108,7 +108,9 @@ abstract contract BaseTest is Test, BaseScript, DeployTestInfra {
     function cosign(CosignedOrder memory co) internal view returns (CosignedOrder memory updated) {
         Cosignature memory c;
         c.timestamp = block.timestamp;
+        c.chainid = block.chainid;
         c.reactor = co.order.reactor;
+        c.cosigner = signer;
         c.input = CosignedValue({token: co.order.input.token, value: cosignInValue, decimals: 18});
         c.output = CosignedValue({token: co.order.output.token, value: cosignOutValue, decimals: 18});
         bytes32 digest = IEIP712(repermit).hashTypedData(OrderLib.hash(c));
@@ -124,6 +126,7 @@ abstract contract BaseTest is Test, BaseScript, DeployTestInfra {
         co.order.swapper = swapper == address(0) ? signer : swapper;
         co.order.nonce = _nextNonce;
         co.order.deadline = block.timestamp + 1 days;
+        co.order.chainid = block.chainid;
         address _adapter = adapter == address(0) ? address(this) : adapter;
         co.order.exchange = Exchange({adapter: _adapter, ref: address(0), share: 0, data: hex""});
         co.order.executor = executor == address(0) ? address(this) : executor;
