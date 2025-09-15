@@ -155,7 +155,7 @@
                 "adapter": "<ADAPTER>",
                 "ref": "<REFERRER>",
                 "share": "<REFSHAREBPS>",
-                "data": "<ADAPTER_CALLDATA_HEX>"
+                "data": "<ADAPTER_USER_DATA>"
             },
             "swapper": "<SWAPPER>",
             "nonce": "<NONCE>",
