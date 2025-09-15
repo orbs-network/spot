@@ -43,6 +43,7 @@ contract OrderValidationLibFuzzTest is BaseTest {
         co.order.input = Input({token: inToken, amount: inAmount, maxAmount: maxAmount});
         co.order.output = Output({token: outToken, amount: minOut, maxAmount: maxOut, recipient: recipient});
         co.order.slippage = uint32(slippage);
+        co.order.deadline = block.timestamp + 1;
         this.callValidate(co);
     }
 }

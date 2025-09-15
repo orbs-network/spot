@@ -150,4 +150,52 @@ contract OrderValidationLibTest is BaseTest {
         vm.expectRevert(OrderValidationLib.InvalidOrderAdapterZero.selector);
         this.callValidate(co);
     }
+
+    function test_validate_reverts_swapper_zero() public {
+        reactor = address(this);
+        executor = address(this);
+        adapter = address(this);
+        inToken = address(token);
+        outToken = address(token2);
+        inAmount = 100;
+        inMax = 200;
+        outAmount = 50;
+        outMax = 100;
+        CosignedOrder memory co = order();
+        co.order.swapper = address(0);
+        vm.expectRevert(OrderValidationLib.InvalidOrderSwapperZero.selector);
+        this.callValidate(co);
+    }
+
+    function test_validate_reverts_deadline_expired() public {
+        reactor = address(this);
+        executor = address(this);
+        adapter = address(this);
+        inToken = address(token);
+        outToken = address(token2);
+        inAmount = 100;
+        inMax = 200;
+        outAmount = 50;
+        outMax = 100;
+        CosignedOrder memory co = order();
+        co.order.deadline = block.timestamp - 1;
+        vm.expectRevert(OrderValidationLib.InvalidOrderDeadlineExpired.selector);
+        this.callValidate(co);
+    }
+
+    function test_validate_reverts_deadline_zero() public {
+        reactor = address(this);
+        executor = address(this);
+        adapter = address(this);
+        inToken = address(token);
+        outToken = address(token2);
+        inAmount = 100;
+        inMax = 200;
+        outAmount = 50;
+        outMax = 100;
+        CosignedOrder memory co = order();
+        co.order.deadline = 0;
+        vm.expectRevert(OrderValidationLib.InvalidOrderDeadlineExpired.selector);
+        this.callValidate(co);
+    }
 }
