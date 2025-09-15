@@ -34,7 +34,6 @@
 - 🛠️ **Executor** (`src/executor/Executor.sol`): Whitelisted fillers that run venue logic via delegatecall to adapters, ensure minimum output requirements, and distribute surplus
 - 🔐 **WM** (`src/WM.sol`): Two-step ownership allowlist manager for executors and admin functions with event emission
 - 🏭 **Refinery** (`src/Refinery.sol`): Operations utility for batching multicalls and sweeping token balances by basis points
-- 🧰 **Approvals**: Exact allowances set to reactor using `SafeERC20.forceApprove()` (USDT-safe, prevents allowance accumulation)
 
 ### Key Libraries
 
@@ -60,7 +59,7 @@ struct Order {
     address swapper;           // Order creator/signer
     uint256 nonce;            // Unique identifier
     uint256 deadline;         // Expiration timestamp
-    uint32 exclusivity;       // Time-bounded exclusive execution
+    uint32 exclusivity;       // BPS-bounded exclusive execution
     uint32 epoch;             // Seconds between fills (0 = single-use)
     uint32 slippage;          // BPS applied to cosigned price
     uint32 freshness;         // Cosignature validity window in seconds
@@ -77,7 +76,7 @@ struct Input {
 struct Output {
     address token;            // Output token address
     uint256 amount;           // Minimum acceptable output (limit)
-    uint256 maxAmount;        // Stop trigger (max uint256 = disabled)
+    uint256 maxAmount;        // Stop trigger (max uint256 = immediate)
     address recipient;        // Where to send output tokens
 }
 ```
