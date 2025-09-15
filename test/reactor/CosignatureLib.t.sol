@@ -112,7 +112,7 @@ contract CosignatureLibTest is BaseTest {
         cosignOutValue = 200;
         CosignedOrder memory co = order();
         co = cosign(co);
-        vm.expectRevert(CosignatureLib.InvalidCosignatureSigner.selector);
+        vm.expectRevert(CosignatureLib.InvalidCosignatureCosigner.selector);
         this.callValidateCosignature(co, other);
     }
 

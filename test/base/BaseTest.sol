@@ -110,7 +110,7 @@ abstract contract BaseTest is Test, BaseScript, DeployTestInfra {
         c.timestamp = block.timestamp;
         c.chainid = block.chainid;
         c.reactor = co.order.reactor;
-        c.signer = signer;
+        c.cosigner = signer;
         c.input = CosignedValue({token: co.order.input.token, value: cosignInValue, decimals: 18});
         c.output = CosignedValue({token: co.order.output.token, value: cosignOutValue, decimals: 18});
         bytes32 digest = IEIP712(repermit).hashTypedData(OrderLib.hash(c));

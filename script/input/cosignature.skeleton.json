@@ -9,12 +9,20 @@
     "types": {
         "Cosignature": [
             {
-                "name": "timestamp",
-                "type": "uint256"
+                "name": "cosigner",
+                "type": "address"
             },
             {
                 "name": "reactor",
                 "type": "address"
+            },
+            {
+                "name": "chainid",
+                "type": "uint256"
+            },
+            {
+                "name": "timestamp",
+                "type": "uint256"
             },
             {
                 "name": "input",
@@ -41,8 +49,10 @@
         ]
     },
     "message": {
-        "timestamp": "<TIMESTAMP>",
+        "cosigner": "<COSIGNER_ADDRESS>",
         "reactor": "<REACTOR_ADDRESS>",
+        "chainid": "<CHAINID>",
+        "timestamp": "<TIMESTAMP>",
         "input": {
             "token": "<INTOKEN>",
             "value": "<INVALUE_INDECIMALS>",

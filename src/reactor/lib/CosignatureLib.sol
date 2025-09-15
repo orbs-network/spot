@@ -14,7 +14,7 @@ library CosignatureLib {
     error InvalidCosignatureZeroOutputValue();
     error InvalidCosignatureReactor();
     error InvalidCosignatureChainid();
-    error InvalidCosignatureSigner();
+    error InvalidCosignatureCosigner();
     error StaleCosignature();
     error FutureCosignatureTimestamp();
     error InvalidFreshness();
@@ -28,7 +28,7 @@ library CosignatureLib {
         }
         if (cosigned.cosignatureData.reactor != cosigned.order.reactor) revert InvalidCosignatureReactor();
         if (cosigned.cosignatureData.chainid != cosigned.order.chainid) revert InvalidCosignatureChainid();
-        if (cosigned.cosignatureData.signer != cosigner) revert InvalidCosignatureSigner();
+        if (cosigned.cosignatureData.cosigner != cosigner) revert InvalidCosignatureCosigner();
         if (cosigned.cosignatureData.input.token != cosigned.order.input.token) revert InvalidCosignatureInputToken();
         if (cosigned.cosignatureData.output.token != cosigned.order.output.token) {
             revert InvalidCosignatureOutputToken();

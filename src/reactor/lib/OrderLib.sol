@@ -29,7 +29,7 @@ library OrderLib {
     bytes32 internal constant COSIGNED_VALUE_TYPE_HASH = keccak256(bytes(COSIGNED_VALUE_TYPE));
 
     string internal constant COSIGNATURE_TYPE =
-        "Cosignature(uint256 timestamp,uint256 chainid,address reactor,address signer,CosignedValue input,CosignedValue output)";
+        "Cosignature(address cosigner,address reactor,uint256 chainid,uint256 timestamp,CosignedValue input,CosignedValue output)";
     bytes32 internal constant COSIGNATURE_TYPE_HASH = keccak256(abi.encodePacked(COSIGNATURE_TYPE, COSIGNED_VALUE_TYPE));
 
     function hash(Order memory order) internal pure returns (bytes32) {
@@ -71,10 +71,10 @@ library OrderLib {
         return keccak256(
             abi.encode(
                 COSIGNATURE_TYPE_HASH,
-                cosignature.timestamp,
-                cosignature.chainid,
+                cosignature.cosigner,
                 cosignature.reactor,
-                cosignature.signer,
+                cosignature.chainid,
+                cosignature.timestamp,
                 keccak256(abi.encode(COSIGNED_VALUE_TYPE_HASH, cosignature.input)),
                 keccak256(abi.encode(COSIGNED_VALUE_TYPE_HASH, cosignature.output))
             )

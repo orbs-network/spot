@@ -46,10 +46,10 @@ struct CosignedValue {
 }
 
 struct Cosignature {
-    uint256 timestamp;
-    uint256 chainid;
+    address cosigner;
     address reactor;
-    address signer;
+    uint256 chainid;
+    uint256 timestamp;
     CosignedValue input;
     CosignedValue output;
 }
