@@ -162,7 +162,7 @@
             "deadline": "<DEADLINE>",
             "exclusivity": "<EXCLUSIVITYBPS>",
             "epoch": "<EPOCHSECONDS>",
-            "slippage": "<SLIPPAGE>",
+            "slippage": "<SLIPPAGEBPS>",
             "freshness": "<FRESHNESSSECONDS>",
             "input": {
                 "token": "<INTOKEN>",
