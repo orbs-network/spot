@@ -59,6 +59,7 @@ struct Order {
     address swapper;           // Order creator/signer
     uint256 nonce;            // Unique identifier
     uint256 deadline;         // Expiration timestamp
+    uint256 chainid;          // Chain ID for cross-chain validation
     uint32 exclusivity;       // BPS-bounded exclusive execution
     uint32 epoch;             // Seconds between fills (0 = single-use)
     uint32 slippage;          // BPS applied to cosigned price
