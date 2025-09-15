@@ -32,14 +32,14 @@ Standard Foundry installation now works normally without network restrictions.
    forge build
    ```
    - Takes ~10 seconds with 1M optimization runs
-   - Compiles 87 Solidity files with 0.8.20
+   - Compiles 23 Solidity files with 0.8.20
    - NEVER CANCEL: Set timeout to 60+ seconds minimum
 
 4. **Run Tests**:
    ```bash
    forge test
    ```
-   - Takes <1 second (100 tests across 13 suites)
+   - Takes <1 second (109 tests across 14 suites)
    - All tests should pass in fresh environment
    - NEVER CANCEL: Set timeout to 30+ seconds
 
@@ -78,10 +78,12 @@ After making any changes to the codebase, always run the complete validation seq
 - **Refinery** (`src/Refinery.sol`): Operations utility for batching and sweeping balances by basis points
 
 ### Key Libraries
-- **OrderLib** (`src/reactor/OrderLib.sol`): Core order structure and validation
-- **EpochLib** (`src/reactor/EpochLib.sol`): Time-bucket controls for TWAP cadence
-- **CosignatureLib** (`src/reactor/CosignatureLib.sol`): Price attestation verification
-- **ResolutionLib** (`src/reactor/ResolutionLib.sol`): Order resolution and slippage computation
+- **OrderLib** (`src/reactor/lib/OrderLib.sol`): Core order structure and validation
+- **EpochLib** (`src/reactor/lib/EpochLib.sol`): Time-bucket controls for TWAP cadence
+- **CosignatureLib** (`src/reactor/lib/CosignatureLib.sol`): Price attestation verification
+- **ResolutionLib** (`src/reactor/lib/ResolutionLib.sol`): Order resolution and slippage computation
+- **OrderValidationLib** (`src/reactor/lib/OrderValidationLib.sol`): Order validation including chainid verification
+- **SettlementLib** (`src/executor/lib/SettlementLib.sol`): Settlement logic for order execution
 
 ### Critical Security Boundaries
 - All executors must be allowlisted via WM
@@ -89,6 +91,15 @@ After making any changes to the codebase, always run the complete validation seq
 - Epoch controls prevent duplicate/early fills
 - Slippage caps protect against extreme price movements (max 50%)
 - RePermit ties spending allowances to exact order hashes
+- Chain ID validation prevents cross-chain replay attacks
+
+## Recent Major Changes
+
+### Chain ID Validation (September 2025)
+- **Order struct** now includes `chainid` field for cross-chain replay protection
+- **Cosignature struct** includes `chainid` field for cosigner validation
+- All order validation enforces chain ID matching to prevent cross-chain attacks
+- Skeleton JSON files updated to include chainid field for proper order construction
 
 ## Build Configuration
 - **Solidity Version**: 0.8.20 (EXACT - do not change)
@@ -107,8 +118,10 @@ The project has comprehensive test coverage across all components:
 Key test files to understand:
 - `test/base/BaseTest.sol`: Common test utilities and helpers
 - `test/executor/Executor.t.sol`: End-to-end order execution
-- `test/reactor/OrderValidationLib.t.sol`: Order validation logic
+- `test/reactor/OrderValidationLib.t.sol`: Order validation logic including chainid checks
 - `test/RePermit.t.sol`: Signature and allowance management
+- `test/reactor/CosignatureLib.t.sol`: Cosignature validation and chainid verification
+- `test/executor/lib/SettlementLib.t.sol`: Settlement logic testing
 
 ## Deployment Process
 1. **WM (Allowlist)**: `script/00_DeployWM.s.sol`
@@ -132,12 +145,15 @@ The protocol deploys on 18+ chains. Key considerations:
 ```
 ├── src/
 │   ├── reactor/         # Order validation and settlement
+│   │   └── lib/         # Core validation libraries
 │   ├── repermit/        # EIP-712 permit system
 │   ├── executor/        # Swap execution and callbacks
+│   │   └── lib/         # Settlement logic
 │   ├── adapter/         # Exchange adapters
 │   ├── interface/       # Contract interfaces
 │   ├── WM.sol          # Allowlist management
-│   └── Refinery.sol    # Operations utilities
+│   ├── Refinery.sol    # Operations utilities
+│   └── Structs.sol     # Core data structures with chainid support
 ├── test/               # Comprehensive test suites
 ├── script/             # Deployment scripts
 ├── lib/                # Git submodule dependencies
