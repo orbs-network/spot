@@ -57,3 +57,10 @@ struct CosignedOrder {
     Cosignature cosignatureData;
     bytes cosignature;
 }
+
+/// @dev Parameters provided by the executor for a fill
+struct Execution {
+    uint256 minAmountOut;
+    Output fee;
+    bytes data;
+}

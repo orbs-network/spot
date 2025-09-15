@@ -4,6 +4,7 @@ pragma solidity 0.8.20;
 import "forge-std/Test.sol";
 import {BaseTest} from "test/base/BaseTest.sol";
 import {DefaultDexAdapter} from "src/adapter/DefaultDexAdapter.sol";
+import {Execution} from "src/Structs.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/Structs.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
@@ -41,7 +42,12 @@ contract DefaultDexAdapterTest is BaseTest {
 
         bytes32 hash = OrderLib.hash(cosignedOrder.order);
         uint256 resolvedAmountOut = cosignedOrder.order.output.amount;
-        adapterUut.swap(hash, resolvedAmountOut, cosignedOrder, data);
+        Execution memory x = Execution({
+            minAmountOut: 0,
+            fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
+            data: data
+        });
+        adapterUut.delegateSwap(hash, resolvedAmountOut, cosignedOrder, x);
 
         // Check output token was minted to recipient
         assertEq(ERC20Mock(address(token2)).balanceOf(signer), beforeBalance + 2000 ether);
@@ -63,7 +69,12 @@ contract DefaultDexAdapterTest is BaseTest {
         bytes32 hash = OrderLib.hash(cosignedOrder.order);
         uint256 resolvedAmountOut = cosignedOrder.order.output.amount;
         vm.expectRevert();
-        adapterUut.swap(hash, resolvedAmountOut, cosignedOrder, data);
+        Execution memory x = Execution({
+            minAmountOut: 0,
+            fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
+            data: data
+        });
+        adapterUut.delegateSwap(hash, resolvedAmountOut, cosignedOrder, x);
     }
 
     function test_swap_reverts_when_router_call_fails() public {
@@ -82,7 +93,12 @@ contract DefaultDexAdapterTest is BaseTest {
         bytes32 hash = OrderLib.hash(cosignedOrder.order);
         uint256 resolvedAmountOut = cosignedOrder.order.output.amount;
         vm.expectRevert("Mock swap failed");
-        adapterUut.swap(hash, resolvedAmountOut, cosignedOrder, data);
+        Execution memory x = Execution({
+            minAmountOut: 0,
+            fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
+            data: data
+        });
+        adapterUut.delegateSwap(hash, resolvedAmountOut, cosignedOrder, x);
     }
 
     function test_swap_handles_USDT_like_tokens() public {
@@ -109,7 +125,12 @@ contract DefaultDexAdapterTest is BaseTest {
         // Should not revert despite USDT-like behavior
         bytes32 hash = OrderLib.hash(cosignedOrder.order);
         uint256 resolvedAmountOut = cosignedOrder.order.output.amount;
-        adapterUut.swap(hash, resolvedAmountOut, cosignedOrder, data);
+        Execution memory x = Execution({
+            minAmountOut: 0,
+            fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
+            data: data
+        });
+        adapterUut.delegateSwap(hash, resolvedAmountOut, cosignedOrder, x);
 
         // After swap, allowance should be 0 (consumed by transferFrom)
         assertEq(usdt.allowance(address(adapterUut), address(router)), 0);

@@ -10,7 +10,7 @@ import {Constants} from "src/reactor/Constants.sol";
 import {BaseTest} from "test/base/BaseTest.sol";
 
 contract OrderValidationLibFuzzTest is BaseTest {
-    function callValidate(CosignedOrder memory co) external pure {
+    function callValidate(CosignedOrder memory co) external view {
         OrderValidationLib.validate(co.order);
     }
 
@@ -36,8 +36,8 @@ contract OrderValidationLibFuzzTest is BaseTest {
         vm.assume(slippage < Constants.MAX_SLIPPAGE);
 
         CosignedOrder memory co;
-        co.order.reactor = address(0);
-        co.order.exchange.adapter = address(0);
+        co.order.reactor = address(this);
+        co.order.exchange.adapter = address(this);
         co.order.executor = address(this);
         co.order.swapper = swapper;
         co.order.input = Input({token: inToken, amount: inAmount, maxAmount: maxAmount});

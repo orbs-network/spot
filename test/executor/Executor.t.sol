@@ -7,6 +7,7 @@ import {BaseTest} from "test/base/BaseTest.sol";
 
 import {Executor} from "src/executor/Executor.sol";
 import {SettlementLib} from "src/executor/lib/SettlementLib.sol";
+import {Execution} from "src/Structs.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
@@ -52,7 +53,7 @@ contract ExecutorTest is BaseTest {
         outToken = address(token);
         outMax = 0;
         CosignedOrder memory co = order();
-        SettlementLib.Execution memory ex = execution(0, address(0), 0, address(0));
+        Execution memory ex = execution(0, address(0), 0, address(0));
         exec.execute(co, ex);
 
         assertEq(reactorMock.lastSender(), address(exec));
@@ -75,10 +76,9 @@ contract ExecutorTest is BaseTest {
 
         // Get the components of the lastExecution struct
         (uint256 minAmountOut, Output memory fee, bytes memory data) = reactorMock.lastExecution();
-        SettlementLib.Execution memory actualExecution =
-            SettlementLib.Execution({minAmountOut: minAmountOut, fee: fee, data: data});
+        Execution memory actualExecution = Execution({minAmountOut: minAmountOut, fee: fee, data: data});
 
-        SettlementLib.Execution memory expectedExecution = SettlementLib.Execution({
+        Execution memory expectedExecution = Execution({
             minAmountOut: 0,
             fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
             data: hex""
@@ -94,7 +94,7 @@ contract ExecutorTest is BaseTest {
         outToken = address(token);
         outMax = 0;
         CosignedOrder memory co = order();
-        SettlementLib.Execution memory ex = execution(0, address(0), 0, address(0));
+        Execution memory ex = execution(0, address(0), 0, address(0));
         vm.expectRevert(abi.encodeWithSelector(Executor.InvalidSender.selector));
         exec.execute(co, ex);
     }
@@ -116,7 +116,7 @@ contract ExecutorTest is BaseTest {
             orderHash,
             co.order.output.amount, // resolvedAmountOut
             co,
-            SettlementLib.Execution({
+            Execution({
                 minAmountOut: 0,
                 fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                 data: hex""
@@ -145,7 +145,7 @@ contract ExecutorTest is BaseTest {
             orderHash,
             co.order.output.amount, // resolvedAmountOut
             co,
-            SettlementLib.Execution({
+            Execution({
                 minAmountOut: 0,
                 fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                 data: hex""
@@ -188,7 +188,7 @@ contract ExecutorTest is BaseTest {
             orderHash,
             co.order.output.amount, // resolvedAmountOut
             co,
-            SettlementLib.Execution({
+            Execution({
                 minAmountOut: 0,
                 fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                 data: hex""
@@ -220,7 +220,7 @@ contract ExecutorTest is BaseTest {
             orderHash,
             co.order.output.amount, // resolvedAmountOut
             co,
-            SettlementLib.Execution({
+            Execution({
                 minAmountOut: 0,
                 fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                 data: hex""
@@ -248,7 +248,7 @@ contract ExecutorTest is BaseTest {
             orderHash,
             co.order.output.amount, // resolvedAmountOut
             co,
-            SettlementLib.Execution({
+            Execution({
                 minAmountOut: 0,
                 fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                 data: hex""
@@ -303,7 +303,7 @@ contract ExecutorTest is BaseTest {
             orderHash,
             co.order.output.amount, // resolvedAmountOut
             co,
-            SettlementLib.Execution({
+            Execution({
                 minAmountOut: 600,
                 fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
                 data: hex""
@@ -327,7 +327,7 @@ contract ExecutorTest is BaseTest {
         _mint(address(token2), address(exec), 1000);
         _mint(address(token), address(exec), 200);
 
-        SettlementLib.Execution memory ex2 = execution(600, address(0), 0, address(0));
+        Execution memory ex2 = execution(600, address(0), 0, address(0));
         exec.execute(co, ex2);
 
         assertEq(IERC20(address(token2)).allowance(address(exec), address(reactorMock)), 500);
@@ -359,7 +359,7 @@ contract ExecutorTest is BaseTest {
         outMax = 0;
         CosignedOrder memory co = order();
 
-        SettlementLib.Execution memory ex = execution(0, feeToken, feeAmount, feeRecipient);
+        Execution memory ex = execution(0, feeToken, feeAmount, feeRecipient);
 
         uint256 balanceBefore = IERC20(feeToken).balanceOf(feeRecipient);
         exec.execute(co, ex);

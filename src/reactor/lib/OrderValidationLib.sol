@@ -12,8 +12,10 @@ library OrderValidationLib {
     error InvalidOrderSlippageTooHigh();
     error InvalidOrderInputTokenZero();
     error InvalidOrderOutputRecipientZero();
+    error InvalidOrderReactorMismatch();
 
-    function validate(Order memory order) internal pure {
+    function validate(Order memory order) internal view {
+        if (order.reactor != address(this)) revert InvalidOrderReactorMismatch();
         if (order.input.amount == 0) revert InvalidOrderInputAmountZero();
         if (order.input.amount > order.input.maxAmount) revert InvalidOrderInputAmountGtMax();
         if (order.output.amount > order.output.maxAmount) revert InvalidOrderOutputAmountGtMax();
