@@ -5,16 +5,17 @@ import "forge-std/Test.sol";
 import {BaseTest} from "test/base/BaseTest.sol";
 
 import {SettlementLib} from "src/executor/lib/SettlementLib.sol";
+import {Execution} from "src/Structs.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/Structs.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 import {USDTMock} from "test/mocks/USDTMock.sol";
 
 contract SettlementWrapper {
-    function settle(CosignedOrder memory cosignedOrder, SettlementLib.Execution memory execution, address, address)
+    function settle(CosignedOrder memory cosignedOrder, Execution memory execution, address, address, uint256 resolved)
         external
     {
-        SettlementLib.settle(OrderLib.hash(cosignedOrder.order), cosignedOrder, execution);
+        SettlementLib.settle(OrderLib.hash(cosignedOrder.order), resolved, cosignedOrder, execution);
     }
 }
 
@@ -35,7 +36,8 @@ contract SettlementLibTest is BaseTest {
         address inputToken,
         address outputToken,
         uint256 inputAmount,
-        uint256 outputAmount
+        uint256 outputAmount,
+        uint256 minOut
     );
 
     function setUp() public override {
@@ -68,7 +70,7 @@ contract SettlementLibTest is BaseTest {
         recipient = swapper;
         CosignedOrder memory order = order();
 
-        SettlementLib.Execution memory execution = execution(minAmountOut, address(0), 0, address(0));
+        Execution memory execution = execution(minAmountOut, address(0), 0, address(0));
 
         ERC20Mock(address(token2)).mint(address(wrapper), outAmount);
         ERC20Mock(address(token2)).mint(reactor, outAmount);
@@ -81,9 +83,10 @@ contract SettlementLibTest is BaseTest {
             order.order.input.token,
             order.order.output.token,
             inAmount,
-            outAmount
+            outAmount,
+            minAmountOut
         );
-        wrapper.settle(order, execution, reactor, exchange);
+        wrapper.settle(order, execution, reactor, exchange, outAmount);
     }
 
     function test_settle_with_min_amount_out_transfer() public {
@@ -102,13 +105,13 @@ contract SettlementLibTest is BaseTest {
         recipient = swapper;
         CosignedOrder memory order = order();
 
-        SettlementLib.Execution memory execution = execution(minAmountOut, address(0), 0, address(0));
+        Execution memory execution = execution(minAmountOut, address(0), 0, address(0));
 
-        ERC20Mock(address(token2)).mint(address(wrapper), shortfall + outAmount);
+        ERC20Mock(address(token2)).mint(address(wrapper), outAmount);
         ERC20Mock(address(token2)).mint(reactor, outAmount);
 
         uint256 initialBalance = ERC20Mock(address(token2)).balanceOf(recipient);
-        wrapper.settle(order, execution, reactor, exchange);
+        wrapper.settle(order, execution, reactor, exchange, outAmount);
 
         assertEq(ERC20Mock(address(token2)).balanceOf(recipient), initialBalance + shortfall);
     }
@@ -128,13 +131,13 @@ contract SettlementLibTest is BaseTest {
         recipient = swapper;
         CosignedOrder memory order = order();
 
-        SettlementLib.Execution memory execution = execution(95 ether, address(token2), feeAmount, feeRecipient);
+        Execution memory execution = execution(95 ether, address(token2), feeAmount, feeRecipient);
 
         ERC20Mock(address(token2)).mint(address(wrapper), feeAmount + outAmount);
         ERC20Mock(address(token2)).mint(reactor, outAmount);
 
         uint256 initialBalance = ERC20Mock(address(token2)).balanceOf(feeRecipient);
-        wrapper.settle(order, execution, reactor, exchange);
+        wrapper.settle(order, execution, reactor, exchange, outAmount);
 
         assertEq(ERC20Mock(address(token2)).balanceOf(feeRecipient), initialBalance + feeAmount);
     }
@@ -154,14 +157,14 @@ contract SettlementLibTest is BaseTest {
         recipient = swapper;
         CosignedOrder memory order = order();
 
-        SettlementLib.Execution memory execution = execution(95 ether, address(0), feeAmount, feeRecipient);
+        Execution memory execution = execution(95 ether, address(0), feeAmount, feeRecipient);
 
         vm.deal(address(wrapper), feeAmount);
         ERC20Mock(address(token2)).mint(address(wrapper), outAmount);
         ERC20Mock(address(token2)).mint(reactor, outAmount);
 
         uint256 initialBalance = feeRecipient.balance;
-        wrapper.settle(order, execution, reactor, exchange);
+        wrapper.settle(order, execution, reactor, exchange, outAmount);
 
         assertEq(feeRecipient.balance, initialBalance + feeAmount);
     }
@@ -180,13 +183,13 @@ contract SettlementLibTest is BaseTest {
         recipient = swapper;
         CosignedOrder memory order = order();
 
-        SettlementLib.Execution memory execution = execution(95 ether, address(token2), 0, feeRecipient);
+        Execution memory execution = execution(95 ether, address(token2), 0, feeRecipient);
 
         ERC20Mock(address(token2)).mint(address(wrapper), outAmount);
         ERC20Mock(address(token2)).mint(reactor, outAmount);
 
         uint256 initialBalance = ERC20Mock(address(token2)).balanceOf(feeRecipient);
-        wrapper.settle(order, execution, reactor, exchange);
+        wrapper.settle(order, execution, reactor, exchange, outAmount);
 
         assertEq(ERC20Mock(address(token2)).balanceOf(feeRecipient), initialBalance);
     }
@@ -206,13 +209,13 @@ contract SettlementLibTest is BaseTest {
         recipient = swapper;
         CosignedOrder memory order = order();
 
-        SettlementLib.Execution memory execution = execution(95e6, address(usdt), feeAmount, feeRecipient);
+        Execution memory execution = execution(95e6, address(usdt), feeAmount, feeRecipient);
 
         usdt.mint(address(wrapper), feeAmount + outAmount);
         usdt.mint(reactor, outAmount);
 
         uint256 initialBalance = usdt.balanceOf(feeRecipient);
-        wrapper.settle(order, execution, reactor, exchange);
+        wrapper.settle(order, execution, reactor, exchange, outAmount);
 
         assertEq(usdt.balanceOf(feeRecipient), initialBalance + feeAmount);
     }
@@ -237,15 +240,17 @@ contract SettlementLibTest is BaseTest {
         recipient = swapper;
         CosignedOrder memory order = order();
 
-        SettlementLib.Execution memory execution = execution(minAmountOut, address(token2), feeAmount, feeRecipient);
+        Execution memory execution = execution(minAmountOut, address(token2), feeAmount, feeRecipient);
 
-        ERC20Mock(address(token2)).mint(address(wrapper), shortfall + feeAmount + outAmount);
+        ERC20Mock(address(token2)).mint(address(wrapper), feeAmount + outAmount);
         ERC20Mock(address(token2)).mint(reactor, outAmount);
 
         uint256 initialRecipientBalance = ERC20Mock(address(token2)).balanceOf(recipient);
         uint256 initialFeeBalance = ERC20Mock(address(token2)).balanceOf(feeRecipient);
 
-        wrapper.settle(order, execution, reactor, exchange);
+        // fund wrapper to pay shortfall too
+        ERC20Mock(address(token2)).mint(address(wrapper), shortfall);
+        wrapper.settle(order, execution, reactor, exchange, outAmount);
 
         assertEq(ERC20Mock(address(token2)).balanceOf(recipient), initialRecipientBalance + shortfall);
         assertEq(ERC20Mock(address(token2)).balanceOf(feeRecipient), initialFeeBalance + feeAmount);
@@ -269,7 +274,7 @@ contract SettlementLibTest is BaseTest {
         recipient = swapper;
         CosignedOrder memory order = order();
 
-        SettlementLib.Execution memory execution = execution(minAmountOut, address(token2), feeAmount, feeRecipient);
+        Execution memory execution = execution(minAmountOut, address(token2), feeAmount, feeRecipient);
 
         uint256 neededTokens =
             uint256(feeAmount) + outAmount + (minAmountOut > outAmount ? minAmountOut - outAmount : 0);
@@ -284,9 +289,10 @@ contract SettlementLibTest is BaseTest {
             order.order.input.token,
             order.order.output.token,
             inAmount,
-            outAmount
+            outAmount,
+            minAmountOut
         );
-        wrapper.settle(order, execution, reactor, exchange);
+        wrapper.settle(order, execution, reactor, exchange, outAmount);
     }
 
     // Helper function to receive ETH

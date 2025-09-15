@@ -41,6 +41,10 @@
             {
                 "name": "share",
                 "type": "uint32"
+            },
+            {
+                "name": "data",
+                "type": "bytes"
             }
         ],
         "Input": [
@@ -59,8 +63,8 @@
         ],
         "Order": [
             {
-                "name": "info",
-                "type": "OrderInfo"
+                "name": "reactor",
+                "type": "address"
             },
             {
                 "name": "executor",
@@ -69,6 +73,18 @@
             {
                 "name": "exchange",
                 "type": "Exchange"
+            },
+            {
+                "name": "swapper",
+                "type": "address"
+            },
+            {
+                "name": "nonce",
+                "type": "uint256"
+            },
+            {
+                "name": "deadline",
+                "type": "uint256"
             },
             {
                 "name": "exclusivity",
@@ -93,32 +109,6 @@
             {
                 "name": "output",
                 "type": "Output"
-            }
-        ],
-        "OrderInfo": [
-            {
-                "name": "reactor",
-                "type": "address"
-            },
-            {
-                "name": "swapper",
-                "type": "address"
-            },
-            {
-                "name": "nonce",
-                "type": "uint256"
-            },
-            {
-                "name": "deadline",
-                "type": "uint256"
-            },
-            {
-                "name": "additionalValidationContract",
-                "type": "address"
-            },
-            {
-                "name": "additionalValidationData",
-                "type": "bytes"
             }
         ],
         "Output": [
@@ -159,23 +149,20 @@
         "nonce": "<NONCE>",
         "deadline": "<DEADLINE>",
         "witness": {
-            "info": {
-                "reactor": "<REACTOR>",
-                "swapper": "<SWAPPER>",
-                "nonce": "<NONCE>",
-                "deadline": "<DEADLINE>",
-                "additionalValidationContract": "<EXECUTOR>",
-                "additionalValidationData": "<EXECUTORDATA>"
-            },
+            "reactor": "<REACTOR>",
             "executor": "<EXECUTOR>",
             "exchange": {
                 "adapter": "<ADAPTER>",
                 "ref": "<REFERRER>",
-                "share": "<REFSHAREBPS>"
+                "share": "<REFSHAREBPS>",
+                "data": "<ADAPTER_USER_DATA>"
             },
+            "swapper": "<SWAPPER>",
+            "nonce": "<NONCE>",
+            "deadline": "<DEADLINE>",
             "exclusivity": "<EXCLUSIVITYBPS>",
             "epoch": "<EPOCHSECONDS>",
-            "slippage": "<SLIPPAGE>",
+            "slippage": "<SLIPPAGEBPS>",
             "freshness": "<FRESHNESSSECONDS>",
             "input": {
                 "token": "<INTOKEN>",
@@ -191,4 +178,3 @@
         }
     }
 }
-

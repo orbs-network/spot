@@ -6,14 +6,31 @@ import {Order} from "src/Structs.sol";
 import {Constants} from "src/reactor/Constants.sol";
 
 library OrderValidationLib {
+    // Address validation errors
+    error InvalidOrderReactorZero();
+    error InvalidOrderExecutorZero();
+    error InvalidOrderAdapterZero();
+    error InvalidOrderSwapperZero();
+
     error InvalidOrderInputAmountZero();
     error InvalidOrderInputAmountGtMax();
     error InvalidOrderOutputAmountGtMax();
     error InvalidOrderSlippageTooHigh();
     error InvalidOrderInputTokenZero();
     error InvalidOrderOutputRecipientZero();
+    error InvalidOrderReactorMismatch();
+    error InvalidOrderDeadlineExpired();
 
-    function validate(Order memory order) internal pure {
+    function validate(Order memory order) internal view {
+        // Validate non-zero critical addresses
+        if (order.reactor == address(0)) revert InvalidOrderReactorZero();
+        if (order.executor == address(0)) revert InvalidOrderExecutorZero();
+        if (order.exchange.adapter == address(0)) revert InvalidOrderAdapterZero();
+        if (order.swapper == address(0)) revert InvalidOrderSwapperZero();
+
+        if (order.deadline <= block.timestamp) revert InvalidOrderDeadlineExpired();
+
+        if (order.reactor != address(this)) revert InvalidOrderReactorMismatch();
         if (order.input.amount == 0) revert InvalidOrderInputAmountZero();
         if (order.input.amount > order.input.maxAmount) revert InvalidOrderInputAmountGtMax();
         if (order.output.amount > order.output.maxAmount) revert InvalidOrderOutputAmountGtMax();

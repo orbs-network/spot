@@ -17,6 +17,15 @@ library TokenLib {
         return token == address(0) ? address(payable(address(this))).balance : IERC20(token).balanceOf(address(this));
     }
 
+    function transferFrom(address token, address from, address to, uint256 amount) internal {
+        if (amount == 0) return;
+        if (token == address(0)) {
+            Address.sendValue(payable(to), amount);
+        } else {
+            IERC20(token).safeTransferFrom(from, to, amount);
+        }
+    }
+
     function prepareFor(address token, address spenderOrRecipient, uint256 amount) internal {
         if (amount == 0) return;
         if (token == address(0)) {
