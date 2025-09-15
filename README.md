@@ -136,90 +136,7 @@ Order memory order = Order({
 });
 ```
 
-## Integration Guide
 
-### 1. Set Up Development Environment
-
-```bash
-# Install Foundry
-curl -L https://foundry.paradigm.xyz | bash
-foundryup
-
-# Clone and build
-git clone https://github.com/orbs-network/spot.git
-cd spot
-git submodule update --init --recursive
-forge build
-forge test
-```
-
-### 2. Deploy Contracts
-
-The deployment process follows a specific sequence:
-
-```bash
-# 1. Deploy WM (allowlist manager)
-forge script script/00_DeployWM.s.sol
-
-# 2. Update WM whitelist
-forge script script/01_UpdateWMWhitelist.s.sol
-
-# 3. Deploy RePermit
-forge script script/02_DeployRepermit.s.sol
-
-# 4. Deploy OrderReactor
-forge script script/03_DeployReactor.s.sol
-
-# 5. Deploy Executor
-forge script script/04_DeployExecutor.s.sol
-```
-
-### 3. Implement Exchange Adapter
-
-```solidity
-// SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
-
-import {IExchangeAdapter} from "src/interface/IExchangeAdapter.sol";
-import {CosignedOrder, Execution} from "src/Structs.sol";
-
-contract MyDexAdapter is IExchangeAdapter {
-    function delegateSwap(
-        bytes32 hash,
-        uint256 resolvedAmountOut,
-        CosignedOrder memory co,
-        Execution memory x
-    ) external override {
-        // Decode your exchange-specific data
-        (address router, bytes memory swapData) = abi.decode(x.data, (address, bytes));
-        
-        // Execute swap logic
-        // Ensure sufficient output tokens are available for settlement
-        require(outputToken.balanceOf(address(this)) >= resolvedAmountOut, "Insufficient output");
-    }
-}
-```
-
-### 4. Create and Execute Orders
-
-```solidity
-// Create cosigned order
-CosignedOrder memory co = CosignedOrder({
-    order: order,
-    signature: userSignature,
-    cosignatureData: priceData,
-    cosignature: cosignerSignature
-});
-
-// Execute via whitelisted executor
-Execution memory execution = Execution({
-    minAmountOut: computedMinOut,
-    fee: Output({...}),  // Optional gas fee
-    data: abi.encode(router, swapCalldata)
-});
-
-executor.execute(co, execution);
-```
 
 ## Security Model
 
@@ -253,41 +170,7 @@ executor.execute(co, execution);
 - **Epoch Behavior**: 0 = single execution, >0 = recurring with specified interval
 - **Gas Optimization**: 1,000,000 optimizer runs for maximum efficiency
 
-## Project Structure
 
-```
-src/
-├── reactor/                 # Order validation and settlement
-│   ├── OrderReactor.sol    # Main reactor contract
-│   ├── Constants.sol       # Protocol constants
-│   └── lib/                # Supporting libraries
-├── repermit/               # EIP-712 permit system
-│   ├── RePermit.sol        # Main permit contract
-│   └── RePermitLib.sol     # Helper functions
-├── executor/               # Swap execution and callbacks
-│   ├── Executor.sol        # Main executor contract
-│   └── lib/                # Execution libraries
-├── adapter/                # Exchange adapters
-│   └── DefaultDexAdapter.sol
-├── interface/              # Contract interfaces
-├── Structs.sol            # Data structure definitions
-├── WM.sol                 # Allowlist management
-└── Refinery.sol           # Operations utilities
-
-test/                       # Comprehensive test suites
-├── reactor/               # Reactor-specific tests
-├── executor/              # Executor tests
-├── e2e/                   # End-to-end integration tests
-└── ...
-
-script/                     # Deployment scripts
-├── 00_DeployWM.s.sol      # Deploy allowlist manager
-├── 01_UpdateWMWhitelist.s.sol # Update whitelist
-├── 02_DeployRepermit.s.sol # Deploy permit system
-├── 03_DeployReactor.s.sol  # Deploy main reactor
-├── 04_DeployExecutor.s.sol # Deploy executor
-└── input/                  # Configuration files
-```
 
 ## Development Workflow
 
