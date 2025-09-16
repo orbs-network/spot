@@ -14,7 +14,7 @@ contract RefineryTest is BaseTest {
 
     function setUp() public virtual override {
         super.setUp();
-        refinery = new Refinery(multicall, wm);
+        refinery = new Refinery(wm);
     }
 
     function test_cant_execute_if_not_allowed() public {

@@ -5,11 +5,10 @@ import {IMulticall3} from "forge-std/interfaces/IMulticall3.sol";
 
 import {IWM} from "src/interface/IWM.sol";
 import {Constants} from "src/reactor/Constants.sol";
-import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {TokenLib} from "src/executor/lib/TokenLib.sol";
+import {Multicall3Lib} from "src/utils/Multicall3Lib.sol";
 
 contract Refinery {
-    address public immutable multicall;
     address public immutable wm;
 
     error NotAllowed();
@@ -21,13 +20,16 @@ contract Refinery {
         _;
     }
 
-    constructor(address _multicall, address _wm) {
-        multicall = _multicall;
+    constructor(address _wm) {
         wm = _wm;
     }
 
-    function execute(IMulticall3.Call3[] calldata calls) external onlyAllowed returns (bytes memory) {
-        return Address.functionDelegateCall(multicall, abi.encodeWithSelector(IMulticall3.aggregate3.selector, calls));
+    function execute(IMulticall3.Call3[] calldata calls)
+        external
+        onlyAllowed
+        returns (IMulticall3.Result[] memory)
+    {
+        return Multicall3Lib.aggregate3(calls);
     }
 
     function transfer(address token, address recipient, uint256 bps) external onlyAllowed {

@@ -145,6 +145,7 @@ Order memory order = Order({
 - **WM Allowlist**: Only approved executors can fill orders via `WM.allowed(address)` check
 - **Two-Step Ownership**: `WM` uses OpenZeppelin's `Ownable2Step` for secure ownership transfers
 - **Executor Binding**: Orders specify authorized executor; only that executor can fill the order
+- **Non-Exclusive Fillers**: `exclusivity = 0` locks fills to the designated executor; setting it above zero invites third-party fillers who must meet a higher minimum output (scaled by the BPS override). Choose a non-zero value only when you intentionally want open competition on callbacks.
 
 ### Validation Layers
 - **Order Validation**: `OrderValidationLib.validate()` checks all order fields for validity

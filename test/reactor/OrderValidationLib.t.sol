@@ -97,6 +97,20 @@ contract OrderValidationLibTest is BaseTest {
         this.callValidate(co);
     }
 
+    function test_validate_reverts_exchangeShareTooHigh() public {
+        reactor = address(this);
+        executor = address(this);
+        adapter = address(this);
+        inAmount = 100;
+        inMax = 200;
+        outAmount = 50;
+        outMax = 100;
+        CosignedOrder memory co = order();
+        co.order.exchange.share = uint32(Constants.BPS + 1);
+        vm.expectRevert(OrderValidationLib.InvalidOrderExchangeShareBps.selector);
+        this.callValidate(co);
+    }
+
     function test_validate_allows_override_when_exclusivity_set() public {
         reactor = address(this);
         executor = address(this);

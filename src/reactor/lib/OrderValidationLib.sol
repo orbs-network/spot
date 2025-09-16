@@ -21,6 +21,7 @@ library OrderValidationLib {
     error InvalidOrderReactorMismatch();
     error InvalidOrderDeadlineExpired();
     error InvalidOrderChainid();
+    error InvalidOrderExchangeShareBps();
 
     function validate(Order memory order) internal view {
         // Validate non-zero critical addresses
@@ -39,5 +40,6 @@ library OrderValidationLib {
         if (order.slippage >= Constants.MAX_SLIPPAGE) revert InvalidOrderSlippageTooHigh();
         if (order.input.token == address(0)) revert InvalidOrderInputTokenZero();
         if (order.output.recipient == address(0)) revert InvalidOrderOutputRecipientZero();
+        if (order.exchange.share > Constants.BPS) revert InvalidOrderExchangeShareBps();
     }
 }
