@@ -1,37 +1,12 @@
 {
     "*": {
-        "admin": "",
-        "executor": "",
+        "wm": "",
+        "repermit": "",
         "reactor": "",
-        "repermit": ""
-    },
-    "388": {
-        "admin": "",
-        "reactor": "",
+        "reactor2": "",
         "executor": ""
     },
-    "324": {
-        "admin": ""
-    },
-    "747474": {
-        "admin": ""
-    },
     "chains": [
-        "eth",
-        "arb",
-        "bnb",
-        "matic",
-        "ftm",
-        "op",
-        "linea",
-        "blast",
-        "base",
-        "zkevm",
-        "manta",
-        "sei",
-        "sonic",
-        "zircuit",
-        "scroll",
-        "flare"
+        "bnb"
     ]
 }
