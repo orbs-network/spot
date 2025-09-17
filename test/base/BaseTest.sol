@@ -3,24 +3,18 @@ pragma solidity 0.8.20;
 
 import "forge-std/Test.sol";
 
-import {IMulticall3} from "forge-std/interfaces/IMulticall3.sol";
-
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 
 import {BaseScript} from "script/base/BaseScript.sol";
-import {DeployTestInfra} from "./DeployTestInfra.sol";
 
 import {WM} from "src/WM.sol";
 import {RePermit} from "src/repermit/RePermit.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
-import {SettlementLib} from "src/executor/lib/SettlementLib.sol";
 import {Execution} from "src/Structs.sol";
 import {IEIP712} from "src/interface/IEIP712.sol";
 import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/Structs.sol";
 
-abstract contract BaseTest is Test, BaseScript, DeployTestInfra {
-    address public multicall;
-
+abstract contract BaseTest is Test, BaseScript {
     address public wm;
     address public repermit;
     // Base vars used by helpers; suites may override
@@ -50,8 +44,6 @@ abstract contract BaseTest is Test, BaseScript, DeployTestInfra {
 
     function setUp() public virtual override {
         super.setUp();
-        multicall = deployTestInfra();
-
         wm = address(new WM(address(this)));
         vm.label(wm, "wm");
 
@@ -155,6 +147,35 @@ abstract contract BaseTest is Test, BaseScript, DeployTestInfra {
             fee: Output({token: feeToken, amount: feeAmount, recipient: feeRecipient, maxAmount: type(uint256).max}),
             data: hex""
         });
+    }
+
+    function permitSignature(Order memory ord, address spender) internal view returns (bytes memory) {
+        return signEIP712(repermit, signerPK, hashRePermit(ord, spender));
+    }
+
+    function permitDigest(Order memory ord, address spender) internal view returns (bytes32) {
+        return IEIP712(repermit).hashTypedData(hashRePermit(ord, spender));
+    }
+
+    function permitFor(CosignedOrder memory co, address spender) internal view returns (bytes memory) {
+        return permitSignature(co.order, spender);
+    }
+
+    function permitDigestFor(CosignedOrder memory co, address spender) internal view returns (bytes32) {
+        return permitDigest(co.order, spender);
+    }
+
+    function fundOrderInput(CosignedOrder memory co) internal {
+        address swapperAddr = co.order.swapper;
+        require(swapperAddr == signer, "BaseTest: swapper helper expects signer");
+        address tokenAddr = co.order.input.token;
+        if (tokenAddr == address(0)) {
+            vm.deal(swapperAddr, co.order.input.maxAmount);
+            return;
+        }
+        ERC20Mock(tokenAddr).mint(swapperAddr, co.order.input.maxAmount);
+        vm.prank(swapperAddr);
+        ERC20Mock(tokenAddr).approve(repermit, co.order.input.maxAmount);
     }
 
     // uint256 private nonce;

@@ -6,6 +6,7 @@ import "forge-std/Script.sol";
 import {BaseScript} from "script/base/BaseScript.sol";
 
 import {WM} from "src/WM.sol";
+import {UpdateWMWhitelist} from "script/01_UpdateWMWhitelist.s.sol";
 
 contract DeployWM is BaseScript {
     function run() public returns (address wmAddr) {
@@ -16,6 +17,14 @@ contract DeployWM is BaseScript {
         console.logBytes32(initCodeHash);
 
         vm.broadcast();
-        wmAddr = address(new WM{salt: salt}(owner));
+        try new WM{salt: salt}(owner) returns (WM deployed) {
+            wmAddr = address(deployed);
+        } catch (bytes memory err) {
+            console.log("wm deployment skipped");
+            console.logBytes(err);
+            wmAddr = vm.envOr("WM", address(0));
+        }
+
+        new UpdateWMWhitelist().run();
     }
 }

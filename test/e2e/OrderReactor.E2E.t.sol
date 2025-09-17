@@ -9,8 +9,6 @@ import {OrderReactor} from "src/reactor/OrderReactor.sol";
 import {DefaultDexAdapter} from "src/adapter/DefaultDexAdapter.sol";
 import {Execution} from "src/Structs.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
-import {RePermitLib} from "src/repermit/RePermitLib.sol";
-import {IEIP712} from "src/interface/IEIP712.sol";
 import {RePermit} from "src/repermit/RePermit.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 import {MockDexRouter} from "test/mocks/MockDexRouter.sol";
@@ -42,22 +40,6 @@ contract OrderReactorE2ETest is BaseTest {
         freshness = 300;
     }
 
-    function _signRepermitForSpender(bytes32 witness, address spender, CosignedOrder memory co)
-        internal
-        view
-        returns (bytes memory)
-    {
-        RePermitLib.RePermitTransferFrom memory permit;
-        permit.permitted = RePermitLib.TokenPermissions({token: co.order.input.token, amount: co.order.input.maxAmount});
-        permit.nonce = co.order.nonce;
-        permit.deadline = co.order.deadline;
-
-        bytes32 structHash = RePermitLib.hashWithWitness(permit, witness, OrderLib.WITNESS_TYPE_SUFFIX, spender);
-        bytes32 digest = IEIP712(repermit).hashTypedData(structHash);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPK, digest);
-        return bytes.concat(r, s, bytes1(v));
-    }
-
     function test_e2e_erc20_end_to_end_minOut_delta_and_pull_from_executor() public {
         inToken = address(token);
         outToken = address(token2);
@@ -68,18 +50,14 @@ contract OrderReactorE2ETest is BaseTest {
 
         CosignedOrder memory co = order();
 
-        ERC20Mock(address(token)).mint(signer, inAmount);
-        hoax(signer);
-        ERC20Mock(address(token)).approve(repermit, inAmount);
+        fundOrderInput(co);
 
         ERC20Mock(address(token2)).mint(address(exec), 600 ether);
 
         cosignInValue = 1000;
         cosignOutValue = 600;
         co = cosign(co);
-
-        bytes32 orderHash = OrderLib.hash(co.order);
-        co.signature = _signRepermitForSpender(orderHash, address(reactorUut), co);
+        co.signature = permitFor(co, address(reactorUut));
 
         Execution memory ex = Execution({
             minAmountOut: 600 ether,
@@ -104,17 +82,14 @@ contract OrderReactorE2ETest is BaseTest {
         adapter = address(new SwapAdapterMock());
         CosignedOrder memory co = order();
 
-        ERC20Mock(address(token)).mint(signer, inAmount);
-        hoax(signer);
-        ERC20Mock(address(token)).approve(repermit, inAmount);
+        fundOrderInput(co);
 
         vm.deal(address(exec), 1 ether);
 
         cosignInValue = 100;
         cosignOutValue = 100;
         co = cosign(co);
-        bytes32 orderHash = OrderLib.hash(co.order);
-        co.signature = _signRepermitForSpender(orderHash, address(reactorUut), co);
+        co.signature = permitFor(co, address(reactorUut));
 
         Execution memory ex = Execution({
             minAmountOut: 1 ether,
@@ -145,21 +120,11 @@ contract OrderReactorE2ETest is BaseTest {
         cosignInValue = 1_000;
         cosignOutValue = 600;
         co = cosign(co);
-
         bytes32 orderHash = OrderLib.hash(co.order);
-        RePermitLib.RePermitTransferFrom memory permit = RePermitLib.RePermitTransferFrom({
-            permitted: RePermitLib.TokenPermissions({token: co.order.input.token, amount: co.order.input.maxAmount}),
-            nonce: co.order.nonce,
-            deadline: co.order.deadline
-        });
-        bytes32 permitStructHash =
-            RePermitLib.hashWithWitness(permit, orderHash, OrderLib.WITNESS_TYPE_SUFFIX, address(reactorUut));
-        bytes32 permitDigest = IEIP712(repermit).hashTypedData(permitStructHash);
-        co.signature = _signRepermitForSpender(orderHash, address(reactorUut), co);
+        bytes32 permitDigest = permitDigestFor(co, address(reactorUut));
+        co.signature = permitFor(co, address(reactorUut));
 
-        ERC20Mock(address(token)).mint(signer, inMax);
-        hoax(signer);
-        ERC20Mock(address(token)).approve(repermit, inMax);
+        fundOrderInput(co);
 
         Execution memory ex = Execution({
             minAmountOut: 500 ether,
@@ -200,16 +165,13 @@ contract OrderReactorE2ETest is BaseTest {
 
         CosignedOrder memory co = order();
 
-        ERC20Mock(address(token)).mint(signer, inAmount);
-        hoax(signer);
-        ERC20Mock(address(token)).approve(repermit, inAmount);
+        fundOrderInput(co);
 
         cosignInValue = 1 ether;
         cosignOutValue = 0.7 ether;
         co = cosign(co);
 
-        bytes32 orderHash = OrderLib.hash(co.order);
-        co.signature = _signRepermitForSpender(orderHash, address(reactorUut), co);
+        co.signature = permitFor(co, address(reactorUut));
 
         Execution memory ex = Execution({
             minAmountOut: 0.5 ether,
@@ -229,5 +191,128 @@ contract OrderReactorE2ETest is BaseTest {
         uint256 before = ERC20Mock(outToken).balanceOf(recipient);
         exec.execute(co, ex);
         assertEq(ERC20Mock(outToken).balanceOf(recipient) - before, 0.5 ether);
+    }
+
+    function test_e2e_exclusivity_override_enforces_competitor_min_out() public {
+        inToken = address(token);
+        outToken = address(token2);
+        inAmount = 100;
+        inMax = inAmount;
+        outAmount = 100;
+        outMax = type(uint256).max;
+        adapter = address(new SwapAdapterMock());
+
+        CosignedOrder memory co = order();
+        co.order.exclusivity = 1_000; // 10% premium for non-designated executors
+
+        cosignInValue = 100;
+        cosignOutValue = 100;
+        co = cosign(co);
+        co.signature = permitFor(co, address(reactorUut));
+
+        fundOrderInput(co);
+
+        Executor competitor = new Executor(address(reactorUut), wm);
+
+        Execution memory ex = Execution({
+            minAmountOut: 100,
+            fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
+            data: hex""
+        });
+
+        ERC20Mock(outToken).mint(address(competitor), 100);
+        vm.expectRevert("ERC20: transfer amount exceeds balance");
+        competitor.execute(co, ex);
+
+        ERC20Mock(outToken).mint(address(competitor), 10);
+        vm.warp(block.timestamp + 1);
+        co = cosign(co);
+        competitor.execute(co, ex);
+
+        assertEq(ERC20Mock(outToken).balanceOf(recipient), 110);
+    }
+
+    function test_e2e_referral_surplus_distribution() public {
+        address ref = makeAddr("ref");
+        recipient = other;
+
+        inToken = address(token);
+        outToken = address(token2);
+        inAmount = 100;
+        inMax = inAmount;
+        outAmount = 500;
+        outMax = type(uint256).max;
+
+        CosignedOrder memory co = order();
+        co.order.exchange.ref = ref;
+        co.order.exchange.share = 1_500; // 15%
+
+        cosignInValue = 100;
+        cosignOutValue = 700;
+        co = cosign(co);
+        co.signature = permitFor(co, address(reactorUut));
+
+        fundOrderInput(co);
+
+        ERC20Mock(outToken).mint(address(exec), 1_000);
+        ERC20Mock(inToken).mint(address(exec), 200);
+
+        Execution memory ex = Execution({
+            minAmountOut: 550,
+            fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
+            data: abi.encodeWithSelector(MockDexRouter.doSwap.selector, inToken, inAmount, outToken, 600, address(exec))
+        });
+
+        uint256 recipientBefore = ERC20Mock(outToken).balanceOf(recipient);
+        uint256 refOutBefore = ERC20Mock(outToken).balanceOf(ref);
+        uint256 refInBefore = ERC20Mock(inToken).balanceOf(ref);
+        uint256 swapperOutBefore = ERC20Mock(outToken).balanceOf(signer);
+        uint256 swapperInBefore = ERC20Mock(inToken).balanceOf(signer);
+
+        exec.execute(co, ex);
+
+        assertEq(ERC20Mock(outToken).balanceOf(recipient) - recipientBefore, 700);
+
+        uint256 refOutGain = ERC20Mock(outToken).balanceOf(ref) - refOutBefore;
+        uint256 refInGain = ERC20Mock(inToken).balanceOf(ref) - refInBefore;
+        assertEq(refOutGain, 135);
+        assertEq(refInGain, 30);
+
+        uint256 swapperOutGain = ERC20Mock(outToken).balanceOf(signer) - swapperOutBefore;
+        uint256 swapperInGain = ERC20Mock(inToken).balanceOf(signer) - swapperInBefore;
+        assertEq(swapperOutGain, 765);
+        assertEq(swapperInGain, 70);
+    }
+
+    function test_e2e_executor_fee_payout() public {
+        address feeRecipient = makeAddr("feeRecipient");
+
+        inToken = address(token);
+        outToken = address(token2);
+        inAmount = 100;
+        inMax = inAmount;
+        outAmount = 100;
+        outMax = type(uint256).max;
+
+        CosignedOrder memory co = order();
+        cosignInValue = 100;
+        cosignOutValue = 100;
+        co = cosign(co);
+        co.signature = permitFor(co, address(reactorUut));
+
+        fundOrderInput(co);
+
+        uint256 feeAmount = 50;
+        ERC20Mock(inToken).mint(address(exec), feeAmount);
+
+        Execution memory ex = Execution({
+            minAmountOut: 100,
+            fee: Output({token: inToken, amount: feeAmount, recipient: feeRecipient, maxAmount: type(uint256).max}),
+            data: abi.encodeWithSelector(MockDexRouter.doSwap.selector, inToken, inAmount, outToken, 100, address(exec))
+        });
+
+        exec.execute(co, ex);
+
+        assertEq(ERC20Mock(inToken).balanceOf(feeRecipient), feeAmount);
     }
 }

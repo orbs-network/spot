@@ -1,12 +1,19 @@
 {
     "*": {
-        "wm": "",
-        "repermit": "",
+        "wm": "0x0000106E259F85cE9e2b6AeCEAc728fc79B30000",
+        "repermit": "0x0004637BB388Fe0eCb81ecFfCfBB3d0D54767000",
+        "cosigner": "0x0ce6D8386e5AF5B247Cdf8C27C7242125Acf5A77",
         "reactor": "",
-        "reactor2": "",
         "executor": ""
     },
-    "chains": [
-        "bnb"
-    ]
+    "56": {
+        "dex": {
+            "thena": {
+                "type": "default:openocean-v2",
+                "router": "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64",
+                "adapter": "0x2FCe94bDa47638a94bA8f0583A3905aD4C2c0933",
+                "fee": ""
+            }
+        }
+    }
 }

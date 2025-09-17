@@ -24,11 +24,7 @@ contract Refinery {
         wm = _wm;
     }
 
-    function execute(IMulticall3.Call3[] calldata calls)
-        external
-        onlyAllowed
-        returns (IMulticall3.Result[] memory)
-    {
+    function execute(IMulticall3.Call3[] calldata calls) external onlyAllowed returns (IMulticall3.Result[] memory) {
         return Multicall3Lib.aggregate3(calls);
     }
 

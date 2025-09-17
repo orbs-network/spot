@@ -23,17 +23,15 @@ contract UpdateWMWhitelist is BaseScript {
 
         string memory root = string.concat(vm.projectRoot(), "/script/input/");
 
-        address[] memory mainList = abi.decode(
-            vm.parseJson(vm.readFile(string.concat(root, WM_LIST_FILE))), (address[])
-        );
+        address[] memory mainList =
+            abi.decode(vm.parseJson(vm.readFile(string.concat(root, WM_LIST_FILE))), (address[]));
 
         uint256 limit = mainList.length < MAX_WHITELIST_SIZE ? mainList.length : MAX_WHITELIST_SIZE;
 
         require(limit > 0, "whitelist empty");
 
-        address[] memory incrementalList = abi.decode(
-            vm.parseJson(vm.readFile(string.concat(root, WM_EXTRA_LIST_FILE))), (address[])
-        );
+        address[] memory incrementalList =
+            abi.decode(vm.parseJson(vm.readFile(string.concat(root, WM_EXTRA_LIST_FILE))), (address[]));
 
         uint256 combinedLength = limit + incrementalList.length;
 
