@@ -11,5 +11,15 @@
         "url": "git+https://github.com/orbs-network/spot.git"
     },
     "license": "MIT",
-    "author": "danielz@orbs.com"
+    "author": "danielz@orbs.com",
+    "scripts": {
+        "fmt": "forge fmt",
+        "build": "forge build --extra-output-files abi",
+        "test": "forge test",
+        "prepublish": "npm run fmt && npm run build && npm run test"
+    },
+    "files": [
+        "script/input/",
+        "out/**/*.json"
+    ]
 }
