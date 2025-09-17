@@ -3,8 +3,9 @@
         "wm": "0x0000106E259F85cE9e2b6AeCEAc728fc79B30000",
         "repermit": "0x0004637BB388Fe0eCb81ecFfCfBB3d0D54767000",
         "cosigner": "0x0ce6D8386e5AF5B247Cdf8C27C7242125Acf5A77",
-        "reactor": "",
-        "executor": ""
+        "reactor": "0x00066dc9404716804e1280243E43dB080E553000",
+        "executor": "0x00076D4865b3D6eEc580671A10f0AeeFD207C000",
+        "refinery": "0x00039c4143f1c8DFf1187331EeB103Fd7e6ED000"
     },
     "56": {
         "dex": {
@@ -12,7 +13,7 @@
                 "type": "default:openocean-v2",
                 "router": "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64",
                 "adapter": "0x2FCe94bDa47638a94bA8f0583A3905aD4C2c0933",
-                "fee": ""
+                "fee": "0xfEE00A8608C00cE3659fC60Bb0F7BD022E05EcfE"
             }
         }
     }
