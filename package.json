@@ -1,0 +1,15 @@
+{
+    "name": "@orbs-network/spot",
+    "version": "0.0.1",
+    "description": "**A DeFi protocol for noncustodial advanced order types on EVM chains.**",
+    "homepage": "https://github.com/orbs-network/spot#readme",
+    "bugs": {
+        "url": "https://github.com/orbs-network/spot/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/orbs-network/spot.git"
+    },
+    "license": "MIT",
+    "author": "danielz@orbs.com"
+}

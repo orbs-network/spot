@@ -1,6 +1,6 @@
 # Spot — Limit, TWAP, Stop-Loss DeFi Protocol
 
-**A Solidity protocol for noncustodial advanced order types on EVM chains.**
+**A DeFi protocol for noncustodial advanced order types on EVM chains.**
 
 ## Who It's For
 
