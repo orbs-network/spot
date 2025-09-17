@@ -16,7 +16,7 @@
         "fmt": "forge fmt",
         "build": "forge build --extra-output-files abi",
         "test": "forge test",
-        "prepublish": "npm run fmt && npm run build && npm run test"
+        "prepublishOnly": "npm run fmt && npm run build && npm run test"
     },
     "files": [
         "script/input/",
