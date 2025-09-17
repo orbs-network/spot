@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import "forge-std/Test.sol";
 import {BaseTest} from "test/base/BaseTest.sol";
 import {DefaultDexAdapter} from "src/adapter/DefaultDexAdapter.sol";
-import {Execution} from "src/Structs.sol";
+import {Execution, CosignedOrder} from "src/Structs.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
-import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/Structs.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 import {MockDexRouter} from "test/mocks/MockDexRouter.sol";
 import {USDTMock} from "test/mocks/USDTMock.sol";
@@ -42,11 +40,7 @@ contract DefaultDexAdapterTest is BaseTest {
 
         bytes32 hash = OrderLib.hash(cosignedOrder.order);
         uint256 resolvedAmountOut = cosignedOrder.order.output.amount;
-        Execution memory x = Execution({
-            minAmountOut: 0,
-            fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
-            data: data
-        });
+        Execution memory x = executionWithData(0, data);
         adapterUut.delegateSwap(hash, resolvedAmountOut, cosignedOrder, x);
 
         // Check output token was minted to recipient
@@ -69,11 +63,7 @@ contract DefaultDexAdapterTest is BaseTest {
         bytes32 hash = OrderLib.hash(cosignedOrder.order);
         uint256 resolvedAmountOut = cosignedOrder.order.output.amount;
         vm.expectRevert();
-        Execution memory x = Execution({
-            minAmountOut: 0,
-            fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
-            data: data
-        });
+        Execution memory x = executionWithData(0, data);
         adapterUut.delegateSwap(hash, resolvedAmountOut, cosignedOrder, x);
     }
 
@@ -93,11 +83,7 @@ contract DefaultDexAdapterTest is BaseTest {
         bytes32 hash = OrderLib.hash(cosignedOrder.order);
         uint256 resolvedAmountOut = cosignedOrder.order.output.amount;
         vm.expectRevert("Mock swap failed");
-        Execution memory x = Execution({
-            minAmountOut: 0,
-            fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
-            data: data
-        });
+        Execution memory x = executionWithData(0, data);
         adapterUut.delegateSwap(hash, resolvedAmountOut, cosignedOrder, x);
     }
 
@@ -125,11 +111,7 @@ contract DefaultDexAdapterTest is BaseTest {
         // Should not revert despite USDT-like behavior
         bytes32 hash = OrderLib.hash(cosignedOrder.order);
         uint256 resolvedAmountOut = cosignedOrder.order.output.amount;
-        Execution memory x = Execution({
-            minAmountOut: 0,
-            fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
-            data: data
-        });
+        Execution memory x = executionWithData(0, data);
         adapterUut.delegateSwap(hash, resolvedAmountOut, cosignedOrder, x);
 
         // After swap, allowance should be 0 (consumed by transferFrom)

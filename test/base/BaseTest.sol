@@ -149,6 +149,22 @@ abstract contract BaseTest is Test, BaseScript {
         });
     }
 
+    function executionWithData(uint256 minOut, bytes memory data) internal pure returns (Execution memory ex) {
+        ex = execution(minOut, address(0), 0, address(0));
+        ex.data = data;
+    }
+
+    function executionWithFee(
+        uint256 minOut,
+        address feeToken,
+        uint256 feeAmount,
+        address feeRecipient,
+        bytes memory data
+    ) internal pure returns (Execution memory ex) {
+        ex = execution(minOut, feeToken, feeAmount, feeRecipient);
+        ex.data = data;
+    }
+
     function permitSignature(Order memory ord, address spender) internal view returns (bytes memory) {
         return signEIP712(repermit, signerPK, hashRePermit(ord, spender));
     }

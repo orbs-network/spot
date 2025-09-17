@@ -1,12 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import "forge-std/Test.sol";
-
 import {BaseTest} from "test/base/BaseTest.sol";
 
 import {Executor} from "src/executor/Executor.sol";
-import {SettlementLib} from "src/executor/lib/SettlementLib.sol";
 import {Execution} from "src/Structs.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -78,11 +75,7 @@ contract ExecutorTest is BaseTest {
         (uint256 minAmountOut, Output memory fee, bytes memory data) = reactorMock.lastExecution();
         Execution memory actualExecution = Execution({minAmountOut: minAmountOut, fee: fee, data: data});
 
-        Execution memory expectedExecution = Execution({
-            minAmountOut: 0,
-            fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
-            data: hex""
-        });
+        Execution memory expectedExecution = execution(0, address(0), 0, address(0));
         assertEq(keccak256(abi.encode(actualExecution)), keccak256(abi.encode(expectedExecution)));
     }
 
@@ -112,16 +105,7 @@ contract ExecutorTest is BaseTest {
         bytes32 orderHash = OrderLib.hash(co.order);
 
         vm.expectRevert(abi.encodeWithSelector(Executor.InvalidSender.selector));
-        exec.reactorCallback(
-            orderHash,
-            co.order.output.amount, // resolvedAmountOut
-            co,
-            Execution({
-                minAmountOut: 0,
-                fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
-                data: hex""
-            })
-        );
+        exec.reactorCallback(orderHash, co.order.output.amount, co, execution(0, address(0), 0, address(0)));
     }
 
     function test_reactorCallback_executes_multicall_and_sets_erc20_approval() public {
@@ -141,16 +125,7 @@ contract ExecutorTest is BaseTest {
 
         // call from reactor
         vm.prank(address(reactorMock));
-        exec.reactorCallback(
-            orderHash,
-            co.order.output.amount, // resolvedAmountOut
-            co,
-            Execution({
-                minAmountOut: 0,
-                fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
-                data: hex""
-            })
-        );
+        exec.reactorCallback(orderHash, co.order.output.amount, co, execution(0, address(0), 0, address(0)));
 
         // multicall executed: executor now holds minted tokens
         assertEq(ERC20Mock(address(token)).balanceOf(address(exec)), 1e18);
@@ -184,16 +159,7 @@ contract ExecutorTest is BaseTest {
 
         // call from reactor; should internally forceApprove to exact amount (approve(0) then approve(1234))
         vm.prank(address(reactorMock));
-        exec.reactorCallback(
-            orderHash,
-            co.order.output.amount, // resolvedAmountOut
-            co,
-            Execution({
-                minAmountOut: 0,
-                fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
-                data: hex""
-            })
-        );
+        exec.reactorCallback(orderHash, co.order.output.amount, co, execution(0, address(0), 0, address(0)));
 
         // final allowance set to exact amount
         assertEq(IERC20(address(usdt)).allowance(address(exec), address(reactorMock)), 1234);
@@ -216,16 +182,7 @@ contract ExecutorTest is BaseTest {
 
         uint256 beforeBal = address(reactorMock).balance;
         vm.prank(address(reactorMock));
-        exec.reactorCallback(
-            orderHash,
-            co.order.output.amount, // resolvedAmountOut
-            co,
-            Execution({
-                minAmountOut: 0,
-                fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
-                data: hex""
-            })
-        );
+        exec.reactorCallback(orderHash, co.order.output.amount, co, execution(0, address(0), 0, address(0)));
         assertEq(address(reactorMock).balance, beforeBal + 987);
     }
 
@@ -244,16 +201,7 @@ contract ExecutorTest is BaseTest {
 
         // should not revert; also sets approval for reactor
         vm.prank(address(reactorMock));
-        exec.reactorCallback(
-            orderHash,
-            co.order.output.amount, // resolvedAmountOut
-            co,
-            Execution({
-                minAmountOut: 0,
-                fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
-                data: hex""
-            })
-        );
+        exec.reactorCallback(orderHash, co.order.output.amount, co, execution(0, address(0), 0, address(0)));
         assertEq(IERC20(address(token)).allowance(address(exec), address(reactorMock)), 100);
     }
 
@@ -274,7 +222,7 @@ contract ExecutorTest is BaseTest {
     //         ros,
     //         abi.encode(
     //             address(adapter),
-    //             SettlementLib.Execution({
+    //             Execution({
     //                 fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
     //                 minAmountOut: 0,
     //                 data: hex""
@@ -299,16 +247,7 @@ contract ExecutorTest is BaseTest {
 
         uint256 before = ERC20Mock(address(token2)).balanceOf(signer);
         vm.prank(address(reactorMock));
-        exec.reactorCallback(
-            orderHash,
-            co.order.output.amount, // resolvedAmountOut
-            co,
-            Execution({
-                minAmountOut: 600,
-                fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
-                data: hex""
-            })
-        );
+        exec.reactorCallback(orderHash, co.order.output.amount, co, execution(600, address(0), 0, address(0)));
         assertEq(ERC20Mock(address(token2)).balanceOf(signer), before + 100);
     }
 

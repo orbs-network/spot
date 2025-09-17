@@ -1,18 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import "forge-std/Test.sol";
-
 import {BaseTest} from "test/base/BaseTest.sol";
 import {Executor} from "src/executor/Executor.sol";
 import {OrderReactor} from "src/reactor/OrderReactor.sol";
 import {DefaultDexAdapter} from "src/adapter/DefaultDexAdapter.sol";
-import {Execution} from "src/Structs.sol";
+import {Execution, CosignedOrder} from "src/Structs.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {RePermit} from "src/repermit/RePermit.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 import {MockDexRouter} from "test/mocks/MockDexRouter.sol";
-import {CosignedOrder, Output} from "src/Structs.sol";
 import {SwapAdapterMock} from "test/mocks/SwapAdapter.sol";
 import {ResolutionLib} from "src/reactor/lib/ResolutionLib.sol";
 
@@ -59,11 +56,10 @@ contract OrderReactorE2ETest is BaseTest {
         co = cosign(co);
         co.signature = permitFor(co, address(reactorUut));
 
-        Execution memory ex = Execution({
-            minAmountOut: 600 ether,
-            fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
-            data: abi.encodeWithSelector(MockDexRouter.doSwap.selector, inToken, inAmount, outToken, 0, address(exec))
-        });
+        Execution memory ex = executionWithData(
+            600 ether,
+            abi.encodeWithSelector(MockDexRouter.doSwap.selector, inToken, inAmount, outToken, 0, address(exec))
+        );
 
         uint256 before = ERC20Mock(outToken).balanceOf(recipient);
         exec.execute(co, ex);
@@ -91,11 +87,7 @@ contract OrderReactorE2ETest is BaseTest {
         co = cosign(co);
         co.signature = permitFor(co, address(reactorUut));
 
-        Execution memory ex = Execution({
-            minAmountOut: 1 ether,
-            fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
-            data: hex""
-        });
+        Execution memory ex = execution(1 ether, address(0), 0, address(0));
 
         uint256 before = recipient.balance;
         exec.execute(co, ex);
@@ -126,13 +118,10 @@ contract OrderReactorE2ETest is BaseTest {
 
         fundOrderInput(co);
 
-        Execution memory ex = Execution({
-            minAmountOut: 500 ether,
-            fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
-            data: abi.encodeWithSelector(
-                MockDexRouter.doSwap.selector, inToken, inAmount, outToken, 500 ether, address(exec)
-            )
-        });
+        Execution memory ex = executionWithData(
+            500 ether,
+            abi.encodeWithSelector(MockDexRouter.doSwap.selector, inToken, inAmount, outToken, 500 ether, address(exec))
+        );
 
         uint256 before = ERC20Mock(outToken).balanceOf(recipient);
         exec.execute(co, ex);
@@ -173,13 +162,10 @@ contract OrderReactorE2ETest is BaseTest {
 
         co.signature = permitFor(co, address(reactorUut));
 
-        Execution memory ex = Execution({
-            minAmountOut: 0.5 ether,
-            fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
-            data: abi.encodeWithSelector(
-                MockDexRouter.doSwap.selector, inToken, inAmount, outToken, 0.5 ether, address(exec)
-            )
-        });
+        Execution memory ex = executionWithData(
+            0.5 ether,
+            abi.encodeWithSelector(MockDexRouter.doSwap.selector, inToken, inAmount, outToken, 0.5 ether, address(exec))
+        );
 
         vm.expectRevert(ResolutionLib.CosignedMaxAmount.selector);
         exec.execute(co, ex);
@@ -214,11 +200,7 @@ contract OrderReactorE2ETest is BaseTest {
 
         Executor competitor = new Executor(address(reactorUut), wm);
 
-        Execution memory ex = Execution({
-            minAmountOut: 100,
-            fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
-            data: hex""
-        });
+        Execution memory ex = execution(100, address(0), 0, address(0));
 
         ERC20Mock(outToken).mint(address(competitor), 100);
         vm.expectRevert("ERC20: transfer amount exceeds balance");
@@ -257,11 +239,9 @@ contract OrderReactorE2ETest is BaseTest {
         ERC20Mock(outToken).mint(address(exec), 1_000);
         ERC20Mock(inToken).mint(address(exec), 200);
 
-        Execution memory ex = Execution({
-            minAmountOut: 550,
-            fee: Output({token: address(0), amount: 0, recipient: address(0), maxAmount: type(uint256).max}),
-            data: abi.encodeWithSelector(MockDexRouter.doSwap.selector, inToken, inAmount, outToken, 600, address(exec))
-        });
+        Execution memory ex = executionWithData(
+            550, abi.encodeWithSelector(MockDexRouter.doSwap.selector, inToken, inAmount, outToken, 600, address(exec))
+        );
 
         uint256 recipientBefore = ERC20Mock(outToken).balanceOf(recipient);
         uint256 refOutBefore = ERC20Mock(outToken).balanceOf(ref);
@@ -305,11 +285,13 @@ contract OrderReactorE2ETest is BaseTest {
         uint256 feeAmount = 50;
         ERC20Mock(inToken).mint(address(exec), feeAmount);
 
-        Execution memory ex = Execution({
-            minAmountOut: 100,
-            fee: Output({token: inToken, amount: feeAmount, recipient: feeRecipient, maxAmount: type(uint256).max}),
-            data: abi.encodeWithSelector(MockDexRouter.doSwap.selector, inToken, inAmount, outToken, 100, address(exec))
-        });
+        Execution memory ex = executionWithFee(
+            100,
+            inToken,
+            feeAmount,
+            feeRecipient,
+            abi.encodeWithSelector(MockDexRouter.doSwap.selector, inToken, inAmount, outToken, 100, address(exec))
+        );
 
         exec.execute(co, ex);
 
