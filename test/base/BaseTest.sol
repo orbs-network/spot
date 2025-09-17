@@ -5,16 +5,16 @@ import "forge-std/Test.sol";
 
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 
-import {BaseScript} from "script/base/BaseScript.sol";
-
 import {WM} from "src/WM.sol";
 import {RePermit} from "src/repermit/RePermit.sol";
+import {RePermitLib} from "src/repermit/RePermitLib.sol";
 import {OrderLib} from "src/reactor/lib/OrderLib.sol";
 import {Execution} from "src/Structs.sol";
 import {IEIP712} from "src/interface/IEIP712.sol";
+import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/Structs.sol";
 
-abstract contract BaseTest is Test, BaseScript {
+abstract contract BaseTest is Test {
     address public wm;
     address public repermit;
     // Base vars used by helpers; suites may override
@@ -42,8 +42,7 @@ abstract contract BaseTest is Test, BaseScript {
 
     uint256 internal _nextNonce;
 
-    function setUp() public virtual override {
-        super.setUp();
+    function setUp() public virtual {
         wm = address(new WM(address(this)));
         vm.label(wm, "wm");
 
@@ -163,6 +162,41 @@ abstract contract BaseTest is Test, BaseScript {
     ) internal pure returns (Execution memory ex) {
         ex = execution(minOut, feeToken, feeAmount, feeRecipient);
         ex.data = data;
+    }
+
+    function signEIP712(address eip712, uint256 privateKey, bytes32 hash) internal view returns (bytes memory sig) {
+        bytes32 msgHash = ECDSA.toTypedDataHash(IEIP712(eip712).DOMAIN_SEPARATOR(), hash);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, msgHash);
+        sig = bytes.concat(r, s, bytes1(v));
+    }
+
+    function hashRePermit(
+        address _token,
+        uint256 amount,
+        uint256 nonce,
+        uint256 deadline,
+        bytes32 witness,
+        string memory witnessTypeSuffix,
+        address spender
+    ) internal pure returns (bytes32) {
+        return RePermitLib.hashWithWitness(
+            RePermitLib.RePermitTransferFrom(RePermitLib.TokenPermissions(_token, amount), nonce, deadline),
+            witness,
+            witnessTypeSuffix,
+            spender
+        );
+    }
+
+    function hashRePermit(Order memory _order, address spender) internal pure returns (bytes32) {
+        return hashRePermit(
+            _order.input.token,
+            _order.input.maxAmount,
+            _order.nonce,
+            _order.deadline,
+            OrderLib.hash(_order),
+            OrderLib.WITNESS_TYPE_SUFFIX,
+            spender
+        );
     }
 
     function permitSignature(Order memory ord, address spender) internal view returns (bytes memory) {

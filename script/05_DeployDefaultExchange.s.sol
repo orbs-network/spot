@@ -3,10 +3,9 @@ pragma solidity 0.8.20;
 
 import "forge-std/Script.sol";
 
-import {BaseScript} from "script/base/BaseScript.sol";
 import {DefaultDexAdapter} from "src/adapter/DefaultDexAdapter.sol";
 
-contract DeployDefaultExchange is BaseScript {
+contract DeployDefaultExchange is Script {
     function run() public returns (address exchange) {
         address router = vm.envAddress("ROUTER");
         bytes32 salt = vm.envOr("SALT", bytes32(0));

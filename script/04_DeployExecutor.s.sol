@@ -3,10 +3,9 @@ pragma solidity 0.8.20;
 
 import "forge-std/Script.sol";
 
-import {BaseScript} from "script/base/BaseScript.sol";
 import {Executor} from "src/executor/Executor.sol";
 
-contract DeployExecutor is BaseScript {
+contract DeployExecutor is Script {
     function run() public returns (address executor) {
         address reactor = vm.envAddress("REACTOR");
         address wm = vm.envAddress("WM");

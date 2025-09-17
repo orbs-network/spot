@@ -3,11 +3,9 @@ pragma solidity 0.8.20;
 
 import "forge-std/Script.sol";
 
-import {BaseScript} from "script/base/BaseScript.sol";
-
 import {OrderReactor} from "src/reactor/OrderReactor.sol";
 
-contract DeployReactor is BaseScript {
+contract DeployReactor is Script {
     function run() public returns (address reactor) {
         address repermit = vm.envAddress("REPERMIT");
         address cosigner = vm.envAddress("COSIGNER");

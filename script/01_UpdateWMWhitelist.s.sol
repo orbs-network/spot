@@ -3,11 +3,9 @@ pragma solidity 0.8.20;
 
 import "forge-std/Script.sol";
 
-import {BaseScript} from "script/base/BaseScript.sol";
-
 import {WM} from "src/WM.sol";
 
-contract UpdateWMWhitelist is BaseScript {
+contract UpdateWMWhitelist is Script {
     uint256 public constant BATCH_SIZE = 300;
     uint256 public constant MAX_WHITELIST_SIZE = 200;
     string internal constant WM_LIST_FILE = "wm.json";
