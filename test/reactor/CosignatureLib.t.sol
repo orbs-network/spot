@@ -115,6 +115,22 @@ contract CosignatureLibTest is BaseTest {
         this.callValidateCosignature(co, other);
     }
 
+    function test_validateCosignature_reverts_invalidSignature() public {
+        freshness = 300;
+        inMax = 2_000;
+        outAmount = 500;
+        outMax = 5_000;
+        cosignInValue = 100;
+        cosignOutValue = 200;
+        CosignedOrder memory co = order();
+        co = cosign(co);
+        bytes memory sig = co.cosignature;
+        sig[0] = bytes1(uint8(sig[0]) ^ 0x01); // flip a bit so the signature verification fails
+        co.cosignature = sig;
+        vm.expectRevert(CosignatureLib.InvalidCosignature.selector);
+        this.callValidateCosignature(co, signer);
+    }
+
     function test_validateCosignature_reverts_invalidReactor() public {
         freshness = 300;
         inMax = 2_000;

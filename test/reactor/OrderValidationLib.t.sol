@@ -211,4 +211,35 @@ contract OrderValidationLibTest is BaseTest {
         vm.expectRevert(OrderValidationLib.InvalidOrderDeadlineExpired.selector);
         this.callValidate(co);
     }
+
+    function test_validate_reverts_chainid_mismatch() public {
+        reactor = address(this);
+        executor = address(this);
+        adapter = address(this);
+        inToken = address(token);
+        outToken = address(token2);
+        inAmount = 100;
+        inMax = 200;
+        outAmount = 50;
+        outMax = 100;
+        CosignedOrder memory co = order();
+        co.order.chainid = block.chainid + 1;
+        vm.expectRevert(OrderValidationLib.InvalidOrderChainid.selector);
+        this.callValidate(co);
+    }
+
+    function test_validate_reverts_reactor_mismatch() public {
+        executor = address(this);
+        adapter = address(this);
+        inToken = address(token);
+        outToken = address(token2);
+        inAmount = 100;
+        inMax = 200;
+        outAmount = 50;
+        outMax = 100;
+        reactor = makeAddr("reactorMismatch");
+        CosignedOrder memory co = order();
+        vm.expectRevert(OrderValidationLib.InvalidOrderReactorMismatch.selector);
+        this.callValidate(co);
+    }
 }

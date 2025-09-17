@@ -12,6 +12,10 @@ contract EpochLibTest is Test {
         EpochLib.update(epochs, h, interval);
     }
 
+    function callEpochWithReturn(bytes32 h, uint256 interval) external returns (uint256) {
+        return EpochLib.update(epochs, h, interval);
+    }
+
     function setUp() public {
         vm.warp(1 days);
     }
@@ -52,5 +56,14 @@ contract EpochLibTest is Test {
         // Then advance to a bucket where h1 advances
         vm.warp(1 days + 59);
         this.callEpoch(h1, interval);
+    }
+
+    function test_epoch_returns_current_bucket() public {
+        bytes32 h = keccak256("epoch:return");
+        uint256 interval = 120;
+        uint256 expectedCurrent = (block.timestamp + (uint256(h) % interval)) / interval;
+        uint256 current = this.callEpochWithReturn(h, interval);
+        assertEq(current, expectedCurrent);
+        assertEq(epochs[h], expectedCurrent + 1);
     }
 }
