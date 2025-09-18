@@ -25,6 +25,12 @@ library OrderValidationLib {
     error InvalidOrderChainid();
     error InvalidOrderExchangeShareBps();
 
+    /// @dev Validates order structure and business logic constraints for security
+    /// 1. Ensures critical addresses are non-zero (reactor, executor, adapter, swapper)
+    /// 2. Validates timing constraints (deadline not expired, correct chain ID)
+    /// 3. Ensures reactor address matches the calling contract (prevents cross-reactor attacks)
+    /// 4. Validates token amounts and limits (non-zero input, amounts within max limits)
+    /// 5. Enforces protocol limits (slippage caps, referrer share limits)
     function validate(Order memory order) internal view {
         // Validate non-zero critical addresses
         if (order.reactor == address(0)) revert InvalidOrderReactorZero();

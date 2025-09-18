@@ -22,6 +22,11 @@ library CosignatureLib {
     error InvalidFreshness();
     error InvalidFreshnessVsEpoch();
 
+    /// @dev Validates cosignature authenticity and data consistency for price attestation
+    /// 1. Validates timestamp constraints (not future, within freshness window, vs epoch)
+    /// 2. Ensures cosignature data matches order fields (reactor, chainid, cosigner, tokens)
+    /// 3. Validates price data integrity (non-zero input/output values)
+    /// 4. Checks signature validity using EIP-712 typed data hash verification
     function validate(CosignedOrder memory cosigned, address cosigner, address eip712) internal view {
         if (cosigned.cosignatureData.timestamp > block.timestamp) revert FutureCosignatureTimestamp();
         if (cosigned.order.freshness == 0) revert InvalidFreshness();

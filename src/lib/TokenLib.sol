@@ -28,6 +28,10 @@ library TokenLib {
         }
     }
 
+    /// @dev Prepares tokens for spending by setting appropriate allowances or transferring ETH
+    /// 1. For zero amounts, performs no operation to save gas
+    /// 2. For native ETH (address(0)), immediately transfers to the recipient
+    /// 3. For ERC20 tokens, sets exact allowance using forceApprove for USDT-like token compatibility
     function prepareFor(address token, address spenderOrRecipient, uint256 amount) internal {
         if (amount == 0) return;
         if (token == address(0)) {

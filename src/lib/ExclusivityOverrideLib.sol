@@ -13,6 +13,10 @@ library ExclusivityOverrideLib {
     /// @param exclusiveExecutor The address that has exclusive execution rights
     /// @param exclusivityBps The exclusivity override in basis points
     /// @return The adjusted minimum output amount
+    /// @dev Implements competitive execution mechanics for exclusive orders
+    /// 1. If sender is not exclusive executor and no override is set, revert
+    /// 2. If sender is exclusive executor, return original minOut (no penalty)
+    /// 3. For non-exclusive senders, increase minOut by exclusivityBps to create competitive advantage
 
     function applyExclusivityOverride(uint256 minOut, address exclusiveExecutor, uint32 exclusivityBps)
         internal
