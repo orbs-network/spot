@@ -5,7 +5,7 @@ import "forge-std/Test.sol";
 
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 
-import {WM} from "src/WM.sol";
+import {WM} from "src/ops/WM.sol";
 import {RePermit} from "src/repermit/RePermit.sol";
 import {RePermitLib} from "src/lib/RePermitLib.sol";
 import {OrderLib} from "src/lib/OrderLib.sol";

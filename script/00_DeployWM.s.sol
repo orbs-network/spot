@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import "forge-std/Script.sol";
 
-import {WM} from "src/WM.sol";
+import {WM} from "src/ops/WM.sol";
 import {UpdateWMWhitelist} from "script/01_UpdateWMWhitelist.s.sol";
 
 contract DeployWM is Script {
