@@ -5,7 +5,7 @@ import {Vm} from "forge-std/Vm.sol";
 
 import {BaseTest} from "test/base/BaseTest.sol";
 
-import {WM} from "src/WM.sol";
+import {WM} from "src/ops/WM.sol";
 
 contract WMTest is BaseTest {
     WM public uut;

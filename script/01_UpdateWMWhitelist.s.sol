@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import "forge-std/Script.sol";
 
-import {WM} from "src/WM.sol";
+import {WM} from "src/ops/WM.sol";
 
 contract UpdateWMWhitelist is Script {
     uint256 public constant BATCH_SIZE = 300;
