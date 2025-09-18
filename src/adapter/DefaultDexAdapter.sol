@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 import {IExchangeAdapter} from "src/interface/IExchangeAdapter.sol";
-import {OrderLib} from "src/reactor/lib/OrderLib.sol";
+import {OrderLib} from "src/lib/OrderLib.sol";
 import {CosignedOrder, Execution} from "src/Structs.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";

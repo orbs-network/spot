@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import "forge-std/Script.sol";
 
-import {Refinery} from "src/Refinery.sol";
+import {Refinery} from "src/ops/Refinery.sol";
 
 contract DeployRefinery is Script {
     function run() public returns (address refinery) {

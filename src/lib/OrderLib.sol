@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import {RePermitLib} from "src/repermit/RePermitLib.sol";
+import {RePermitLib} from "src/lib/RePermitLib.sol";
 import {Input, Output, Exchange, Order, CosignedValue, Cosignature, CosignedOrder} from "src/Structs.sol";
 
 library OrderLib {

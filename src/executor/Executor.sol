@@ -3,13 +3,13 @@ pragma solidity 0.8.20;
 
 import {IReactor} from "src/interface/IReactor.sol";
 import {IReactorCallback} from "src/interface/IReactorCallback.sol";
-import {OrderLib} from "src/reactor/lib/OrderLib.sol";
+import {OrderLib} from "src/lib/OrderLib.sol";
 import {CosignedOrder, Execution} from "src/Structs.sol";
 import {IWM} from "src/interface/IWM.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
-import {SurplusLib} from "src/executor/lib/SurplusLib.sol";
+import {SurplusLib} from "src/lib/SurplusLib.sol";
 import {IExchangeAdapter} from "src/interface/IExchangeAdapter.sol";
-import {SettlementLib} from "src/executor/lib/SettlementLib.sol";
+import {SettlementLib} from "src/lib/SettlementLib.sol";
 
 contract Executor is IReactorCallback {
     error InvalidSender();

@@ -7,8 +7,8 @@ import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 
 import {WM} from "src/WM.sol";
 import {RePermit} from "src/repermit/RePermit.sol";
-import {RePermitLib} from "src/repermit/RePermitLib.sol";
-import {OrderLib} from "src/reactor/lib/OrderLib.sol";
+import {RePermitLib} from "src/lib/RePermitLib.sol";
+import {OrderLib} from "src/lib/OrderLib.sol";
 import {Execution} from "src/Structs.sol";
 import {IEIP712} from "src/interface/IEIP712.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";

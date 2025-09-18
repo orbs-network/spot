@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import "forge-std/Test.sol";
 
-import {EpochLib} from "src/reactor/lib/EpochLib.sol";
+import {EpochLib} from "src/lib/EpochLib.sol";
 
 contract EpochLibTest is Test {
     mapping(bytes32 => uint256) internal epochs;

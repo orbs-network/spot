@@ -7,7 +7,7 @@ import {SignatureChecker} from "@openzeppelin/contracts/utils/cryptography/Signa
 
 import {IEIP712} from "src/interface/IEIP712.sol";
 
-import {RePermitLib} from "./RePermitLib.sol";
+import {RePermitLib} from "src/lib/RePermitLib.sol";
 
 contract RePermit is EIP712, IEIP712 {
     using SafeERC20 for IERC20;
