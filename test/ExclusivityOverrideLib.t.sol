@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 import {BaseTest} from "test/base/BaseTest.sol";
-import {ExclusivityOverrideLib} from "src/reactor/lib/ExclusivityOverrideLib.sol";
+import {ExclusivityOverrideLib} from "src/libs/ExclusivityOverrideLib.sol";
 
 // Helper contract to properly test msg.sender context
 contract ExclusivityCaller {

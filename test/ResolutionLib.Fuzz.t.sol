@@ -3,8 +3,8 @@ pragma solidity 0.8.20;
 
 import {BaseTest} from "test/base/BaseTest.sol";
 
-import {ResolutionLib} from "src/reactor/lib/ResolutionLib.sol";
-import {OrderLib} from "src/reactor/lib/OrderLib.sol";
+import {ResolutionLib} from "src/libs/ResolutionLib.sol";
+import {OrderLib} from "src/libs/OrderLib.sol";
 import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/Structs.sol";
 import {Constants} from "src/reactor/Constants.sol";
 

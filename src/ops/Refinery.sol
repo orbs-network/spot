@@ -5,8 +5,8 @@ import {IMulticall3} from "forge-std/interfaces/IMulticall3.sol";
 
 import {IWM} from "src/interface/IWM.sol";
 import {Constants} from "src/reactor/Constants.sol";
-import {TokenLib} from "src/executor/lib/TokenLib.sol";
-import {Multicall3Lib} from "src/utils/Multicall3Lib.sol";
+import {TokenLib} from "src/libs/TokenLib.sol";
+import {Multicall3Lib} from "src/libs/Multicall3Lib.sol";
 
 contract Refinery {
     address public immutable wm;

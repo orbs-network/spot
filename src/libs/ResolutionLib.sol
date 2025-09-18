@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
-import {OrderLib} from "src/reactor/lib/OrderLib.sol";
+import {OrderLib} from "src/libs/OrderLib.sol";
 import {CosignedOrder} from "src/Structs.sol";
 import {Constants} from "src/reactor/Constants.sol";
 

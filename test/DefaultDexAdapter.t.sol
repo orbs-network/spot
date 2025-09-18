@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import {BaseTest} from "test/base/BaseTest.sol";
 import {DefaultDexAdapter} from "src/adapter/DefaultDexAdapter.sol";
 import {Execution, CosignedOrder} from "src/Structs.sol";
-import {OrderLib} from "src/reactor/lib/OrderLib.sol";
+import {OrderLib} from "src/libs/OrderLib.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 import {MockDexRouter} from "test/mocks/MockDexRouter.sol";
 import {USDTMock} from "test/mocks/USDTMock.sol";
