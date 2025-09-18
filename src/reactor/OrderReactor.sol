@@ -3,18 +3,18 @@ pragma solidity 0.8.20;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IReactorCallback} from "src/interface/IReactorCallback.sol";
-import {OrderLib} from "src/libs/OrderLib.sol";
+import {OrderLib} from "src/lib/OrderLib.sol";
 import {CosignedOrder, Execution} from "src/Structs.sol";
-import {TokenLib} from "src/libs/TokenLib.sol";
-import {SettlementLib} from "src/libs/SettlementLib.sol";
+import {TokenLib} from "src/lib/TokenLib.sol";
+import {SettlementLib} from "src/lib/SettlementLib.sol";
 
 import {RePermit} from "src/repermit/RePermit.sol";
-import {RePermitLib} from "src/libs/RePermitLib.sol";
-import {OrderValidationLib} from "src/libs/OrderValidationLib.sol";
-import {CosignatureLib} from "src/libs/CosignatureLib.sol";
-import {EpochLib} from "src/libs/EpochLib.sol";
-import {ResolutionLib} from "src/libs/ResolutionLib.sol";
-import {ExclusivityOverrideLib} from "src/libs/ExclusivityOverrideLib.sol";
+import {RePermitLib} from "src/lib/RePermitLib.sol";
+import {OrderValidationLib} from "src/lib/OrderValidationLib.sol";
+import {CosignatureLib} from "src/lib/CosignatureLib.sol";
+import {EpochLib} from "src/lib/EpochLib.sol";
+import {ResolutionLib} from "src/lib/ResolutionLib.sol";
+import {ExclusivityOverrideLib} from "src/lib/ExclusivityOverrideLib.sol";
 
 /// @title OrderReactor
 /// @notice Verifies and settles cosigned orders via an executor callback.

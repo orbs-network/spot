@@ -6,12 +6,12 @@ import {Executor} from "src/executor/Executor.sol";
 import {OrderReactor} from "src/reactor/OrderReactor.sol";
 import {DefaultDexAdapter} from "src/adapter/DefaultDexAdapter.sol";
 import {Execution, CosignedOrder} from "src/Structs.sol";
-import {OrderLib} from "src/libs/OrderLib.sol";
+import {OrderLib} from "src/lib/OrderLib.sol";
 import {RePermit} from "src/repermit/RePermit.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 import {MockDexRouter} from "test/mocks/MockDexRouter.sol";
 import {SwapAdapterMock} from "test/mocks/SwapAdapter.sol";
-import {ResolutionLib} from "src/libs/ResolutionLib.sol";
+import {ResolutionLib} from "src/lib/ResolutionLib.sol";
 
 contract OrderReactorE2ETest is BaseTest {
     OrderReactor public reactorUut;

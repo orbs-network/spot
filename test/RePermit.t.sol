@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import {BaseTest} from "test/base/BaseTest.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {RePermit} from "src/repermit/RePermit.sol";
-import {RePermitLib} from "src/libs/RePermitLib.sol";
+import {RePermitLib} from "src/lib/RePermitLib.sol";
 
 contract RePermitTest is BaseTest {
     RePermit uut;

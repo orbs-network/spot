@@ -3,8 +3,8 @@ pragma solidity 0.8.20;
 
 import {BaseTest} from "test/base/BaseTest.sol";
 
-import {CosignatureLib} from "src/libs/CosignatureLib.sol";
-import {OrderLib} from "src/libs/OrderLib.sol";
+import {CosignatureLib} from "src/lib/CosignatureLib.sol";
+import {OrderLib} from "src/lib/OrderLib.sol";
 import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/Structs.sol";
 import {RePermit} from "src/repermit/RePermit.sol";
 

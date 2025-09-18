@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import {OrderLib} from "src/libs/OrderLib.sol";
-import {TokenLib} from "src/libs/TokenLib.sol";
+import {OrderLib} from "src/lib/OrderLib.sol";
+import {TokenLib} from "src/lib/TokenLib.sol";
 import {Output, CosignedOrder, Execution} from "src/Structs.sol";
 
 library SettlementLib {

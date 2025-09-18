@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import {IReactor} from "src/interface/IReactor.sol";
 import {IReactorCallback} from "src/interface/IReactorCallback.sol";
-import {OrderLib} from "src/libs/OrderLib.sol";
+import {OrderLib} from "src/lib/OrderLib.sol";
 import {CosignedOrder, Execution} from "src/Structs.sol";
 
 contract MockReactor is IReactor {

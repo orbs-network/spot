@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import {OrderValidationLib} from "src/libs/OrderValidationLib.sol";
-import {OrderLib} from "src/libs/OrderLib.sol";
+import {OrderValidationLib} from "src/lib/OrderValidationLib.sol";
+import {OrderLib} from "src/lib/OrderLib.sol";
 import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/Structs.sol";
 import {Constants} from "src/reactor/Constants.sol";
 import {BaseTest} from "test/base/BaseTest.sol";
