@@ -5,7 +5,8 @@ import {OrderLib} from "src/lib/OrderLib.sol";
 import {CosignedOrder} from "src/Structs.sol";
 import {Execution} from "src/Structs.sol";
 
-/// @notice Callback for executing orders through a reactor.
+/// @title Reactor callback interface
+/// @notice Callback for executing orders through a reactor
 interface IReactorCallback {
     /// @notice Called by the reactor during the execution of an order
     /// @param hash The hash of the order

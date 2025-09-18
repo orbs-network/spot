@@ -4,6 +4,8 @@ pragma solidity 0.8.20;
 import {RePermitLib} from "src/lib/RePermitLib.sol";
 import {Input, Output, Exchange, Order, CosignedValue, Cosignature, CosignedOrder} from "src/Structs.sol";
 
+/// @title Order hashing library
+/// @notice EIP-712 structured data hashing for orders and cosignatures
 library OrderLib {
     string internal constant INPUT_TYPE = "Input(address token,uint256 amount,uint256 maxAmount)";
     bytes32 internal constant INPUT_TYPE_HASH = keccak256(bytes(INPUT_TYPE));

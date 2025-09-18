@@ -3,6 +3,8 @@ pragma solidity 0.8.20;
 
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 
+/// @title Allowlist management contract
+/// @notice Two-step ownership allowlist manager for executors and admin functions
 contract WM is Ownable2Step {
     mapping(address => bool) public allowed;
 

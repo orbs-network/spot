@@ -8,6 +8,8 @@ import {Constants} from "src/reactor/Constants.sol";
 import {TokenLib} from "src/lib/TokenLib.sol";
 import {Multicall3Lib} from "src/lib/Multicall3Lib.sol";
 
+/// @title Operations utility contract
+/// @notice Provides operations for batching calls and sweeping token balances by basis points
 contract Refinery {
     address public immutable wm;
 

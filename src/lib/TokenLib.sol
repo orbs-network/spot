@@ -4,6 +4,8 @@ pragma solidity 0.8.20;
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
+/// @title Token transfer library
+/// @notice Unified interface for ERC20 and native token transfers with approval handling
 library TokenLib {
     using SafeERC20 for IERC20;
 
@@ -26,6 +28,10 @@ library TokenLib {
         }
     }
 
+    /// @dev Prepares tokens for spending by setting appropriate allowances or transferring ETH
+    /// 1. For zero amounts, performs no operation to save gas
+    /// 2. For native ETH (address(0)), immediately transfers to the recipient
+    /// 3. For ERC20 tokens, sets exact allowance using forceApprove for USDT-like token compatibility
     function prepareFor(address token, address spenderOrRecipient, uint256 amount) internal {
         if (amount == 0) return;
         if (token == address(0)) {

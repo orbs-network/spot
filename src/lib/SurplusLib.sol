@@ -4,6 +4,8 @@ pragma solidity 0.8.20;
 import {Constants} from "src/reactor/Constants.sol";
 import {TokenLib} from "src/lib/TokenLib.sol";
 
+/// @title Surplus distribution library
+/// @notice Distributes token surpluses between referrers and swappers based on BPS shares
 library SurplusLib {
     event Surplus(address indexed ref, address swapper, address token, uint256 amount, uint256 refshare);
 
