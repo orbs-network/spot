@@ -6,6 +6,8 @@ import {OrderLib} from "src/lib/OrderLib.sol";
 import {CosignedOrder} from "src/Structs.sol";
 import {Constants} from "src/reactor/Constants.sol";
 
+/// @title Order resolution library
+/// @notice Computes minimum output amounts from cosigned prices with slippage protection
 library ResolutionLib {
     using Math for uint256;
 

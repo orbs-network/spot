@@ -11,6 +11,8 @@ import {SurplusLib} from "src/lib/SurplusLib.sol";
 import {IExchangeAdapter} from "src/interface/IExchangeAdapter.sol";
 import {SettlementLib} from "src/lib/SettlementLib.sol";
 
+/// @title Order executor contract
+/// @notice Whitelisted filler contract that runs venue logic and handles surplus distribution
 contract Executor is IReactorCallback {
     error InvalidSender();
     error InvalidOrder();

@@ -9,6 +9,8 @@ import {IEIP712} from "src/interface/IEIP712.sol";
 
 import {RePermitLib} from "src/lib/RePermitLib.sol";
 
+/// @title RePermit contract
+/// @notice Permit2-style EIP-712 signatures with witness data for binding spending allowances to order hashes
 contract RePermit is EIP712, IEIP712 {
     using SafeERC20 for IERC20;
 

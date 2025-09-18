@@ -6,6 +6,8 @@ import {IEIP712} from "src/interface/IEIP712.sol";
 import {OrderLib} from "src/lib/OrderLib.sol";
 import {CosignedOrder} from "src/Structs.sol";
 
+/// @title Cosignature validation library
+/// @notice Validates cosigned price attestations with freshness windows and proper token validation
 library CosignatureLib {
     error InvalidCosignature();
     error InvalidCosignatureInputToken();

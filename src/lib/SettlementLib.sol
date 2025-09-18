@@ -5,6 +5,8 @@ import {OrderLib} from "src/lib/OrderLib.sol";
 import {TokenLib} from "src/lib/TokenLib.sol";
 import {Output, CosignedOrder, Execution} from "src/Structs.sol";
 
+/// @title Settlement library
+/// @notice Handles token transfers and fee distribution for order execution
 library SettlementLib {
     error InvalidOrder();
 

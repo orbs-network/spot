@@ -4,6 +4,8 @@ pragma solidity 0.8.20;
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {Constants} from "src/reactor/Constants.sol";
 
+/// @title Exclusivity override library
+/// @notice Handles exclusive execution rights and BPS-based overrides for competitive execution
 library ExclusivityOverrideLib {
     error InvalidSender();
     /// @notice Apply exclusivity override to the minimum output amount

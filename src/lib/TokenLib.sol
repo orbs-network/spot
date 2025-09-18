@@ -4,6 +4,8 @@ pragma solidity 0.8.20;
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
+/// @title Token transfer library
+/// @notice Unified interface for ERC20 and native token transfers with approval handling
 library TokenLib {
     using SafeERC20 for IERC20;
 

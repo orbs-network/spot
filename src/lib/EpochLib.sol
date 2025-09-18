@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
+/// @title Epoch management library
+/// @notice Manages time-bucket controls for TWAP order execution cadence
 library EpochLib {
     error InvalidEpoch();
 

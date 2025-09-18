@@ -5,6 +5,8 @@ import {OrderLib} from "src/lib/OrderLib.sol";
 import {Order} from "src/Structs.sol";
 import {Constants} from "src/reactor/Constants.sol";
 
+/// @title Order validation library
+/// @notice Validates order structure and enforces business logic constraints including chain ID verification
 library OrderValidationLib {
     // Address validation errors
     error InvalidOrderReactorZero();
