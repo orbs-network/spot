@@ -43,6 +43,9 @@ contract OrderReactor is ReentrancyGuard {
 
         uint256 currentEpoch = EpochLib.update(epochs, hash, co.order.epoch);
 
+        // Core amount resolution: compute minimum output considering market price, slippage, and exclusivity
+        // 1. ResolutionLib.resolve() computes base minOut from cosigned price with slippage protection
+        // 2. ExclusivityOverrideLib.applyExclusivityOverride() applies exclusivity penalties for non-exclusive executors
         uint256 resolvedAmountOut = ExclusivityOverrideLib.applyExclusivityOverride(
             ResolutionLib.resolve(co), co.order.executor, co.order.exclusivity
         );
