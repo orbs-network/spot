@@ -21,8 +21,6 @@ library SettlementLib {
         uint256 minOut
     );
 
-    // Execution struct is defined in src/Structs.sol
-
     /// @dev Handles final settlement of an executed order
     /// 1. Prepares output tokens for transfer by setting approval for the executor
     /// 2. If minimum output exceeds resolved amount, transfers the difference to recipient
