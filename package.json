@@ -20,6 +20,8 @@
     },
     "files": [
         "script/input/",
-        "out/**/*.json"
-    ]
+        "out/**/*.json",
+        "index.js"
+    ],
+    "main": "index.js"
 }
