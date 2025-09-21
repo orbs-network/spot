@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
+/// @title Core data structures for the Spot DeFi protocol
+/// @notice Defines orders, cosignatures, and execution parameters for limit orders, TWAP, and stop-loss functionality
+
 /// @dev tokens that need to be sent from the swapper in order to satisfy an order
 struct Input {
     address token;

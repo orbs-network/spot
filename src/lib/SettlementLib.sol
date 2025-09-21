@@ -5,6 +5,8 @@ import {OrderLib} from "src/lib/OrderLib.sol";
 import {TokenLib} from "src/lib/TokenLib.sol";
 import {Output, CosignedOrder, Execution} from "src/Structs.sol";
 
+/// @title Settlement library
+/// @notice Handles token transfers and fee distribution for order execution
 library SettlementLib {
     error InvalidOrder();
 
@@ -19,8 +21,11 @@ library SettlementLib {
         uint256 minOut
     );
 
-    // Execution struct is defined in src/Structs.sol
-
+    /// @dev Handles final settlement of an executed order
+    /// 1. Prepares output tokens for transfer by setting approval to the reactor
+    /// 2. If minimum output exceeds resolved amount, transfers the difference to recipient
+    /// 3. Transfers any execution fees to the designated fee recipient
+    /// 4. Emits settlement event with execution details
     function settle(bytes32 hash, uint256 resolvedAmountOut, CosignedOrder memory co, Execution memory x) internal {
         TokenLib.prepareFor(co.order.output.token, msg.sender, resolvedAmountOut);
         if (x.minAmountOut > resolvedAmountOut) {

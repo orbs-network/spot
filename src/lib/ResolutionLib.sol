@@ -6,11 +6,18 @@ import {OrderLib} from "src/lib/OrderLib.sol";
 import {CosignedOrder} from "src/Structs.sol";
 import {Constants} from "src/reactor/Constants.sol";
 
+/// @title Order resolution library
+/// @notice Computes minimum output amounts from cosigned prices with slippage protection
 library ResolutionLib {
     using Math for uint256;
 
     error CosignedMaxAmount();
 
+    /// @dev Computes the minimum output amount for an order based on cosigned price data
+    /// 1. Calculate expected output from cosigned input/output price ratio
+    /// 2. Check if market price has hit stop-loss trigger (cosignedOutput > maxAmount)
+    /// 3. Apply slippage protection to reduce expected output by slippage BPS
+    /// 4. Return the maximum of slippage-adjusted amount and user's limit price (amount)
     function resolve(CosignedOrder memory cosigned) internal pure returns (uint256) {
         uint256 cosignedOutput = cosigned.order.input.amount.mulDiv(
             cosigned.cosignatureData.output.value, cosigned.cosignatureData.input.value

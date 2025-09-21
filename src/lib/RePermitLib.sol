@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
+/// @title RePermit library
+/// @notice Permit2-style EIP-712 signatures with witness data tied to order hashes
 library RePermitLib {
     struct RePermitTransferFrom {
         TokenPermissions permitted;
