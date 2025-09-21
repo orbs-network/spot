@@ -22,7 +22,7 @@ library SettlementLib {
     );
 
     /// @dev Handles final settlement of an executed order
-    /// 1. Prepares output tokens for transfer by setting approval for the executor
+    /// 1. Prepares output tokens for transfer by setting approval to the reactor
     /// 2. If minimum output exceeds resolved amount, transfers the difference to recipient
     /// 3. Transfers any execution fees to the designated fee recipient
     /// 4. Emits settlement event with execution details
