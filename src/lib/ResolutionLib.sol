@@ -15,7 +15,7 @@ library ResolutionLib {
 
     /// @dev Computes the minimum output amount for an order based on cosigned price data
     /// 1. Calculate expected output from cosigned input/output price ratio
-    /// 2. Check if market price has hit stop-loss trigger (cosignedOutput > maxAmount)
+    /// 2. Check if market price has hit stop-loss trigger (oracle price <= trigger) or reverts with CosignedMaxAmount
     /// 3. Apply slippage protection to reduce expected output by slippage BPS
     /// 4. Return the maximum of slippage-adjusted amount and user's limit price (amount)
     function resolve(CosignedOrder memory cosigned) internal pure returns (uint256) {
