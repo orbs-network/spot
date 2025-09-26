@@ -1,0 +1,25 @@
+Orbs Spot Audit Report
+By AstraSec Team
+September 23, 2025
+
+Scope
+❖ https://github.com/orbs-network/spot.git
+❖ Commit ID: 542e1b3
+
+N1: Improved Logic of OrderValidationLib::validate()
+
+redundant
+
+if (order.input.token == order.output.token) revert;
+
+N2: Improved Logic of DefaultDexAdapter::delegateSwap()
+
+Reset approval after swap
+
+N3: Improved Logic of SurplusLib::distribute()
+
+if (total == 0) return;
+
+Safely remove
+
+
