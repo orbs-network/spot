@@ -17,9 +17,10 @@ library SurplusLib {
     /// 5. Emit surplus event if any tokens were distributed
     function distribute(address ref, address swapper, address token, uint32 shareBps) internal {
         uint256 total = TokenLib.balanceOf(token);
+        if (total == 0) return;
         uint256 refshare = (total * shareBps) / Constants.BPS;
         if (refshare > 0) TokenLib.transfer(token, ref, refshare);
         TokenLib.transfer(token, swapper, total - refshare);
-        if (total > 0) emit Surplus(ref, swapper, token, total, refshare);
+        emit Surplus(ref, swapper, token, total, refshare);
     }
 }

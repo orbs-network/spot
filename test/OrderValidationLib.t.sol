@@ -242,4 +242,19 @@ contract OrderValidationLibTest is BaseTest {
         vm.expectRevert(OrderValidationLib.InvalidOrderReactorMismatch.selector);
         this.callValidate(co);
     }
+
+    function test_validate_reverts_same_input_output_token() public {
+        reactor = address(this);
+        executor = address(this);
+        adapter = address(this);
+        inToken = address(token);
+        outToken = address(token); // Same token as input
+        inAmount = 100;
+        inMax = 200;
+        outAmount = 50;
+        outMax = 100;
+        CosignedOrder memory co = order();
+        vm.expectRevert(OrderValidationLib.InvalidOrderSameToken.selector);
+        this.callValidate(co);
+    }
 }

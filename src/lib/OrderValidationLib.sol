@@ -24,6 +24,7 @@ library OrderValidationLib {
     error InvalidOrderDeadlineExpired();
     error InvalidOrderChainid();
     error InvalidOrderExchangeShareBps();
+    error InvalidOrderSameToken();
 
     /// @dev Validates order structure and business logic constraints for security
     /// 1. Ensures critical addresses are non-zero (reactor, executor, adapter, swapper)
@@ -48,6 +49,7 @@ library OrderValidationLib {
         if (order.slippage >= Constants.MAX_SLIPPAGE) revert InvalidOrderSlippageTooHigh();
         if (order.input.token == address(0)) revert InvalidOrderInputTokenZero();
         if (order.output.recipient == address(0)) revert InvalidOrderOutputRecipientZero();
+        if (order.input.token == order.output.token) revert InvalidOrderSameToken();
         if (order.exchange.share > Constants.BPS) revert InvalidOrderExchangeShareBps();
     }
 }
