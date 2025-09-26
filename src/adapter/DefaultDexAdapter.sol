@@ -28,5 +28,6 @@ contract DefaultDexAdapter is IExchangeAdapter {
     {
         SafeERC20.forceApprove(IERC20(co.order.input.token), router, co.order.input.amount);
         Address.functionCall(router, x.data);
+        SafeERC20.forceApprove(IERC20(co.order.input.token), router, 0);
     }
 }
