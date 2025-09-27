@@ -2,6 +2,8 @@
 
 **A DeFi protocol for noncustodial advanced order types on EVM chains.**
 
+**🔒 [Security Audit Report](./Audit-AstraSec.pdf)** - Smart contracts professionally audited by AstraSec
+
 ## Who It's For
 
 - 🧭 **Product**: Ship price-target, time-sliced, and protective orders with professional-grade execution
