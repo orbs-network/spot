@@ -164,6 +164,9 @@ Order memory order = Order({
 - **Safe Token Handling**: Comprehensive support for USDT-like tokens and ETH
 - **Delegatecall Isolation**: Adapters run in controlled executor context with proper validation
 
+### Security Audit
+- **Professional Audit**: Smart contracts audited by AstraSec - [View Audit Report](./Audit-AstraSec.pdf)
+
 ## Limits & Constants
 
 - **Maximum Slippage**: 4,999 BPS (49.99%) - defined in `src/reactor/Constants.sol`
