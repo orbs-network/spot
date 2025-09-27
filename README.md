@@ -2,6 +2,8 @@
 
 **A DeFi protocol for noncustodial advanced order types on EVM chains.**
 
+**🔒 [Security Audit Report](./Audit-AstraSec.pdf)** - Smart contracts professionally audited by AstraSec
+
 ## Who It's For
 
 - 🧭 **Product**: Ship price-target, time-sliced, and protective orders with professional-grade execution
@@ -141,31 +143,12 @@ Order memory order = Order({
 
 ## Security Model
 
-### Access Controls
-- **WM Allowlist**: Only approved executors can fill orders via `WM.allowed(address)` check
-- **Two-Step Ownership**: `WM` uses OpenZeppelin's `Ownable2Step` for secure ownership transfers
-- **Executor Binding**: Orders specify authorized executor; only that executor can fill the order
-- **Non-Exclusive Fillers**: `exclusivity = 0` locks fills to the designated executor; setting it above zero invites third-party fillers who must meet a higher minimum output (scaled by the BPS override). Choose a non-zero value only when you intentionally want open competition on callbacks.
+The security model relies on a committee running oracles on TEE (Trusted Execution Environment) and cosigning orders. The committee provides trusted price attestations that enable secure order execution at fair market rates.
 
-### Validation Layers
-- **Order Validation**: `OrderValidationLib.validate()` checks all order fields for validity
-- **Signature Verification**: RePermit validates EIP-712 signatures and witness data binding
-- **Epoch Enforcement**: `EpochLib.update()` prevents early/duplicate fills within time windows
-- **Slippage Protection**: Maximum 49.99% slippage cap enforced in `Constants.MAX_SLIPPAGE`
-- **Freshness Windows**: Cosignatures expire after configurable time periods
-
-### Economic Security
-- **Witness-Bound Spending**: RePermit ties allowances to exact order hashes, preventing signature reuse
-- **Surplus Distribution**: Automatic fair distribution of any excess tokens between swapper and referrer
-- **Exact Allowances**: `SafeERC20.forceApprove()` prevents allowance accumulation attacks
-
-### Operational Security
-- **Reentrancy Protection**: `ReentrancyGuard` on all external entry points
-- **Safe Token Handling**: Comprehensive support for USDT-like tokens and ETH
-- **Delegatecall Isolation**: Adapters run in controlled executor context with proper validation
-
-### Security Audit
-- **Professional Audit**: Smart contracts audited by AstraSec - [View Audit Report](./Audit-AstraSec.pdf)
+**Core Security Mechanism:**
+- **TEE Oracles**: Committee members run price oracles in Trusted Execution Environment
+- **Cosigned Orders**: All orders require cosignatures with fresh market prices to prevent manipulation
+- **User Protection**: Smart contracts protect users' expectations and ensure order correctness through validation and slippage caps
 
 ## Limits & Constants
 
