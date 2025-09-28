@@ -1,0 +1,61 @@
+{
+    "cosigned": {
+        "order": {
+            "reactor": "0x00066dc9404716804e1280243E43dB080E553000",
+            "executor": "0x00076D4865b3D6eEc580671A10f0AeeFD207C000",
+            "exchange": {
+                "adapter": "0x2FCe94bDa47638a94bA8f0583A3905aD4C2c0933",
+                "ref": "0x0000000000000000000000000000000000000000",
+                "share": 0,
+                "data": "0x"
+            },
+            "swapper": "0xfCD300AAfE1FdB3166cD1a3B46463144fC2d46aD",
+            "nonce": 101,
+            "deadline": 1764547200,
+            "chainid": 56,
+            "exclusivity": 0,
+            "epoch": 0,
+            "slippage": 300,
+            "freshness": 60,
+            "input": {
+                "token": "0x55d398326f99059fF775485246999027B3197955",
+                "amount": 1000000000000000,
+                "maxAmount": 2000000000000000
+            },
+            "output": {
+                "token": "0x8BaBbB98678facC7342735486C851ABD7A0d17Ca",
+                "amount": 500000000000000,
+                "maxAmount": 600000000000000,
+                "recipient": "0xfCD300AAfE1FdB3166cD1a3B46463144fC2d46aD"
+            }
+        },
+        "signature": "0x9efa132080291cb13ebdd21d82da7b09c4a23c773ea3dbe4fbb0a7f4d0aa4c69c8d4e2080e1aee5c43c6e68c1b3efa8d13e3f4db9b4c2c6e38860a0cb59188e11b",
+        "cosignatureData": {
+            "cosigner": "0x0ce6D8386e5AF5B247Cdf8C27C7242125Acf5A77",
+            "reactor": "0x00066dc9404716804e1280243E43dB080E553000",
+            "chainid": 56,
+            "timestamp": 1727481600,
+            "input": {
+                "token": "0x55d398326f99059fF775485246999027B3197955",
+                "value": 2000000000000000,
+                "decimals": 18
+            },
+            "output": {
+                "token": "0x8BaBbB98678facC7342735486C851ABD7A0d17Ca",
+                "value": 600000000000000,
+                "decimals": 18
+            }
+        },
+        "cosignature": "0x82eee4ef433e5c0016f9adf9390d76cbcfc81d60fcd321968cb4b4418deff82ff8a037ba70efea8becd3ceb1fc1c0426e302c3dfba9b3e716f351774be7651141c"
+    },
+    "execution": {
+        "minAmountOut": 500000000000000,
+        "fee": {
+            "token": "0x0000000000000000000000000000000000000000",
+            "amount": 0,
+            "maxAmount": 0,
+            "recipient": "0x0000000000000000000000000000000000000000"
+        },
+        "data": "0x"
+    }
+}
