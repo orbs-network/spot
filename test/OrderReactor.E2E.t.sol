@@ -21,7 +21,7 @@ contract OrderReactorE2ETest is BaseTest {
 
     function setUp() public override {
         super.setUp();
-        reactorUut = new OrderReactor(repermit, signer);
+        reactorUut = new OrderReactor(repermit, signer, wm);
         allowThis();
         exec = new Executor(address(reactorUut), wm);
         allow(address(exec));
