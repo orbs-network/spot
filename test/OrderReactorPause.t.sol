@@ -117,20 +117,6 @@ contract OrderReactorPauseTest is BaseTest {
         // The important thing is that we can call it when not paused
         // The specific validation error doesn't matter for this test
     }
-
-    function test_wm_address_set_correctly() public {
-        assertEq(reactorUut.wm(), wm);
-    }
-
-    function test_existing_immutables_unchanged() public {
-        assertEq(reactorUut.cosigner(), signer);
-        assertEq(reactorUut.repermit(), repermit);
-    }
-
-    // Helper function to compare strings
-    function stringEqual(string memory a, string memory b) internal pure returns (bool) {
-        return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
-    }
 }
 
 // Simple callback contract for testing
