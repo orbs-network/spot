@@ -6,6 +6,7 @@ import {Pausable} from "@openzeppelin/contracts/security/Pausable.sol";
 import {IReactorCallback} from "src/interface/IReactorCallback.sol";
 import {IWM} from "src/interface/IWM.sol";
 import {OrderLib} from "src/lib/OrderLib.sol";
+import {WMLib} from "src/lib/WMLib.sol";
 import {CosignedOrder, Execution} from "src/Structs.sol";
 import {TokenLib} from "src/lib/TokenLib.sol";
 import {SettlementLib} from "src/lib/SettlementLib.sol";
@@ -25,9 +26,6 @@ contract OrderReactor is ReentrancyGuard, Pausable {
     /// @dev Emitted after a successful fill.
     event Fill(bytes32 indexed hash, address indexed executor, address indexed swapper, uint256 epoch);
 
-    /// @dev Thrown when caller is not allowed to pause/unpause by WM.
-    error NotAllowed();
-
     address public immutable cosigner;
     address public immutable repermit;
     address public immutable wm;
@@ -44,14 +42,14 @@ contract OrderReactor is ReentrancyGuard, Pausable {
     /// @notice Pause the reactor to prevent order execution.
     /// @dev Only addresses allowed by WM can pause.
     function pause() external {
-        if (!IWM(wm).allowed(msg.sender)) revert NotAllowed();
+        WMLib.requireAllowed(wm);
         _pause();
     }
 
     /// @notice Unpause the reactor to allow order execution.
     /// @dev Only addresses allowed by WM can unpause.
     function unpause() external {
-        if (!IWM(wm).allowed(msg.sender)) revert NotAllowed();
+        WMLib.requireAllowed(wm);
         _unpause();
     }
 

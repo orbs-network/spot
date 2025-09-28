@@ -3,6 +3,7 @@ pragma solidity 0.8.20;
 
 import {BaseTest} from "test/base/BaseTest.sol";
 import {OrderReactor} from "src/reactor/OrderReactor.sol";
+import {WMLib} from "src/lib/WMLib.sol";
 import {CosignedOrder, Execution, Output} from "src/Structs.sol";
 
 contract OrderReactorPauseTest is BaseTest {
@@ -34,7 +35,7 @@ contract OrderReactorPauseTest is BaseTest {
         assertFalse(reactorUut.paused());
 
         vm.prank(notAllowedUser);
-        vm.expectRevert(OrderReactor.NotAllowed.selector);
+        vm.expectRevert(WMLib.NotAllowed.selector);
         reactorUut.pause();
 
         assertFalse(reactorUut.paused());
@@ -60,7 +61,7 @@ contract OrderReactorPauseTest is BaseTest {
 
         // Try to unpause as non-allowed user
         vm.prank(notAllowedUser);
-        vm.expectRevert(OrderReactor.NotAllowed.selector);
+        vm.expectRevert(WMLib.NotAllowed.selector);
         reactorUut.unpause();
 
         assertTrue(reactorUut.paused());

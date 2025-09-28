@@ -4,6 +4,7 @@ pragma solidity 0.8.20;
 import {IReactor} from "src/interface/IReactor.sol";
 import {IReactorCallback} from "src/interface/IReactorCallback.sol";
 import {OrderLib} from "src/lib/OrderLib.sol";
+import {WMLib} from "src/lib/WMLib.sol";
 import {CosignedOrder, Execution} from "src/Structs.sol";
 import {IWM} from "src/interface/IWM.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
@@ -26,7 +27,7 @@ contract Executor is IReactorCallback {
     }
 
     modifier onlyAllowed() {
-        if (!IWM(allowed).allowed(msg.sender)) revert InvalidSender();
+        if (!WMLib.isAllowed(allowed)) revert InvalidSender();
         _;
     }
 

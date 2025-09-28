@@ -5,6 +5,7 @@ import {Vm} from "forge-std/Vm.sol";
 
 import {BaseTest} from "test/base/BaseTest.sol";
 import {Refinery} from "src/ops/Refinery.sol";
+import {WMLib} from "src/lib/WMLib.sol";
 import {IMulticall3} from "forge-std/interfaces/IMulticall3.sol";
 
 contract RefineryTest is BaseTest {
@@ -20,13 +21,13 @@ contract RefineryTest is BaseTest {
     function test_cant_execute_if_not_allowed() public {
         disallowThis();
         IMulticall3.Call3[] memory calls = new IMulticall3.Call3[](0);
-        vm.expectRevert(Refinery.NotAllowed.selector);
+        vm.expectRevert(WMLib.NotAllowed.selector);
         refinery.execute(calls);
     }
 
     function test_cant_transfer_if_not_allowed() public {
         disallowThis();
-        vm.expectRevert(Refinery.NotAllowed.selector);
+        vm.expectRevert(WMLib.NotAllowed.selector);
         refinery.transfer(address(token), other, 100);
     }
 
