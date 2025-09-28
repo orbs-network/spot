@@ -45,7 +45,7 @@ library OrderValidationLib {
         if (order.reactor != address(this)) revert InvalidOrderReactorMismatch();
         if (order.input.amount == 0) revert InvalidOrderInputAmountZero();
         if (order.input.amount > order.input.maxAmount) revert InvalidOrderInputAmountGtMax();
-        if (order.output.amount > order.output.maxAmount) revert InvalidOrderOutputAmountGtMax();
+        if (order.output.limit > order.output.stop) revert InvalidOrderOutputAmountGtMax();
         if (order.slippage >= Constants.MAX_SLIPPAGE) revert InvalidOrderSlippageTooHigh();
         if (order.input.token == address(0)) revert InvalidOrderInputTokenZero();
         if (order.output.recipient == address(0)) revert InvalidOrderOutputRecipientZero();

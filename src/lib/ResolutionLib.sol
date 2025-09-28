@@ -17,15 +17,15 @@ library ResolutionLib {
     /// 1. Calculate expected output from cosigned input/output price ratio
     /// 2. Check if market price has hit stop-loss trigger (oracle price <= trigger) or reverts with CosignedMaxAmount
     /// 3. Apply slippage protection to reduce expected output by slippage BPS
-    /// 4. Return the maximum of slippage-adjusted amount and user's limit price (amount)
+    /// 4. Return the maximum of slippage-adjusted amount and user's limit price (limit)
     function resolve(CosignedOrder memory cosigned) internal pure returns (uint256) {
         uint256 cosignedOutput = cosigned.order.input.amount.mulDiv(
             cosigned.cosignatureData.output.value, cosigned.cosignatureData.input.value
         );
 
-        if (cosignedOutput > cosigned.order.output.maxAmount) revert CosignedMaxAmount();
+        if (cosignedOutput > cosigned.order.output.stop) revert CosignedMaxAmount();
 
         uint256 minOut = cosignedOutput.mulDiv(Constants.BPS - cosigned.order.slippage, Constants.BPS);
-        return minOut.max(cosigned.order.output.amount);
+        return minOut.max(cosigned.order.output.limit);
     }
 }

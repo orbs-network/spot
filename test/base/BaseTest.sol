@@ -126,7 +126,7 @@ abstract contract BaseTest is Test {
         co.order.slippage = slippage;
         co.order.freshness = freshness == 0 ? 1 : freshness;
         co.order.input = Input({token: inToken, amount: inAmount, maxAmount: inMax});
-        co.order.output = Output({token: outToken, amount: outAmount, maxAmount: outMax, recipient: recipient});
+        co.order.output = Output({token: outToken, limit: outAmount, stop: outMax, recipient: recipient});
         bytes32 digest = IEIP712(repermit).hashTypedData(OrderLib.hash(co.order));
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPK, digest);
         co.signature = bytes.concat(r, s, bytes1(v));
@@ -143,7 +143,7 @@ abstract contract BaseTest is Test {
     {
         ex = Execution({
             minAmountOut: minOut,
-            fee: Output({token: feeToken, amount: feeAmount, recipient: feeRecipient, maxAmount: type(uint256).max}),
+            fee: Output({token: feeToken, limit: feeAmount, recipient: feeRecipient, stop: type(uint256).max}),
             data: hex""
         });
     }
