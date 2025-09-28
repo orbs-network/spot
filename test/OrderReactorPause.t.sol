@@ -34,7 +34,7 @@ contract OrderReactorPauseTest is BaseTest {
         assertFalse(reactorUut.paused());
 
         vm.prank(notAllowedUser);
-        vm.expectRevert("OrderReactor: not allowed to pause");
+        vm.expectRevert(OrderReactor.NotAllowed.selector);
         reactorUut.pause();
 
         assertFalse(reactorUut.paused());
@@ -60,7 +60,7 @@ contract OrderReactorPauseTest is BaseTest {
 
         // Try to unpause as non-allowed user
         vm.prank(notAllowedUser);
-        vm.expectRevert("OrderReactor: not allowed to unpause");
+        vm.expectRevert(OrderReactor.NotAllowed.selector);
         reactorUut.unpause();
 
         assertTrue(reactorUut.paused());

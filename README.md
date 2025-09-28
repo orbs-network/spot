@@ -30,7 +30,7 @@
 
 ### Core Components
 
-- 🧠 **OrderReactor** (`src/reactor/OrderReactor.sol`): Validates orders, checks epoch constraints, computes minimum output from cosigned prices, and settles via inlined implementation with reentrancy protection
+- 🧠 **OrderReactor** (`src/reactor/OrderReactor.sol`): Validates orders, checks epoch constraints, computes minimum output from cosigned prices, and settles via inlined implementation with reentrancy protection. Includes emergency pause functionality controlled by WM allowlist.
 - ✍️ **RePermit** (`src/repermit/RePermit.sol`): Permit2-style EIP-712 signatures with witness data that binds spending allowances to exact order hashes, preventing signature reuse
 - 🧾 **Cosigner**: External service that signs current market prices (input/output ratios) with enforced freshness windows and proper token validation
 - 🛠️ **Executor** (`src/executor/Executor.sol`): Whitelisted fillers that run venue logic via delegatecall to adapters, ensure minimum output requirements, and distribute surplus
@@ -165,6 +165,7 @@ Order memory order = Order({
 - **Reentrancy Protection**: `ReentrancyGuard` on all external entry points
 - **Safe Token Handling**: Comprehensive support for USDT-like tokens and ETH
 - **Delegatecall Isolation**: Adapters run in controlled executor context with proper validation
+- **Emergency Pause**: OrderReactor can be paused by WM-allowed addresses to halt order execution during emergencies
 
 ## Limits & Constants
 

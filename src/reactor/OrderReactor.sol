@@ -20,9 +20,13 @@ import {ExclusivityOverrideLib} from "src/lib/ExclusivityOverrideLib.sol";
 
 /// @title OrderReactor
 /// @notice Verifies and settles cosigned orders via an executor callback.
+/// @dev Supports emergency pause functionality controlled by WM allowlist.
 contract OrderReactor is ReentrancyGuard, Pausable {
     /// @dev Emitted after a successful fill.
     event Fill(bytes32 indexed hash, address indexed executor, address indexed swapper, uint256 epoch);
+
+    /// @dev Thrown when caller is not allowed to pause/unpause by WM.
+    error NotAllowed();
 
     address public immutable cosigner;
     address public immutable repermit;
@@ -40,14 +44,14 @@ contract OrderReactor is ReentrancyGuard, Pausable {
     /// @notice Pause the reactor to prevent order execution.
     /// @dev Only addresses allowed by WM can pause.
     function pause() external {
-        require(IWM(wm).allowed(msg.sender), "OrderReactor: not allowed to pause");
+        if (!IWM(wm).allowed(msg.sender)) revert NotAllowed();
         _pause();
     }
 
     /// @notice Unpause the reactor to allow order execution.
     /// @dev Only addresses allowed by WM can unpause.
     function unpause() external {
-        require(IWM(wm).allowed(msg.sender), "OrderReactor: not allowed to unpause");
+        if (!IWM(wm).allowed(msg.sender)) revert NotAllowed();
         _unpause();
     }
 
