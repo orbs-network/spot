@@ -44,7 +44,7 @@ contract ResolutionLibFuzzTest is BaseTest {
 
         uint256 cosignedOutput = (inAmount * outputValue) / inputValue;
         if (cosignedOutput > maxOut) {
-            vm.expectRevert(ResolutionLib.CosignedMaxAmount.selector);
+            vm.expectRevert(ResolutionLib.CosignedExceedsStop.selector);
             this.callResolve(co);
             return;
         }

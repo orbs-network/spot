@@ -38,8 +38,8 @@ contract ResolutionLibTest is BaseTest {
         cosignOutValue = 200;
         CosignedOrder memory co = order();
         co = cosign(co);
-        co.order.output.maxAmount = 1_500; // cosignedOutput is 2000 > 1500
-        vm.expectRevert(ResolutionLib.CosignedMaxAmount.selector);
+        co.order.output.stop = 1_500; // cosignedOutput is 2000 > 1500
+        vm.expectRevert(ResolutionLib.CosignedExceedsStop.selector);
         this.callResolve(co);
     }
 }

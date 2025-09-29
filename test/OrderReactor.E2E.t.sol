@@ -167,7 +167,7 @@ contract OrderReactorE2ETest is BaseTest {
             abi.encodeWithSelector(MockDexRouter.doSwap.selector, inToken, inAmount, outToken, 0.5 ether, address(exec))
         );
 
-        vm.expectRevert(ResolutionLib.CosignedMaxAmount.selector);
+        vm.expectRevert(ResolutionLib.CosignedExceedsStop.selector);
         exec.execute(co, ex);
 
         cosignOutValue = 0.5 ether;

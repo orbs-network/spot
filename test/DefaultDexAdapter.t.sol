@@ -39,7 +39,7 @@ contract DefaultDexAdapterTest is BaseTest {
         uint256 beforeBalance = ERC20Mock(address(token2)).balanceOf(signer);
 
         bytes32 hash = OrderLib.hash(cosignedOrder.order);
-        uint256 resolvedAmountOut = cosignedOrder.order.output.amount;
+        uint256 resolvedAmountOut = cosignedOrder.order.output.limit;
         Execution memory x = executionWithData(0, data);
         adapterUut.delegateSwap(hash, resolvedAmountOut, cosignedOrder, x);
 
@@ -61,7 +61,7 @@ contract DefaultDexAdapterTest is BaseTest {
 
         // Invalid call data should revert
         bytes32 hash = OrderLib.hash(cosignedOrder.order);
-        uint256 resolvedAmountOut = cosignedOrder.order.output.amount;
+        uint256 resolvedAmountOut = cosignedOrder.order.output.limit;
         vm.expectRevert();
         Execution memory x = executionWithData(0, data);
         adapterUut.delegateSwap(hash, resolvedAmountOut, cosignedOrder, x);
@@ -81,7 +81,7 @@ contract DefaultDexAdapterTest is BaseTest {
         );
 
         bytes32 hash = OrderLib.hash(cosignedOrder.order);
-        uint256 resolvedAmountOut = cosignedOrder.order.output.amount;
+        uint256 resolvedAmountOut = cosignedOrder.order.output.limit;
         vm.expectRevert("Mock swap failed");
         Execution memory x = executionWithData(0, data);
         adapterUut.delegateSwap(hash, resolvedAmountOut, cosignedOrder, x);
@@ -110,7 +110,7 @@ contract DefaultDexAdapterTest is BaseTest {
 
         // Should not revert despite USDT-like behavior
         bytes32 hash = OrderLib.hash(cosignedOrder.order);
-        uint256 resolvedAmountOut = cosignedOrder.order.output.amount;
+        uint256 resolvedAmountOut = cosignedOrder.order.output.limit;
         Execution memory x = executionWithData(0, data);
         adapterUut.delegateSwap(hash, resolvedAmountOut, cosignedOrder, x);
 

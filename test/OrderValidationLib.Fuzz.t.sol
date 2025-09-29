@@ -27,7 +27,9 @@ contract OrderValidationLibFuzzTest is BaseTest {
     ) external view {
         vm.assume(swapper != address(0));
         vm.assume(inToken != address(0));
+        vm.assume(outToken != address(0));
         vm.assume(recipient != address(0));
+        vm.assume(inToken != outToken);
         vm.assume(inAmount > 0);
         vm.assume(maxAmount >= inAmount);
         vm.assume(maxOut >= minOut);
@@ -39,7 +41,7 @@ contract OrderValidationLibFuzzTest is BaseTest {
         co.order.executor = address(this);
         co.order.swapper = swapper;
         co.order.input = Input({token: inToken, amount: inAmount, maxAmount: maxAmount});
-        co.order.output = Output({token: outToken, amount: minOut, maxAmount: maxOut, recipient: recipient});
+        co.order.output = Output({token: outToken, limit: minOut, stop: maxOut, recipient: recipient});
         co.order.slippage = uint32(slippage);
         co.order.deadline = block.timestamp + 1;
         co.order.chainid = block.chainid;

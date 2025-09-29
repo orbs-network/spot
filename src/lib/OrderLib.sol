@@ -10,7 +10,7 @@ library OrderLib {
     string internal constant INPUT_TYPE = "Input(address token,uint256 amount,uint256 maxAmount)";
     bytes32 internal constant INPUT_TYPE_HASH = keccak256(bytes(INPUT_TYPE));
 
-    string internal constant OUTPUT_TYPE = "Output(address token,uint256 amount,uint256 maxAmount,address recipient)";
+    string internal constant OUTPUT_TYPE = "Output(address token,uint256 limit,uint256 stop,address recipient)";
     bytes32 internal constant OUTPUT_TYPE_HASH = keccak256(bytes(OUTPUT_TYPE));
 
     string internal constant EXCHANGE_TYPE = "Exchange(address adapter,address ref,uint32 share,bytes data)";

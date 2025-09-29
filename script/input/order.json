@@ -24,8 +24,8 @@
             },
             "output": {
                 "token": "0x8BaBbB98678facC7342735486C851ABD7A0d17Ca",
-                "amount": 500000000000000,
-                "maxAmount": 600000000000000,
+                "limit": 500000000000000,
+                "stop": 600000000000000,
                 "recipient": "0xfCD300AAfE1FdB3166cD1a3B46463144fC2d46aD"
             }
         },
@@ -52,8 +52,8 @@
         "minAmountOut": 500000000000000,
         "fee": {
             "token": "0x0000000000000000000000000000000000000000",
-            "amount": 0,
-            "maxAmount": 0,
+            "limit": 0,
+            "stop": 0,
             "recipient": "0x0000000000000000000000000000000000000000"
         },
         "data": "0x"
