@@ -27,7 +27,7 @@ contract Executor is IReactorCallback {
     }
 
     modifier onlyAllowed() {
-        if (!WMLib.isAllowed(allowed, msg.sender)) revert InvalidSender();
+        WMLib.requireAllowed(allowed, msg.sender);
         _;
     }
 
