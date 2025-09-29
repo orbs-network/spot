@@ -2,8 +2,11 @@
 pragma solidity 0.8.20;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {Pausable} from "@openzeppelin/contracts/security/Pausable.sol";
 import {IReactorCallback} from "src/interface/IReactorCallback.sol";
+import {IWM} from "src/interface/IWM.sol";
 import {OrderLib} from "src/lib/OrderLib.sol";
+import {WMAllowed} from "src/lib/WMAllowed.sol";
 import {CosignedOrder, Execution} from "src/Structs.sol";
 import {TokenLib} from "src/lib/TokenLib.sol";
 import {SettlementLib} from "src/lib/SettlementLib.sol";
@@ -18,7 +21,8 @@ import {ExclusivityOverrideLib} from "src/lib/ExclusivityOverrideLib.sol";
 
 /// @title OrderReactor
 /// @notice Verifies and settles cosigned orders via an executor callback.
-contract OrderReactor is ReentrancyGuard {
+/// @dev Supports emergency pause functionality controlled by WM allowlist.
+contract OrderReactor is ReentrancyGuard, Pausable, WMAllowed {
     /// @dev Emitted after a successful fill.
     event Fill(bytes32 indexed hash, address indexed executor, address indexed swapper, uint256 epoch);
 
@@ -28,15 +32,32 @@ contract OrderReactor is ReentrancyGuard {
     // order hash => next epoch
     mapping(bytes32 => uint256) public epochs;
 
-    constructor(address _repermit, address _cosigner) {
+    constructor(address _repermit, address _cosigner, address _wm) WMAllowed(_wm) {
         cosigner = _cosigner;
         repermit = _repermit;
+    }
+
+    /// @notice Pause the reactor to prevent order execution.
+    /// @dev Only addresses allowed by WM can pause.
+    function pause() external onlyAllowed {
+        _pause();
+    }
+
+    /// @notice Unpause the reactor to allow order execution.
+    /// @dev Only addresses allowed by WM can unpause.
+    function unpause() external onlyAllowed {
+        _unpause();
     }
 
     /// @notice Execute a cosigned order and invoke the executor callback for swap/settlement.
     /// @param co Cosigned order payload.
     /// @param x Execution parameters (minOut, fee, adapter data).
-    function executeWithCallback(CosignedOrder calldata co, Execution calldata x) external payable nonReentrant {
+    function executeWithCallback(CosignedOrder calldata co, Execution calldata x)
+        external
+        payable
+        nonReentrant
+        whenNotPaused
+    {
         bytes32 hash = OrderLib.hash(co.order);
         OrderValidationLib.validate(co.order);
         CosignatureLib.validate(co, cosigner, repermit);
