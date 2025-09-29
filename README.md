@@ -21,7 +21,7 @@
 ## Why It Wins
 
 - ✅ **Non-custodial**: Per-order allowances via RePermit with witness-bound spending authorization
-- 🔒 **Battle-tested Security**: Cosigned prices, slippage caps (max 49.99%), deadlines, and epoch gating
+- 🔒 **Battle-tested Security**: Cosigned prices, slippage caps (max 50%), deadlines, and epoch gating
 - ⚙️ **Modular Architecture**: Inlined reactor settlement + pluggable executor strategies
 - 📈 **Built-in Revenue**: Configurable referral shares and automatic surplus distribution
 - 🏗️ **Production Ready**: 1M optimization runs, comprehensive test coverage, multi-chain deployments
@@ -39,15 +39,15 @@
 
 ### Key Libraries
 
-- **OrderLib** (`src/reactor/lib/OrderLib.sol`): EIP-712 structured data hashing for orders and cosignatures
-- **OrderValidationLib** (`src/reactor/lib/OrderValidationLib.sol`): Order field validation (amounts, tokens, slippage caps)
-- **ResolutionLib** (`src/reactor/lib/ResolutionLib.sol`): Price resolution logic using cosigned rates with slippage protection
-- **EpochLib** (`src/reactor/lib/EpochLib.sol`): Time-bucket management for TWAP order execution intervals
-- **CosignatureLib** (`src/reactor/lib/CosignatureLib.sol`): Cosigner validation and freshness checking
-- **ExclusivityOverrideLib** (`src/reactor/lib/ExclusivityOverrideLib.sol`): Time-bounded exclusivity with override mechanics
-- **SurplusLib** (`src/executor/lib/SurplusLib.sol`): Automatic surplus distribution between swappers and referrers
-- **SettlementLib** (`src/executor/lib/SettlementLib.sol`): Token transfer coordination with gas fee handling
-- **TokenLib** (`src/executor/lib/TokenLib.sol`): Safe token operations with ETH/ERC20 abstraction
+- **OrderLib** (`src/lib/OrderLib.sol`): EIP-712 structured data hashing for orders and cosignatures
+- **OrderValidationLib** (`src/lib/OrderValidationLib.sol`): Order field validation (amounts, tokens, slippage caps)
+- **ResolutionLib** (`src/lib/ResolutionLib.sol`): Price resolution logic using cosigned rates with slippage protection
+- **EpochLib** (`src/lib/EpochLib.sol`): Time-bucket management for TWAP order execution intervals
+- **CosignatureLib** (`src/lib/CosignatureLib.sol`): Cosigner validation and freshness checking
+- **ExclusivityOverrideLib** (`src/lib/ExclusivityOverrideLib.sol`): Time-bounded exclusivity with override mechanics
+- **SurplusLib** (`src/lib/SurplusLib.sol`): Automatic surplus distribution between swappers and referrers
+- **SettlementLib** (`src/lib/SettlementLib.sol`): Token transfer coordination with gas fee handling
+- **TokenLib** (`src/lib/TokenLib.sol`): Safe token operations with ETH/ERC20 abstraction
 
 ## Order Structure
 
@@ -153,7 +153,7 @@ Order memory order = Order({
 - **Order Validation**: `OrderValidationLib.validate()` checks all order fields for validity
 - **Signature Verification**: RePermit validates EIP-712 signatures and witness data binding
 - **Epoch Enforcement**: `EpochLib.update()` prevents early/duplicate fills within time windows
-- **Slippage Protection**: Maximum 49.99% slippage cap enforced in `Constants.MAX_SLIPPAGE`
+- **Slippage Protection**: Maximum 50% slippage cap enforced in `Constants.MAX_SLIPPAGE`
 - **Freshness Windows**: Cosignatures expire after configurable time periods
 
 ### Economic Security
@@ -169,7 +169,7 @@ Order memory order = Order({
 
 ## Limits & Constants
 
-- **Maximum Slippage**: 4,999 BPS (49.99%) - defined in `src/reactor/Constants.sol`
+- **Maximum Slippage**: 5,000 BPS (50%) - defined in `src/reactor/Constants.sol`
 - **Basis Points**: 10,000 BPS = 100% - standard denomination for all percentage calculations
 - **Freshness Requirements**: Must be > 0 seconds; must be < epoch duration when epoch != 0
 - **Epoch Behavior**: 0 = single execution, >0 = recurring with specified interval
@@ -181,7 +181,7 @@ Order memory order = Order({
 
 ### Building
 ```bash
-forge build  # Compiles 90 Solidity files with 0.8.20
+forge build  # Compiles 90 Solidity files with 0.8.27
 ```
 
 ### Testing

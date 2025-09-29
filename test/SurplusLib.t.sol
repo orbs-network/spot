@@ -44,21 +44,20 @@ contract SurplusLibTest is Test {
         assertEq(token.balanceOf(address(harness)), 0);
     }
 
-    function test_distribute_zeroRecipientLeavesShareInHarness() public {
+    function test_distribute_zeroRecipientTreatsShareAsZero() public {
         uint256 total = 3 ether;
         uint32 shareBps = 1_500; // 15%
-        uint256 expectedRefShare = (total * shareBps) / 10_000;
 
         token.mint(address(harness), total);
 
         vm.expectEmit(address(harness));
-        emit Surplus(address(0), swapper, address(token), total, expectedRefShare);
+        emit Surplus(address(0), swapper, address(token), total, 0);
 
         harness.distribute(address(0), swapper, address(token), shareBps);
 
         assertEq(token.balanceOf(address(0)), 0); // TokenLib.transfer short-circuits
-        assertEq(token.balanceOf(swapper), total - expectedRefShare);
-        assertEq(token.balanceOf(address(harness)), expectedRefShare);
+        assertEq(token.balanceOf(swapper), total);
+        assertEq(token.balanceOf(address(harness)), 0);
     }
 
     function test_distribute_nonZeroShareSplitsBalances() public {
