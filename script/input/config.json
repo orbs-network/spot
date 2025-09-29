@@ -2,7 +2,7 @@
     "*": {
         "wm": "0x0000106E259F85cE9e2b6AeCEAc728fc79B30000",
         "repermit": "0x0004637BB388Fe0eCb81ecFfCfBB3d0D54767000",
-        "cosigner": "0x0ce6D8386e5AF5B247Cdf8C27C7242125Acf5A77",
+        "cosigner": "0x61C4c6670FBA2Fa8Eb5eb2d930ae6d05fC78f05C",
         "reactor": "0x00066dc9404716804e1280243E43dB080E553000",
         "executor": "0x00076D4865b3D6eEc580671A10f0AeeFD207C000",
         "refinery": "0x00039c4143f1c8DFf1187331EeB103Fd7e6ED000"

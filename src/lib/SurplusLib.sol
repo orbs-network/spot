@@ -19,7 +19,7 @@ library SurplusLib {
         uint256 total = TokenLib.balanceOf(token);
         if (total == 0) return;
         uint256 refshare = (total * shareBps) / Constants.BPS;
-        if (refshare > 0) TokenLib.transfer(token, ref, refshare);
+        TokenLib.transfer(token, ref, refshare);
         TokenLib.transfer(token, swapper, total - refshare);
         emit Surplus(ref, swapper, token, total, refshare);
     }

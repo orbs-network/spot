@@ -32,9 +32,7 @@ library SettlementLib {
             TokenLib.transfer(co.order.output.token, co.order.output.recipient, x.minAmountOut - resolvedAmountOut);
         }
 
-        if (x.fee.limit > 0) {
-            TokenLib.transfer(x.fee.token, x.fee.recipient, x.fee.limit);
-        }
+        TokenLib.transfer(x.fee.token, x.fee.recipient, x.fee.limit);
 
         emit Settled(
             hash,

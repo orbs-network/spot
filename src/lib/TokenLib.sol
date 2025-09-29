@@ -10,7 +10,7 @@ library TokenLib {
     using SafeERC20 for IERC20;
 
     function transfer(address token, address to, uint256 amount) internal {
-        if (amount == 0) return;
+        if (to == address(0) || amount == 0) return;
         if (token == address(0)) Address.sendValue(payable(to), amount);
         else IERC20(token).safeTransfer(to, amount);
     }
