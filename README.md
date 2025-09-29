@@ -78,8 +78,8 @@ struct Input {
 
 struct Output {
     address token;            // Output token address
-    uint256 amount;           // Minimum acceptable output (limit)
-    uint256 maxAmount;        // Stop trigger (max uint256 = immediate)
+    uint256 limit;            // Minimum acceptable output (limit)
+    uint256 stop;             // Stop trigger (max uint256 = immediate)
     address recipient;        // Where to send output tokens
 }
 ```
@@ -105,8 +105,8 @@ Order memory order = Order({
         maxAmount: 1000e6        // Same as amount
     }),
     output: Output({
-        amount: 950e18,          // Minimum acceptable output
-        maxAmount: type(uint256).max  // No stop trigger
+        limit: 950e18,          // Minimum acceptable output
+        stop: type(uint256).max  // No stop trigger
     })
 });
 ```
@@ -121,8 +121,8 @@ Order memory order = Order({
         maxAmount: 1000e6        // 1000 USDC total budget
     }),
     output: Output({
-        amount: 95e18,           // Minimum per chunk
-        maxAmount: type(uint256).max
+        limit: 95e18,           // Minimum per chunk
+        stop: type(uint256).max
     })
 });
 ```
@@ -133,8 +133,8 @@ Order memory order = Order({
     // ... standard fields
     epoch: 0,                    // Single execution
     output: Output({
-        amount: 900e18,          // Minimum output
-        maxAmount: 950e18        // Stop if price drops below this
+        limit: 900e18,          // Minimum output
+        stop: 950e18        // Stop if price drops below this
     })
 });
 ```

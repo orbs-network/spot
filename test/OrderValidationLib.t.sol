@@ -51,7 +51,7 @@ contract OrderValidationLibTest is BaseTest {
         outAmount = 101;
         outMax = 100;
         CosignedOrder memory co = order();
-        vm.expectRevert(OrderValidationLib.InvalidOrderOutputAmountGtMax.selector);
+        vm.expectRevert(OrderValidationLib.InvalidOrderOutputLimitGtStop.selector);
         this.callValidate(co);
     }
 

@@ -21,8 +21,8 @@ contract MockReactor is IReactor {
         lastExecution = execution;
 
         bytes32 orderHash = OrderLib.hash(cosignedOrder.order);
-        // For mock purposes, we'll use a dummy resolvedAmountOut = co.order.output.amount
-        uint256 resolvedAmountOut = cosignedOrder.order.output.amount;
+        // For mock purposes, we'll use a dummy resolvedAmountOut = co.order.output.limit
+        uint256 resolvedAmountOut = cosignedOrder.order.output.limit;
         IReactorCallback(msg.sender).reactorCallback(orderHash, resolvedAmountOut, cosignedOrder, execution);
     }
 

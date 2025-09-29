@@ -106,7 +106,7 @@ contract ExecutorTest is BaseTest {
         bytes32 orderHash = OrderLib.hash(co.order);
 
         vm.expectRevert(abi.encodeWithSelector(Executor.InvalidSender.selector));
-        exec.reactorCallback(orderHash, co.order.output.amount, co, execution(0, address(0), 0, address(0)));
+        exec.reactorCallback(orderHash, co.order.output.limit, co, execution(0, address(0), 0, address(0)));
     }
 
     function test_reactorCallback_executes_multicall_and_sets_erc20_approval() public {
@@ -126,7 +126,7 @@ contract ExecutorTest is BaseTest {
 
         // call from reactor
         vm.prank(address(reactorMock));
-        exec.reactorCallback(orderHash, co.order.output.amount, co, execution(0, address(0), 0, address(0)));
+        exec.reactorCallback(orderHash, co.order.output.limit, co, execution(0, address(0), 0, address(0)));
 
         // multicall executed: executor now holds minted tokens
         assertEq(ERC20Mock(address(token)).balanceOf(address(exec)), 1e18);
@@ -160,7 +160,7 @@ contract ExecutorTest is BaseTest {
 
         // call from reactor; should internally forceApprove to exact amount (approve(0) then approve(1234))
         vm.prank(address(reactorMock));
-        exec.reactorCallback(orderHash, co.order.output.amount, co, execution(0, address(0), 0, address(0)));
+        exec.reactorCallback(orderHash, co.order.output.limit, co, execution(0, address(0), 0, address(0)));
 
         // final allowance set to exact amount
         assertEq(IERC20(address(usdt)).allowance(address(exec), address(reactorMock)), 1234);
@@ -183,7 +183,7 @@ contract ExecutorTest is BaseTest {
 
         uint256 beforeBal = address(reactorMock).balance;
         vm.prank(address(reactorMock));
-        exec.reactorCallback(orderHash, co.order.output.amount, co, execution(0, address(0), 0, address(0)));
+        exec.reactorCallback(orderHash, co.order.output.limit, co, execution(0, address(0), 0, address(0)));
         assertEq(address(reactorMock).balance, beforeBal + 987);
     }
 
@@ -202,7 +202,7 @@ contract ExecutorTest is BaseTest {
 
         // should not revert; also sets approval for reactor
         vm.prank(address(reactorMock));
-        exec.reactorCallback(orderHash, co.order.output.amount, co, execution(0, address(0), 0, address(0)));
+        exec.reactorCallback(orderHash, co.order.output.limit, co, execution(0, address(0), 0, address(0)));
         assertEq(IERC20(address(token)).allowance(address(exec), address(reactorMock)), 100);
     }
 
@@ -248,7 +248,7 @@ contract ExecutorTest is BaseTest {
 
         uint256 before = ERC20Mock(address(token2)).balanceOf(signer);
         vm.prank(address(reactorMock));
-        exec.reactorCallback(orderHash, co.order.output.amount, co, execution(600, address(0), 0, address(0)));
+        exec.reactorCallback(orderHash, co.order.output.limit, co, execution(600, address(0), 0, address(0)));
         assertEq(ERC20Mock(address(token2)).balanceOf(signer), before + 100);
     }
 

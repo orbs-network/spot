@@ -121,11 +121,11 @@
                 "type": "address"
             },
             {
-                "name": "amount",
+                "name": "limit",
                 "type": "uint256"
             },
             {
-                "name": "maxAmount",
+                "name": "stop",
                 "type": "uint256"
             },
             {
@@ -176,8 +176,8 @@
             },
             "output": {
                 "token": "<OUTTOKEN>",
-                "amount": "<OUTAMOUNTMIN>",
-                "maxAmount": "<OUTAMOUNTTRIGGER>",
+                "limit": "<OUTAMOUNTMIN>",
+                "stop": "<OUTAMOUNTTRIGGER>",
                 "recipient": "<RECIPIENT>"
             }
         }
