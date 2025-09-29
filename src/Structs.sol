@@ -14,7 +14,7 @@ struct Input {
 /// @dev tokens that need to be received by the recipient in order to satisfy an order
 struct Output {
     address token;
-    uint256 limit; // minimum acceptable output
+    uint256 limit; // minimum acceptable output to recipient
     uint256 stop; // trigger; max uint256 or 0 = no trigger
     address recipient;
 }
