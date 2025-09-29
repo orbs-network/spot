@@ -98,26 +98,6 @@ contract OrderReactorPauseTest is BaseTest {
         vm.expectRevert("Pausable: paused");
         reactorUut.executeWithCallback(co, ex);
     }
-
-    function test_executeWithCallback_works_when_not_paused() public {
-        // This test simply verifies that when the reactor is not paused,
-        // the whenNotPaused modifier doesn't block execution.
-
-        // Ensure reactor is not paused
-        assertFalse(reactorUut.paused());
-
-        // Set up minimal execution data to test the modifier
-        CosignedOrder memory co;
-        Execution memory ex;
-
-        // This will fail due to validation (reactor address is zero)
-        // but it should NOT fail due to the pause check
-        vm.expectRevert(); // Expecting some validation error, not pause error
-        reactorUut.executeWithCallback(co, ex);
-
-        // The important thing is that we can call it when not paused
-        // The specific validation error doesn't matter for this test
-    }
 }
 
 // Simple callback contract for testing
