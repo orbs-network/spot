@@ -15,7 +15,7 @@ struct Input {
 struct Output {
     address token;
     uint256 limit; // minimum acceptable output
-    uint256 stop; // trigger; max uint256 = no trigger
+    uint256 stop; // trigger; max uint256 or 0 = no trigger
     address recipient;
 }
 
