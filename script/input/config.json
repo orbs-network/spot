@@ -1,19 +1,19 @@
 {
     "*": {
-        "wm": "0x0000106E259F85cE9e2b6AeCEAc728fc79B30000",
-        "repermit": "0x0004637BB388Fe0eCb81ecFfCfBB3d0D54767000",
+        "wm": "0x000718965A8b5ACAdA21ce9c0Eea2CF953ddB000",
+        "repermit": "0x000BCb6BF46ad3D324A29fBB060e90E0Ca4b0000",
         "cosigner": "0x61C4c6670FBA2Fa8Eb5eb2d930ae6d05fC78f05C",
-        "reactor": "0x00066dc9404716804e1280243E43dB080E553000",
-        "executor": "0x00076D4865b3D6eEc580671A10f0AeeFD207C000",
-        "refinery": "0x00039c4143f1c8DFf1187331EeB103Fd7e6ED000"
+        "reactor": "0x0004c667e31DDB2dB9Cb0D1884cF734DBee87001",
+        "executor": "0x00022183136360026fB52CffB2CC3DfA422c8002",
+        "refinery": "0x000ede0365EC6516e8D7EEB681Cc5A46DEB2b003"
     },
     "56": {
         "dex": {
             "thena": {
                 "type": "default:openocean-v2",
                 "router": "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64",
-                "adapter": "0x2FCe94bDa47638a94bA8f0583A3905aD4C2c0933",
-                "fee": "0xfEE00A8608C00cE3659fC60Bb0F7BD022E05EcfE"
+                "adapter": "0x79fee7D3074EB31Ff885a1e5c5Be8ED1d9eA2aeb",
+                "fee": "0x2C050Da263168E3674c8d980BB59F01A232f0a3D"
             }
         }
     }

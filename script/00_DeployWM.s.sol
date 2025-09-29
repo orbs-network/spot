@@ -23,6 +23,7 @@ contract DeployWM is Script {
             wmAddr = vm.envOr("WM", address(0));
         }
 
+        vm.setEnv("WM", vm.toString(wmAddr));
         new UpdateWMWhitelist().run();
     }
 }
