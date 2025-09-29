@@ -21,30 +21,4 @@ abstract contract WMAllowed {
         if (!IWM(wm).allowed(msg.sender)) revert NotAllowed();
         _;
     }
-
-    /// @dev Reverts if the caller is not allowed by the WM contract
-    /// @param _wm The WM contract address to check against
-    function _requireAllowed(address _wm) internal view {
-        if (!IWM(_wm).allowed(msg.sender)) revert NotAllowed();
-    }
-
-    /// @dev Reverts if the specified address is not allowed by the WM contract
-    /// @param _wm The WM contract address to check against
-    /// @param caller The address to check (allows checking addresses other than msg.sender)
-    function _requireAllowed(address _wm, address caller) internal view {
-        if (!IWM(_wm).allowed(caller)) revert NotAllowed();
-    }
-
-    /// @dev Returns true if the caller is allowed by the WM contract
-    /// @param _wm The WM contract address to check against
-    function _isAllowed(address _wm) internal view returns (bool) {
-        return IWM(_wm).allowed(msg.sender);
-    }
-
-    /// @dev Returns true if the specified address is allowed by the WM contract
-    /// @param _wm The WM contract address to check against
-    /// @param caller The address to check
-    function _isAllowed(address _wm, address caller) internal view returns (bool) {
-        return IWM(_wm).allowed(caller);
-    }
 }
