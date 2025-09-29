@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import {BaseTest} from "test/base/BaseTest.sol";
 
 import {Executor} from "src/executor/Executor.sol";
-import {WMLib} from "src/lib/WMLib.sol";
+import {WMAllowed} from "src/lib/WMAllowed.sol";
 import {Execution} from "src/Structs.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -89,7 +89,7 @@ contract ExecutorTest is BaseTest {
         outMax = 0;
         CosignedOrder memory co = order();
         Execution memory ex = execution(0, address(0), 0, address(0));
-        vm.expectRevert(abi.encodeWithSelector(WMLib.NotAllowed.selector));
+        vm.expectRevert(abi.encodeWithSelector(WMAllowed.NotAllowed.selector));
         exec.execute(co, ex);
     }
 

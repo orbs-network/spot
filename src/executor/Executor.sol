@@ -3,10 +3,8 @@ pragma solidity 0.8.20;
 
 import {IReactor} from "src/interface/IReactor.sol";
 import {IReactorCallback} from "src/interface/IReactorCallback.sol";
-import {OrderLib} from "src/lib/OrderLib.sol";
-import {WMLib} from "src/lib/WMLib.sol";
+import {WMAllowed} from "src/lib/WMAllowed.sol";
 import {CosignedOrder, Execution} from "src/Structs.sol";
-import {IWM} from "src/interface/IWM.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {SurplusLib} from "src/lib/SurplusLib.sol";
 import {IExchangeAdapter} from "src/interface/IExchangeAdapter.sol";
@@ -14,21 +12,14 @@ import {SettlementLib} from "src/lib/SettlementLib.sol";
 
 /// @title Order executor contract
 /// @notice Whitelisted filler contract that runs venue logic and handles surplus distribution
-contract Executor is IReactorCallback {
+contract Executor is IReactorCallback, WMAllowed {
     error InvalidSender();
     error InvalidOrder();
 
     address public immutable reactor;
-    address public immutable allowed;
 
-    constructor(address _reactor, address _allowed) {
+    constructor(address _reactor, address _allowed) WMAllowed(_allowed) {
         reactor = _reactor;
-        allowed = _allowed;
-    }
-
-    modifier onlyAllowed() {
-        WMLib.requireAllowed(allowed, msg.sender);
-        _;
     }
 
     modifier onlyReactor() {
