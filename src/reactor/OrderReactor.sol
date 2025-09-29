@@ -6,7 +6,7 @@ import {Pausable} from "@openzeppelin/contracts/security/Pausable.sol";
 import {IReactorCallback} from "src/interface/IReactorCallback.sol";
 import {IWM} from "src/interface/IWM.sol";
 import {OrderLib} from "src/lib/OrderLib.sol";
-import {WMLib} from "src/lib/WMLib.sol";
+import {WMAllowed} from "src/lib/WMAllowed.sol";
 import {CosignedOrder, Execution} from "src/Structs.sol";
 import {TokenLib} from "src/lib/TokenLib.sol";
 import {SettlementLib} from "src/lib/SettlementLib.sol";
@@ -22,34 +22,30 @@ import {ExclusivityOverrideLib} from "src/lib/ExclusivityOverrideLib.sol";
 /// @title OrderReactor
 /// @notice Verifies and settles cosigned orders via an executor callback.
 /// @dev Supports emergency pause functionality controlled by WM allowlist.
-contract OrderReactor is ReentrancyGuard, Pausable {
+contract OrderReactor is ReentrancyGuard, Pausable, WMAllowed {
     /// @dev Emitted after a successful fill.
     event Fill(bytes32 indexed hash, address indexed executor, address indexed swapper, uint256 epoch);
 
     address public immutable cosigner;
     address public immutable repermit;
-    address public immutable wm;
 
     // order hash => next epoch
     mapping(bytes32 => uint256) public epochs;
 
-    constructor(address _repermit, address _cosigner, address _wm) {
+    constructor(address _repermit, address _cosigner, address _wm) WMAllowed(_wm) {
         cosigner = _cosigner;
         repermit = _repermit;
-        wm = _wm;
     }
 
     /// @notice Pause the reactor to prevent order execution.
     /// @dev Only addresses allowed by WM can pause.
-    function pause() external {
-        WMLib.requireAllowed(wm);
+    function pause() external onlyAllowed {
         _pause();
     }
 
     /// @notice Unpause the reactor to allow order execution.
     /// @dev Only addresses allowed by WM can unpause.
-    function unpause() external {
-        WMLib.requireAllowed(wm);
+    function unpause() external onlyAllowed {
         _unpause();
     }
 
