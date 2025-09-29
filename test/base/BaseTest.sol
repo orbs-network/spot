@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.27;
 
 import "forge-std/Test.sol";
 
-import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
+import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
+import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 import {WM} from "src/ops/WM.sol";
 import {RePermit} from "src/repermit/RePermit.sol";
@@ -11,7 +12,6 @@ import {RePermitLib} from "src/lib/RePermitLib.sol";
 import {OrderLib} from "src/lib/OrderLib.sol";
 import {Execution} from "src/Structs.sol";
 import {IEIP712} from "src/interface/IEIP712.sol";
-import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/Structs.sol";
 
 abstract contract BaseTest is Test {
@@ -165,7 +165,7 @@ abstract contract BaseTest is Test {
     }
 
     function signEIP712(address eip712, uint256 privateKey, bytes32 hash) internal view returns (bytes memory sig) {
-        bytes32 msgHash = ECDSA.toTypedDataHash(IEIP712(eip712).DOMAIN_SEPARATOR(), hash);
+        bytes32 msgHash = MessageHashUtils.toTypedDataHash(IEIP712(eip712).DOMAIN_SEPARATOR(), hash);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, msgHash);
         sig = bytes.concat(r, s, bytes1(v));
     }

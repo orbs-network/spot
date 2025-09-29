@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.27;
 
 /// @title Core data structures for the Spot DeFi protocol
 /// @notice Defines orders, cosignatures, and execution parameters for limit orders, TWAP, and stop-loss functionality

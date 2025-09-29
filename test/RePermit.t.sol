@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.27;
 
 import {BaseTest} from "test/base/BaseTest.sol";
-import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {RePermit} from "src/repermit/RePermit.sol";
 import {RePermitLib} from "src/lib/RePermitLib.sol";
 
@@ -223,7 +223,7 @@ contract RePermitTest is BaseTest {
 
     function test_hashTypedData_digest_matches_ECDSA() public view {
         bytes32 structHash = keccak256("example-struct-hash");
-        bytes32 expected = ECDSA.toTypedDataHash(uut.DOMAIN_SEPARATOR(), structHash);
+        bytes32 expected = MessageHashUtils.toTypedDataHash(uut.DOMAIN_SEPARATOR(), structHash);
         assertEq(uut.hashTypedData(structHash), expected, "digest");
     }
 

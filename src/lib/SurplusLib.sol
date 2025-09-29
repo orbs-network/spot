@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.27;
 
 import {Constants} from "src/reactor/Constants.sol";
 import {TokenLib} from "src/lib/TokenLib.sol";

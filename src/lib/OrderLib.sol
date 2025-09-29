@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.27;
 
 import {RePermitLib} from "src/lib/RePermitLib.sol";
 import {Input, Output, Exchange, Order, CosignedValue, Cosignature, CosignedOrder} from "src/Structs.sol";

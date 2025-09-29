@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.27;
 
 import {BaseTest} from "test/base/BaseTest.sol";
 
@@ -8,7 +8,7 @@ import {WMAllowed} from "src/lib/WMAllowed.sol";
 import {Execution} from "src/Structs.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
+import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 
 import {OrderLib} from "src/lib/OrderLib.sol";
 import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/Structs.sol";

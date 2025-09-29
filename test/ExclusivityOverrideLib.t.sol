@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.27;
 
 import {BaseTest} from "test/base/BaseTest.sol";
 import {ExclusivityOverrideLib} from "src/lib/ExclusivityOverrideLib.sol";

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.27;
 
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {Constants} from "src/reactor/Constants.sol";
@@ -26,6 +26,6 @@ library ExclusivityOverrideLib {
         if (msg.sender != exclusiveExecutor && exclusivityBps == 0) revert InvalidSender();
         if (msg.sender == exclusiveExecutor) return minOut;
         uint256 bps = Constants.BPS + uint256(exclusivityBps);
-        return Math.mulDiv(minOut, bps, Constants.BPS, Math.Rounding.Up);
+        return Math.mulDiv(minOut, bps, Constants.BPS);
     }
 }

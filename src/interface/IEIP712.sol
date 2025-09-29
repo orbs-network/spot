@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.27;
 
 /// @title EIP-712 domain separator interface
 /// @notice Provides typed data hashing functionality for signature verification

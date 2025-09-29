@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.27;
 
 import {Vm} from "forge-std/Vm.sol";
 
 import {BaseTest} from "test/base/BaseTest.sol";
 
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {WM} from "src/ops/WM.sol";
 
 contract WMTest is BaseTest {
@@ -24,7 +25,7 @@ contract WMTest is BaseTest {
     }
 
     function test_revert_owned() public {
-        vm.expectRevert("Ownable: caller is not the owner");
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, other));
         hoax(other);
         uut.set(new address[](0), true);
     }
@@ -121,7 +122,7 @@ contract WMTest is BaseTest {
         assertEq(uut.owner(), address(this));
 
         // Pending cannot accept from non-pending
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(this)));
         uut.acceptOwnership();
 
         // Now accept from pending
@@ -132,7 +133,7 @@ contract WMTest is BaseTest {
         // Original owner can no longer call set
         address[] memory addrs = new address[](1);
         addrs[0] = other;
-        vm.expectRevert("Ownable: caller is not the owner");
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(this)));
         uut.set(addrs, true);
     }
 
@@ -143,7 +144,7 @@ contract WMTest is BaseTest {
         assertEq(uut.pendingOwner(), address(0));
 
         // No address can accept; ensure revert from current owner
-        vm.expectRevert("Ownable2Step: caller is not the new owner");
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(this)));
         uut.acceptOwnership();
     }
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.27;
 
 /// @title RePermit library
 /// @notice Permit2-style EIP-712 signatures with witness data tied to order hashes

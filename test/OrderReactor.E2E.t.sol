@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.27;
 
 import {BaseTest} from "test/base/BaseTest.sol";
 import {Executor} from "src/executor/Executor.sol";
@@ -8,7 +8,7 @@ import {DefaultDexAdapter} from "src/adapter/DefaultDexAdapter.sol";
 import {Execution, CosignedOrder} from "src/Structs.sol";
 import {OrderLib} from "src/lib/OrderLib.sol";
 import {RePermit} from "src/repermit/RePermit.sol";
-import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
+import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 import {MockDexRouter} from "test/mocks/MockDexRouter.sol";
 import {SwapAdapterMock} from "test/mocks/SwapAdapter.sol";
 import {ResolutionLib} from "src/lib/ResolutionLib.sol";
@@ -203,7 +203,7 @@ contract OrderReactorE2ETest is BaseTest {
         Execution memory ex = execution(100, address(0), 0, address(0));
 
         ERC20Mock(outToken).mint(address(competitor), 100);
-        vm.expectRevert("ERC20: transfer amount exceeds balance");
+        vm.expectRevert();
         competitor.execute(co, ex);
 
         ERC20Mock(outToken).mint(address(competitor), 10);

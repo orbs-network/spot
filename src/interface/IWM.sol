@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.27;
 
 /// @title Allowlist management interface
 /// @notice Interface for checking if addresses are allowed to perform operations

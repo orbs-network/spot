@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.27;
 
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 
 /// @title Allowlist management contract
@@ -10,9 +11,8 @@ contract WM is Ownable2Step {
 
     event AllowedSet(address indexed addr, bool allowed);
 
-    constructor(address _owner) Ownable2Step() {
+    constructor(address _owner) Ownable(_owner) {
         allowed[_owner] = true;
-        _transferOwnership(_owner);
     }
 
     function set(address[] calldata addr, bool _allowed) external onlyOwner {

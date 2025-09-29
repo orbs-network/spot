@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.27;
 
 /// @title Protocol constants for the Spot DeFi protocol
 /// @notice Defines basis points denomination and maximum slippage limits

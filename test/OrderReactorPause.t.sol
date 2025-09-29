@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.27;
 
 import {BaseTest} from "test/base/BaseTest.sol";
 import {OrderReactor} from "src/reactor/OrderReactor.sol";
 import {WMAllowed} from "src/lib/WMAllowed.sol";
+import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 import {CosignedOrder, Execution, Output} from "src/Structs.sol";
 
 contract OrderReactorPauseTest is BaseTest {
@@ -95,7 +96,7 @@ contract OrderReactorPauseTest is BaseTest {
 
         // Try to execute - should revert
         co = cosign(co);
-        vm.expectRevert("Pausable: paused");
+        vm.expectRevert(Pausable.EnforcedPause.selector);
         reactorUut.executeWithCallback(co, ex);
     }
 }
@@ -107,7 +108,7 @@ contract SimpleCallback {
         uint256, // resolvedAmountOut
         CosignedOrder calldata, // cosignedOrder
         Execution calldata // execution
-    ) external {
+    ) external pure {
         // Simple implementation that will fail
         revert("SimpleCallback: not implemented");
     }
