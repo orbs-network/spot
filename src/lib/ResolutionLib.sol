@@ -23,7 +23,9 @@ library ResolutionLib {
             cosigned.cosignatureData.output.value, cosigned.cosignatureData.input.value
         );
 
-        if (cosignedOutput > cosigned.order.output.stop) revert CosignedExceedsStop();
+        // Treat stop=0 as type(uint256).max (no trigger)
+        uint256 effectiveStop = cosigned.order.output.stop == 0 ? type(uint256).max : cosigned.order.output.stop;
+        if (cosignedOutput > effectiveStop) revert CosignedExceedsStop();
 
         uint256 minOut = cosignedOutput.mulDiv(Constants.BPS - cosigned.order.slippage, Constants.BPS);
         return minOut.max(cosigned.order.output.limit);

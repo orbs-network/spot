@@ -55,6 +55,30 @@ contract OrderValidationLibTest is BaseTest {
         this.callValidate(co);
     }
 
+    function test_validate_stop_zero_treated_as_max() public {
+        reactor = address(this);
+        executor = address(this);
+        adapter = address(this);
+        inAmount = 100;
+        inMax = 200;
+        outAmount = 50;
+        outMax = 0; // stop=0 should be treated as type(uint256).max
+        // Should not revert because stop=0 is treated as type(uint256).max
+        this.callValidate(order());
+    }
+
+    function test_validate_stop_zero_allows_any_limit() public {
+        reactor = address(this);
+        executor = address(this);
+        adapter = address(this);
+        inAmount = 100;
+        inMax = 200;
+        outAmount = type(uint256).max - 1; // Very high limit
+        outMax = 0; // stop=0 should be treated as type(uint256).max
+        // Should not revert because stop=0 is treated as type(uint256).max
+        this.callValidate(order());
+    }
+
     function test_validate_reverts_slippageTooHigh() public {
         slippage = uint32(Constants.MAX_SLIPPAGE);
         inAmount = 100;
