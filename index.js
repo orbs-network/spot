@@ -1,10 +1,48 @@
 const raw = require('./script/input/config.json');
 
-module.exports.config = (chainId) => {
+// Cache for processed configs
+let cachedConfigs = null;
+
+// Helper to deep merge objects
+function deepMerge(base, override) {
+  const result = { ...base };
+  for (const key in override) {
+    if (override[key] && typeof override[key] === 'object' && !Array.isArray(override[key])) {
+      result[key] = deepMerge(result[key] || {}, override[key]);
+    } else {
+      result[key] = override[key];
+    }
+  }
+  return result;
+}
+
+// Build all configs with defaults merged
+function buildConfigs() {
+  if (cachedConfigs) return cachedConfigs;
+  
   const base = raw['*'];
-  if (!chainId) return { ...base };
-  const override = raw[`${chainId}`];
-  return override ? { ...base, ...override } : { ...base };
+  const result = {};
+  
+  for (const key in raw) {
+    if (key === '*') continue;
+    result[key] = deepMerge(base, raw[key]);
+  }
+  
+  cachedConfigs = result;
+  return result;
+}
+
+module.exports.configs = () => {
+  return buildConfigs();
+};
+
+module.exports.config = (chainId) => {
+  if (!chainId) {
+    return { ...raw['*'] };
+  }
+  
+  const allConfigs = buildConfigs();
+  return allConfigs[chainId] || { ...raw['*'] };
 };
 
 module.exports.abi = {
