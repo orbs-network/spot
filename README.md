@@ -83,10 +83,6 @@ struct Output {
     address recipient;        // Where to send output tokens
 }
 
-/// Cosignatures quote prices for the input/output tokens.
-/// - `value` may use any consistent scale; only the ratio input.value / output.value matters.
-/// - `decimals` mirrors each token's decimals for context during settlement.
-
 ```
 
 ## Flow (Plain English)
