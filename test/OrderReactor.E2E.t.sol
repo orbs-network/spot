@@ -179,6 +179,37 @@ contract OrderReactorE2ETest is BaseTest {
         assertEq(ERC20Mock(outToken).balanceOf(recipient) - before, 0.5 ether);
     }
 
+    function test_e2e_stop_zero_allows_execution() public {
+        inToken = address(token);
+        outToken = address(token2);
+        inAmount = 1 ether;
+        inMax = inAmount;
+        outAmount = 500 ether;
+        outMax = 0; // stop=0 should be treated as type(uint256).max
+
+        CosignedOrder memory co = order();
+
+        fundOrderInput(co);
+
+        ERC20Mock(address(token2)).mint(address(exec), 600 ether);
+
+        cosignInValue = 1000;
+        cosignOutValue = 600;
+        co = cosign(co);
+        co.signature = permitFor(co, address(reactorUut));
+
+        Execution memory ex = executionWithData(
+            600 ether,
+            abi.encodeWithSelector(MockDexRouter.doSwap.selector, inToken, inAmount, outToken, 0, address(exec))
+        );
+
+        uint256 before = ERC20Mock(outToken).balanceOf(recipient);
+        exec.execute(co, ex);
+
+        // Should successfully execute with stop=0 even though cosigned output is high
+        assertEq(ERC20Mock(outToken).balanceOf(recipient), before + 600 ether);
+    }
+
     function test_e2e_exclusivity_override_enforces_competitor_min_out() public {
         inToken = address(token);
         outToken = address(token2);

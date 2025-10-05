@@ -42,4 +42,35 @@ contract ResolutionLibTest is BaseTest {
         vm.expectRevert(ResolutionLib.CosignedExceedsStop.selector);
         this.callResolve(co);
     }
+
+    function test_resolveOutAmount_stop_zero_treated_as_max() public {
+        executor = address(this);
+        inAmount = 1_000;
+        inMax = 2_000;
+        outAmount = 1_200;
+        outMax = 0; // stop=0 should be treated as type(uint256).max
+        cosignInValue = 100;
+        cosignOutValue = 200;
+        CosignedOrder memory co = order();
+        co = cosign(co);
+        // cosignedOutput is 2000, but stop=0 should not revert
+        uint256 outAmt = this.callResolve(co);
+        assertEq(outAmt, 1_980);
+    }
+
+    function test_resolveOutAmount_stop_zero_never_reverts() public {
+        executor = address(this);
+        inAmount = 1_000;
+        inMax = 2_000;
+        outAmount = 1_200;
+        outMax = 0; // stop=0 should be treated as type(uint256).max
+        cosignInValue = 1;
+        cosignOutValue = type(uint256).max / 1_000; // Very high output value
+        CosignedOrder memory co = order();
+        co = cosign(co);
+        // Even with extremely high cosignedOutput, stop=0 should not revert
+        uint256 outAmt = this.callResolve(co);
+        // Result should be valid (no revert)
+        assertGt(outAmt, 0);
+    }
 }
