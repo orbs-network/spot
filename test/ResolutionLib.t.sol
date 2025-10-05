@@ -20,10 +20,11 @@ contract ResolutionLibTest is BaseTest {
         inMax = 2_000;
         outAmount = 1_200;
         outMax = 10_000;
-        cosignInValue = 100;
-        cosignOutValue = 200;
+        cosignInValue = 200;
+        cosignOutValue = 100;
         CosignedOrder memory co = order();
         co = cosign(co);
+
         uint256 outAmt = this.callResolve(co);
         assertEq(outAmt, 1_980);
     }
@@ -34,8 +35,8 @@ contract ResolutionLibTest is BaseTest {
         inMax = 2_000;
         outAmount = 1_200;
         outMax = 10_000;
-        cosignInValue = 100;
-        cosignOutValue = 200;
+        cosignInValue = 200;
+        cosignOutValue = 100;
         CosignedOrder memory co = order();
         co = cosign(co);
         co.order.output.stop = 1_500; // cosignedOutput is 2000 > 1500
@@ -49,8 +50,8 @@ contract ResolutionLibTest is BaseTest {
         inMax = 2_000;
         outAmount = 1_200;
         outMax = 0; // stop=0 should be treated as type(uint256).max
-        cosignInValue = 100;
-        cosignOutValue = 200;
+        cosignInValue = 200;
+        cosignOutValue = 100;
         CosignedOrder memory co = order();
         co = cosign(co);
         // cosignedOutput is 2000, but stop=0 should not revert
@@ -72,5 +73,22 @@ contract ResolutionLibTest is BaseTest {
         uint256 outAmt = this.callResolve(co);
         // Result should be valid (no revert)
         assertGt(outAmt, 0);
+    }
+
+    function test_resolveOutAmount_handles_decimals_beyond_eighteen() public {
+        executor = address(this);
+        inAmount = 1_000_000_000_000; // 1e12 units
+        inMax = inAmount;
+        outAmount = 0;
+        outMax = type(uint256).max;
+        cosignInValue = 3;
+        cosignOutValue = 2;
+        CosignedOrder memory co = order();
+        co = cosign(co);
+        co.cosignatureData.input.decimals = 24;
+        co.cosignatureData.output.decimals = 6;
+
+        uint256 outAmt = this.callResolve(co);
+        assertEq(outAmt, 0);
     }
 }

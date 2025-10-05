@@ -4,6 +4,7 @@ pragma solidity 0.8.27;
 import "forge-std/Test.sol";
 
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 import {WM} from "src/ops/WM.sol";
@@ -102,13 +103,30 @@ abstract contract BaseTest is Test {
         c.chainid = block.chainid;
         c.reactor = co.order.reactor;
         c.cosigner = signer;
-        c.input = CosignedValue({token: co.order.input.token, value: cosignInValue, decimals: 18});
-        c.output = CosignedValue({token: co.order.output.token, value: cosignOutValue, decimals: 18});
+        c.input = CosignedValue({
+            token: co.order.input.token,
+            value: cosignInValue,
+            decimals: _tokenDecimals(co.order.input.token)
+        });
+        c.output = CosignedValue({
+            token: co.order.output.token,
+            value: cosignOutValue,
+            decimals: _tokenDecimals(co.order.output.token)
+        });
         bytes32 digest = IEIP712(repermit).hashTypedData(OrderLib.hash(c));
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPK, digest);
         co.cosignatureData = c;
         co.cosignature = bytes.concat(r, s, bytes1(v));
         return co;
+    }
+
+    function _tokenDecimals(address tokenAddr) internal view returns (uint8) {
+        if (tokenAddr == address(0)) return 18;
+        try IERC20Metadata(tokenAddr).decimals() returns (uint8 value) {
+            return value;
+        } catch {
+            return 18;
+        }
     }
 
     // Single order() helper: builds and signs using BaseTest vars

@@ -7,6 +7,7 @@ import {ResolutionLib} from "src/lib/ResolutionLib.sol";
 import {OrderLib} from "src/lib/OrderLib.sol";
 import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/Structs.sol";
 import {Constants} from "src/reactor/Constants.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 contract ResolutionLibFuzzTest is BaseTest {
     function callResolve(CosignedOrder memory co) external pure returns (uint256) {
@@ -42,7 +43,7 @@ contract ResolutionLibFuzzTest is BaseTest {
         co.cosignatureData.output =
             CosignedValue({token: makeAddr("cosignedOutputToken"), value: outputValue, decimals: 18});
 
-        uint256 cosignedOutput = (inAmount * outputValue) / inputValue;
+        uint256 cosignedOutput = Math.mulDiv(inAmount, inputValue, outputValue);
         if (cosignedOutput > maxOut) {
             vm.expectRevert(ResolutionLib.CosignedExceedsStop.selector);
             this.callResolve(co);

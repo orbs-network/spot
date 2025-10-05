@@ -2,6 +2,7 @@
 pragma solidity 0.8.27;
 
 import {BaseTest} from "test/base/BaseTest.sol";
+import {Vm} from "forge-std/Vm.sol";
 import {Executor} from "src/executor/Executor.sol";
 import {OrderReactor} from "src/reactor/OrderReactor.sol";
 import {DefaultDexAdapter} from "src/adapter/DefaultDexAdapter.sol";
@@ -9,6 +10,7 @@ import {Execution, CosignedOrder} from "src/Structs.sol";
 import {OrderLib} from "src/lib/OrderLib.sol";
 import {RePermit} from "src/repermit/RePermit.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
+import {ERC20Mock6Decimals} from "test/mocks/ERC20Mock6Decimals.sol";
 import {MockDexRouter} from "test/mocks/MockDexRouter.sol";
 import {SwapAdapterMock} from "test/mocks/SwapAdapter.sol";
 import {ResolutionLib} from "src/lib/ResolutionLib.sol";
@@ -51,8 +53,8 @@ contract OrderReactorE2ETest is BaseTest {
 
         ERC20Mock(address(token2)).mint(address(exec), 600 ether);
 
-        cosignInValue = 1000;
-        cosignOutValue = 600;
+        cosignInValue = 600;
+        cosignOutValue = 1;
         co = cosign(co);
         co.signature = permitFor(co, address(reactorUut));
 
@@ -82,8 +84,8 @@ contract OrderReactorE2ETest is BaseTest {
 
         vm.deal(address(exec), 1 ether);
 
-        cosignInValue = 100;
-        cosignOutValue = 100;
+        cosignInValue = 1;
+        cosignOutValue = 1;
         co = cosign(co);
         co.signature = permitFor(co, address(reactorUut));
 
@@ -93,6 +95,91 @@ contract OrderReactorE2ETest is BaseTest {
         exec.execute(co, ex);
         assertEq(recipient.balance - before, 1 ether);
         assertEq(address(reactorUut).balance, 0);
+    }
+
+    function test_e2e_usd_to_eth_cosigned_respects_decimals() public {
+        ERC20Mock6Decimals usd = new ERC20Mock6Decimals();
+        token = ERC20Mock(address(usd));
+        inToken = address(usd);
+        outToken = address(0);
+        inAmount = 50e6; // 50 USD
+        inMax = inAmount;
+        outAmount = 0;
+        outMax = type(uint256).max;
+        adapter = address(new SwapAdapterMock());
+
+        CosignedOrder memory co = order();
+
+        fundOrderInput(co);
+
+        cosignInValue = 1; // 1 USD
+        cosignOutValue = 4_000; // 1 ETH costs 4000 USD
+        co = cosign(co);
+        co.signature = permitFor(co, address(reactorUut));
+
+        assertEq(co.cosignatureData.input.decimals, usd.decimals(), "input decimals should match USD token");
+        assertEq(co.cosignatureData.output.decimals, 18, "output decimals should match native token");
+
+        uint256 expectedOut = 12_500_000_000_000_000; // 0.0125 ether
+        uint256 resolvedPreview = ResolutionLib.resolve(co);
+        assertEq(resolvedPreview, expectedOut, "resolved amount should respect price ratio");
+        vm.deal(address(exec), expectedOut);
+
+        Execution memory ex = execution(expectedOut, address(0), 0, address(0));
+
+        vm.recordLogs();
+        uint256 before = recipient.balance;
+        exec.execute(co, ex);
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        bytes32 settledSig = keccak256("Settled(bytes32,address,address,address,address,uint256,uint256,uint256)");
+        for (uint256 i = 0; i < entries.length; i++) {
+            if (entries[i].topics[0] == settledSig) {
+                (address inTok, address outTok, uint256 recordedIn, uint256 recordedOut, uint256 recordedMin) =
+                    abi.decode(entries[i].data, (address, address, uint256, uint256, uint256));
+                assertEq(inTok, inToken);
+                assertEq(outTok, outToken);
+                assertEq(recordedIn, inAmount);
+                assertEq(recordedOut, expectedOut, "settled out amount should match expected");
+                assertEq(recordedMin, expectedOut, "settled min out should match expected");
+            }
+        }
+        uint256 received = recipient.balance - before;
+        assertEq(received, expectedOut);
+    }
+
+    function test_e2e_eth_to_usd_cosigned_respects_decimals() public {
+        ERC20Mock6Decimals usd = new ERC20Mock6Decimals();
+        token2 = ERC20Mock(address(usd));
+        inToken = address(token);
+        outToken = address(usd);
+        inAmount = 12_500_000_000_000_000; // 0.0125 ether
+        inMax = inAmount;
+        outAmount = 50e6;
+        outMax = type(uint256).max;
+        adapter = address(new SwapAdapterMock());
+
+        CosignedOrder memory co = order();
+
+        fundOrderInput(co);
+
+        ERC20Mock(address(usd)).mint(address(exec), outAmount);
+
+        cosignInValue = 4_000;
+        cosignOutValue = 1;
+        co = cosign(co);
+        co.signature = permitFor(co, address(reactorUut));
+
+        assertEq(co.cosignatureData.input.decimals, 18, "input decimals should match native token");
+        assertEq(co.cosignatureData.output.decimals, usd.decimals(), "output decimals should match USD token");
+
+        uint256 expectedOut = outAmount;
+        uint256 resolvedPreview = ResolutionLib.resolve(co);
+        assertEq(resolvedPreview, expectedOut, "resolved amount should respect price ratio");
+
+        Execution memory ex = execution(expectedOut, address(0), 0, address(0));
+
+        exec.execute(co, ex);
+        assertEq(ERC20Mock(address(usd)).balanceOf(recipient), outAmount);
     }
 
     function test_e2e_twap_multi_fill_respects_epoch_and_permit_limits() public {
@@ -109,8 +196,8 @@ contract OrderReactorE2ETest is BaseTest {
         co.order.epoch = epochSeconds;
         co.order.input.maxAmount = inMax;
 
-        cosignInValue = 1_000;
-        cosignOutValue = 600;
+        cosignInValue = 600;
+        cosignOutValue = 1_000;
         co = cosign(co);
         bytes32 orderHash = OrderLib.hash(co.order);
         bytes32 permitDigest = permitDigestFor(co, address(reactorUut));
@@ -156,8 +243,8 @@ contract OrderReactorE2ETest is BaseTest {
 
         fundOrderInput(co);
 
-        cosignInValue = 1 ether;
-        cosignOutValue = 0.7 ether;
+        cosignInValue = 7;
+        cosignOutValue = 10;
         co = cosign(co);
 
         co.signature = permitFor(co, address(reactorUut));
@@ -170,7 +257,7 @@ contract OrderReactorE2ETest is BaseTest {
         vm.expectRevert(ResolutionLib.CosignedExceedsStop.selector);
         exec.execute(co, ex);
 
-        cosignOutValue = 0.5 ether;
+        cosignInValue = 5;
         vm.warp(block.timestamp + 1);
         co = cosign(co);
 
@@ -260,8 +347,8 @@ contract OrderReactorE2ETest is BaseTest {
         co.order.exchange.ref = ref;
         co.order.exchange.share = 1_500; // 15%
 
-        cosignInValue = 100;
-        cosignOutValue = 700;
+        cosignInValue = 7;
+        cosignOutValue = 1;
         co = cosign(co);
         co.signature = permitFor(co, address(reactorUut));
 

@@ -194,8 +194,8 @@ contract CosignatureLibTest is BaseTest {
         inMax = 2_000;
         outAmount = 500;
         outMax = 5_000;
-        cosignInValue = 100;
-        cosignOutValue = 200;
+        cosignInValue = 100 ether;
+        cosignOutValue = 200 ether;
         CosignedOrder memory co = order();
         co = cosign(co);
         co.cosignatureData.chainid = 999; // Wrong chainid
