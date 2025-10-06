@@ -26,7 +26,7 @@ module.exports.abi = () => {
     adapter: require('./out/DefaultDexAdapter.sol/DefaultDexAdapter.abi.json'),
   };
 
-  // Build structure: { chainid: { dex: { contract: abi }}}
+  // Build structure: { chainid: { dex: { dexname: { contract: abi }}}}
   const result = {};
 
   // Iterate through all chain configurations
@@ -36,11 +36,11 @@ module.exports.abi = () => {
     const chainConfig = raw[chainId];
     if (!chainConfig.dex) continue; // Skip if no dex config
 
-    result[chainId] = {};
+    result[chainId] = { dex: {} };
 
     // For each DEX on this chain, include all core ABIs
     for (const dexName in chainConfig.dex) {
-      result[chainId][dexName] = { ...coreAbis };
+      result[chainId].dex[dexName] = { ...coreAbis };
     }
   }
 
