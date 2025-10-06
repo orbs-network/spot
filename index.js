@@ -37,19 +37,21 @@ module.exports.configs = () => {
 };
 
 module.exports.config = (chainId, dex) => {
+  // No chainId: return defaults
   if (!chainId) {
     return { ...raw['*'] };
   }
   
-  const allConfigs = buildConfigs();
-  const chainConfig = allConfigs[chainId] || { ...raw['*'] };
-  
-  // If dex parameter is provided and not empty, return specific dex config
-  if (dex && typeof dex === 'string' && dex.trim() !== '') {
-    return chainConfig.dex && chainConfig.dex[dex] ? chainConfig.dex[dex] : null;
+  // chainId but no dex: return null (require both parameters)
+  if (!dex || typeof dex !== 'string' || dex.trim() === '') {
+    return null;
   }
   
-  return chainConfig;
+  // Both chainId and dex: return specific dex config
+  const allConfigs = buildConfigs();
+  const chainConfig = allConfigs[chainId];
+  
+  return chainConfig && chainConfig.dex && chainConfig.dex[dex] ? chainConfig.dex[dex] : null;
 };
 
 // Cache for ABIs to avoid rebuilding on every call
