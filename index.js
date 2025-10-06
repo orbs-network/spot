@@ -1,10 +1,57 @@
 const raw = require('./script/input/config.json');
 
-module.exports.config = (chainId) => {
+// Cache for processed configs
+let cachedConfigs = null;
+
+// Helper to deep merge objects
+function deepMerge(base, override) {
+  const result = { ...base };
+  for (const key in override) {
+    if (override[key] && typeof override[key] === 'object' && !Array.isArray(override[key])) {
+      result[key] = deepMerge(result[key] || {}, override[key]);
+    } else {
+      result[key] = override[key];
+    }
+  }
+  return result;
+}
+
+// Build all configs with defaults merged
+function buildConfigs() {
+  if (cachedConfigs) return cachedConfigs;
+  
   const base = raw['*'];
-  if (!chainId) return { ...base };
-  const override = raw[`${chainId}`];
-  return override ? { ...base, ...override } : { ...base };
+  const result = {};
+  
+  for (const key in raw) {
+    if (key === '*') continue;
+    result[key] = deepMerge(base, raw[key]);
+  }
+  
+  cachedConfigs = result;
+  return result;
+}
+
+module.exports.configs = () => {
+  return buildConfigs();
+};
+
+module.exports.config = (chainId, dex) => {
+  // No chainId: return defaults
+  if (!chainId) {
+    return { ...raw['*'] };
+  }
+  
+  // chainId but no dex: return undefined (require both parameters)
+  if (!dex || typeof dex !== 'string' || dex.trim() === '') {
+    return undefined;
+  }
+  
+  // Both chainId and dex: return specific dex config or undefined
+  const allConfigs = buildConfigs();
+  const chainConfig = allConfigs[chainId];
+  
+  return chainConfig && chainConfig.dex && chainConfig.dex[dex] ? chainConfig.dex[dex] : undefined;
 };
 
 // Cache for ABIs to avoid rebuilding on every call
