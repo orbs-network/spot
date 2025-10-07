@@ -187,7 +187,7 @@ forge build  # Compiles 90 Solidity files with 0.8.27
 
 ### Testing
 ```bash
-forge test   # Runs 108 tests across 14 test suites
+forge test   # Runs the full Foundry suite
 forge test --gas-report  # Include gas usage analysis
 ```
 
@@ -216,11 +216,15 @@ Supported chains include Ethereum mainnet, Arbitrum, Base, Polygon, and other ma
 4. Format code: `forge fmt`
 5. Submit pull request
 
+## Operational Notes
+
+- **Executor ETH Refunds**: Order execution returns the reactor's ETH balance to the filler. Keep executors funded and treat unexpected reactor ETH as recoverable by any WM-allowed address.
+- **Input Tokens**: Orders must spend ERC-20 tokens; wrap native ETH before creating orders.
+
 ## Support
 
 - **Issues**: GitHub Issues for bug reports and feature requests
 - **Documentation**: Comprehensive inline code documentation
-- **Tests**: 108 test cases covering all functionality
 
 ## License
 

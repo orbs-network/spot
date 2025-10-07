@@ -14,6 +14,7 @@ import {ERC20Mock6Decimals} from "test/mocks/ERC20Mock6Decimals.sol";
 import {MockDexRouter} from "test/mocks/MockDexRouter.sol";
 import {SwapAdapterMock} from "test/mocks/SwapAdapter.sol";
 import {ResolutionLib} from "src/lib/ResolutionLib.sol";
+import {ExclusivityOverrideLib} from "src/lib/ExclusivityOverrideLib.sol";
 
 contract OrderReactorE2ETest is BaseTest {
     OrderReactor public reactorUut;
@@ -330,6 +331,34 @@ contract OrderReactorE2ETest is BaseTest {
         competitor.execute(co, ex);
 
         assertEq(ERC20Mock(outToken).balanceOf(recipient), 110);
+    }
+
+    function test_e2e_exclusivity_zero_rejects_competitor_executor() public {
+        inToken = address(token);
+        outToken = address(token2);
+        inAmount = 100;
+        inMax = inAmount;
+        outAmount = 100;
+        outMax = type(uint256).max;
+        adapter = address(new SwapAdapterMock());
+
+        CosignedOrder memory co = order();
+        co.order.exclusivity = 0;
+
+        cosignInValue = 1;
+        cosignOutValue = 1;
+        co = cosign(co);
+        co.signature = permitFor(co, address(reactorUut));
+
+        fundOrderInput(co);
+
+        Executor competitor = new Executor(address(reactorUut), wm);
+        allow(address(competitor));
+
+        Execution memory ex = execution(100, address(0), 0, address(0));
+
+        vm.expectRevert(ExclusivityOverrideLib.InvalidSender.selector);
+        competitor.execute(co, ex);
     }
 
     function test_e2e_referral_surplus_distribution() public {

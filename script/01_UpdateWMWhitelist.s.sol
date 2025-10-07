@@ -28,10 +28,16 @@ contract UpdateWMWhitelist is Script {
 
         require(limit > 0, "whitelist empty");
 
+        if (limit < mainList.length) {
+            console.log("wm.json truncated", mainList.length - limit, "entries due to MAX_WHITELIST_SIZE");
+        }
+
         address[] memory incrementalList =
             abi.decode(vm.parseJson(vm.readFile(string.concat(root, WM_EXTRA_LIST_FILE))), (address[]));
 
         uint256 combinedLength = limit + incrementalList.length;
+
+        console.log("total whitelist candidates", combinedLength);
 
         address[] memory list = new address[](combinedLength);
 
