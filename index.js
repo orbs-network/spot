@@ -1,97 +1,22 @@
 const raw = require('./script/input/config.json');
+const { dex: _ignoredDex, ...baseDefaults } = raw['*'] || {};
 
-// Cache for processed configs
-let cachedConfigs = null;
-
-// Helper to deep merge objects
-function deepMerge(base, override) {
-  const result = { ...base };
-  for (const key in override) {
-    if (override[key] && typeof override[key] === 'object' && !Array.isArray(override[key])) {
-      result[key] = deepMerge(result[key] || {}, override[key]);
-    } else {
-      result[key] = override[key];
-    }
-  }
-  return result;
-}
-
-// Build all configs with defaults merged
-function buildConfigs() {
-  if (cachedConfigs) return cachedConfigs;
-  
-  const base = raw['*'];
-  const result = {};
-  
-  for (const key in raw) {
-    if (key === '*') continue;
-    result[key] = deepMerge(base, raw[key]);
-  }
-  
-  cachedConfigs = result;
-  return result;
-}
-
-module.exports.configs = () => {
-  return buildConfigs();
+module.exports.config = (chainId, dexName) => {
+  if (!chainId || !dexName?.trim()) return undefined;
+  const chainConfig = raw[chainId];
+  const dexConfig = chainConfig?.dex?.[dexName];
+  if (!dexConfig) return undefined;
+  const { dex: _ignored, ...chainDefaults } = chainConfig || {};
+  return { ...baseDefaults, ...chainDefaults, ...dexConfig };
 };
 
-module.exports.config = (chainId, dex) => {
-  // No chainId: return defaults
-  if (!chainId) {
-    return { ...raw['*'] };
-  }
-  
-  // chainId but no dex: return undefined (require both parameters)
-  if (!dex || typeof dex !== 'string' || dex.trim() === '') {
-    return undefined;
-  }
-  
-  // Both chainId and dex: return specific dex config or undefined
-  const allConfigs = buildConfigs();
-  const chainConfig = allConfigs[chainId];
-  
-  return chainConfig && chainConfig.dex && chainConfig.dex[dex] ? chainConfig.dex[dex] : undefined;
+const abis = {
+  wm: require('./out/WM.sol/WM.abi.json'),
+  repermit: require('./out/RePermit.sol/RePermit.abi.json'),
+  reactor: require('./out/OrderReactor.sol/OrderReactor.abi.json'),
+  executor: require('./out/Executor.sol/Executor.abi.json'),
+  refinery: require('./out/Refinery.sol/Refinery.abi.json'),
+  adapter: require('./out/DefaultDexAdapter.sol/DefaultDexAdapter.abi.json'),
 };
 
-// Cache for ABIs to avoid rebuilding on every call
-let abiCache = null;
-
-module.exports.abi = () => {
-  // Return cached result if already built
-  if (abiCache) {
-    return abiCache;
-  }
-
-  // Load core contract ABIs once
-  const coreAbis = {
-    wm: require('./out/WM.sol/WM.abi.json'),
-    repermit: require('./out/RePermit.sol/RePermit.abi.json'),
-    reactor: require('./out/OrderReactor.sol/OrderReactor.abi.json'),
-    executor: require('./out/Executor.sol/Executor.abi.json'),
-    refinery: require('./out/Refinery.sol/Refinery.abi.json'),
-    adapter: require('./out/DefaultDexAdapter.sol/DefaultDexAdapter.abi.json'),
-  };
-
-  // Build structure: { chainid: { dex: { dexname: { contract: abi }}}}
-  const result = {};
-
-  // Iterate through all chain configurations
-  for (const chainId in raw) {
-    if (chainId === '*') continue; // Skip the base config
-
-    const chainConfig = raw[chainId];
-    if (!chainConfig.dex) continue; // Skip if no dex config
-
-    result[chainId] = { dex: {} };
-
-    // For each DEX on this chain, include all core ABIs
-    for (const dexName in chainConfig.dex) {
-      result[chainId].dex[dexName] = { ...coreAbis };
-    }
-  }
-
-  // Cache the result
-  abiCache = result;
-  return result;
-};
+module.exports.abis = abis;
