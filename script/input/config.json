@@ -13,7 +13,7 @@
                 "type": "default:openocean-v2",
                 "router": "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64",
                 "adapter": "0x0002ADE613182cf8dcc1a88b08bD3af975b51005",
-                "fee": ""
+                "fee": "0xFee010ebA414C0FEF0b123DFA332bECE6Da69740"
             }
         }
     }
