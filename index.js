@@ -1,10 +1,21 @@
 const raw = require('./script/input/config.json');
 
-const { dex: _globalDex, ...baseDefaults } = raw['*'] ?? {};
+
+const loadAbi = (name) => require(`./out/${name}.sol/${name}.json`).abi;
+
+const abis = () => ({
+  wm: loadAbi('WM'),
+  repermit: loadAbi('RePermit'),
+  reactor: loadAbi('OrderReactor'),
+  executor: loadAbi('Executor'),
+  refinery: loadAbi('Refinery'),
+  adapter: loadAbi('DefaultDexAdapter'),
+});
 
 function config(chainId, dexName) {
   if (!chainId || !dexName?.trim()) return;
 
+  const { dex: _globalDex, ...baseDefaults } = raw['*'] ?? {};
   const chainConfig = raw[chainId];
   if (!chainConfig) return;
 
@@ -12,18 +23,7 @@ function config(chainId, dexName) {
   const dexOverrides = dex?.[dexName];
   if (!dexOverrides) return;
 
-  return { ...baseDefaults, ...chainDefaults, ...dexOverrides };
+  return { ...baseDefaults, ...chainDefaults, ...dexOverrides, abi: abis() };
 }
 
-const loadAbi = (name) => require(`./out/${name}.sol/${name}.abi.json`);
-
-const abis = {
-  wm: loadAbi('WM'),
-  repermit: loadAbi('RePermit'),
-  reactor: loadAbi('OrderReactor'),
-  executor: loadAbi('Executor'),
-  refinery: loadAbi('Refinery'),
-  adapter: loadAbi('DefaultDexAdapter'),
-};
-
-module.exports = { config, abis };
+module.exports = { config };
