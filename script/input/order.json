@@ -1,47 +1,47 @@
 {
     "cosigned": {
         "order": {
-            "reactor": "0x00066dc9404716804e1280243E43dB080E553000",
-            "executor": "0x00076D4865b3D6eEc580671A10f0AeeFD207C000",
+            "reactor": "0x00009c41a026c10f773ecCD784336e71bBecf002",
+            "executor": "0x0001cc4a51108e75046a066F10ef92b9c3649003",
             "exchange": {
-                "adapter": "0x2FCe94bDa47638a94bA8f0583A3905aD4C2c0933",
-                "ref": "0x0000000000000000000000000000000000000000",
+                "adapter": "0x0002ADE613182cf8dcc1a88b08bD3af975b51005",
+                "ref": "0xFee010ebA414C0FEF0b123DFA332bECE6Da69740",
                 "share": 0,
                 "data": "0x"
             },
-            "swapper": "0xfCD300AAfE1FdB3166cD1a3B46463144fC2d46aD",
-            "nonce": 101,
-            "deadline": 1764547200,
+            "swapper": "0xFcd300AaFE1fDB3166cd1A3B46463144fc2D46ad",
+            "nonce": "1760530083704",
+            "deadline": "1760530714",
             "chainid": 56,
             "exclusivity": 0,
             "epoch": 0,
-            "slippage": 300,
-            "freshness": 60,
+            "slippage": 50,
+            "freshness": 600,
             "input": {
-                "token": "0x55d398326f99059fF775485246999027B3197955",
-                "amount": 1000000000000000,
-                "maxAmount": 2000000000000000
+                "token": "0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82",
+                "amount": "28320104457410074963",
+                "maxAmount": "28320104457410074963"
             },
             "output": {
-                "token": "0x8BaBbB98678facC7342735486C851ABD7A0d17Ca",
-                "limit": 500000000000000,
-                "stop": 600000000000000,
-                "recipient": "0xfCD300AAfE1FdB3166cD1a3B46463144fC2d46aD"
+                "token": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
+                "limit": "0",
+                "stop": "0",
+                "recipient": "0xFcd300AaFE1fDB3166cd1A3B46463144fc2D46ad"
             }
         },
-        "signature": "0x9efa132080291cb13ebdd21d82da7b09c4a23c773ea3dbe4fbb0a7f4d0aa4c69c8d4e2080e1aee5c43c6e68c1b3efa8d13e3f4db9b4c2c6e38860a0cb59188e11b",
+        "signature": "0xdfaf278fc6c7a65f64a30621b5f68f7d6f9d36c06603def683cb998c34111d8f0806e608467ddd5ccc0672d399866f39b8bbd6b80c8b6324575cdff3f1d671d71c",
         "cosignatureData": {
-            "cosigner": "0x0ce6D8386e5AF5B247Cdf8C27C7242125Acf5A77",
-            "reactor": "0x00066dc9404716804e1280243E43dB080E553000",
+            "cosigner": "0x61C4c6670FBA2Fa8Eb5eb2d930ae6d05fC78f05C",
+            "reactor": "0x00009c41a026c10f773ecCD784336e71bBecf002",
             "chainid": 56,
-            "timestamp": 1727481600,
+            "timestamp": 1760530200,
             "input": {
-                "token": "0x55d398326f99059fF775485246999027B3197955",
+                "token": "0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82",
                 "value": 2000000000000000,
                 "decimals": 18
             },
             "output": {
-                "token": "0x8BaBbB98678facC7342735486C851ABD7A0d17Ca",
+                "token": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
                 "value": 600000000000000,
                 "decimals": 18
             }
@@ -49,7 +49,7 @@
         "cosignature": "0x82eee4ef433e5c0016f9adf9390d76cbcfc81d60fcd321968cb4b4418deff82ff8a037ba70efea8becd3ceb1fc1c0426e302c3dfba9b3e716f351774be7651141c"
     },
     "execution": {
-        "minAmountOut": 500000000000000,
+        "minAmountOut": 0,
         "fee": {
             "token": "0x0000000000000000000000000000000000000000",
             "limit": 0,
