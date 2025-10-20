@@ -104,14 +104,10 @@ abstract contract BaseTest is Test {
         c.reactor = co.order.reactor;
         c.cosigner = signer;
         c.input = CosignedValue({
-            token: co.order.input.token,
-            value: cosignInValue,
-            decimals: _tokenDecimals(co.order.input.token)
+            token: co.order.input.token, value: cosignInValue, decimals: _tokenDecimals(co.order.input.token)
         });
         c.output = CosignedValue({
-            token: co.order.output.token,
-            value: cosignOutValue,
-            decimals: _tokenDecimals(co.order.output.token)
+            token: co.order.output.token, value: cosignOutValue, decimals: _tokenDecimals(co.order.output.token)
         });
         bytes32 digest = IEIP712(repermit).hashTypedData(OrderLib.hash(c));
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPK, digest);

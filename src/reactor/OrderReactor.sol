@@ -88,18 +88,19 @@ contract OrderReactor is ReentrancyGuard, Pausable, WMAllowed {
 
     /// @dev Pull input tokens from the swapper via RePermit witness-bound permit.
     function _transferInput(CosignedOrder calldata co, bytes32 hash) private {
-        RePermit(address(repermit)).repermitWitnessTransferFrom(
-            RePermitLib.RePermitTransferFrom(
-                RePermitLib.TokenPermissions(address(co.order.input.token), co.order.input.maxAmount),
-                co.order.nonce,
-                co.order.deadline
-            ),
-            RePermitLib.TransferRequest(msg.sender, co.order.input.amount),
-            co.order.swapper,
-            hash,
-            OrderLib.WITNESS_TYPE_SUFFIX,
-            co.signature
-        );
+        RePermit(address(repermit))
+            .repermitWitnessTransferFrom(
+                RePermitLib.RePermitTransferFrom(
+                    RePermitLib.TokenPermissions(address(co.order.input.token), co.order.input.maxAmount),
+                    co.order.nonce,
+                    co.order.deadline
+                ),
+                RePermitLib.TransferRequest(msg.sender, co.order.input.amount),
+                co.order.swapper,
+                hash,
+                OrderLib.WITNESS_TYPE_SUFFIX,
+                co.signature
+            );
     }
 
     receive() external payable {

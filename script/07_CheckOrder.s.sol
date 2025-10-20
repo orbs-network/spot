@@ -35,9 +35,8 @@ contract CheckOrder is Script, StdCheats {
     function _prepareInput(CosignedOrder memory co) private {
         deal(co.order.input.token, co.order.swapper, co.order.input.maxAmount);
         hoax(co.order.swapper);
-        IERC20(co.order.input.token).approve(
-            OrderReactor(payable(co.order.reactor)).repermit(), co.order.input.maxAmount
-        );
+        IERC20(co.order.input.token)
+            .approve(OrderReactor(payable(co.order.reactor)).repermit(), co.order.input.maxAmount);
     }
 
     function _prepareOutput(CosignedOrder memory co) private {
@@ -117,8 +116,9 @@ contract CheckOrder is Script, StdCheats {
         Executor executor = Executor(payable(co.order.executor));
         hoax(WM(executor.wm()).owner());
         try executor.execute(co, x) {
-            // no-op
-        } catch (bytes memory reason) {
+        // no-op
+        }
+        catch (bytes memory reason) {
             console.log("execute reverted with reason:");
             console.logBytes(reason);
         }

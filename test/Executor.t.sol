@@ -60,10 +60,7 @@ contract ExecutorTest is BaseTest {
         (Order memory order, bytes memory signature, Cosignature memory cosignatureData, bytes memory cosignature) =
             reactorMock.lastOrder();
         CosignedOrder memory lastOrder = CosignedOrder({
-            order: order,
-            signature: signature,
-            cosignatureData: cosignatureData,
-            cosignature: cosignature
+            order: order, signature: signature, cosignatureData: cosignatureData, cosignature: cosignature
         });
 
         // Compare the order structures (we can't compare the signature as it might be different)

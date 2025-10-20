@@ -82,9 +82,7 @@ contract OrderReactorPauseTest is BaseTest {
 
         CosignedOrder memory co = order();
         Execution memory ex = Execution({
-            minAmountOut: 0,
-            fee: Output({token: address(0), limit: 0, stop: 0, recipient: address(0)}),
-            data: ""
+            minAmountOut: 0, fee: Output({token: address(0), limit: 0, stop: 0, recipient: address(0)}), data: ""
         });
 
         // Pause the reactor
@@ -108,7 +106,10 @@ contract SimpleCallback {
         uint256, // resolvedAmountOut
         CosignedOrder calldata, // cosignedOrder
         Execution calldata // execution
-    ) external pure {
+    )
+        external
+        pure
+    {
         // Simple implementation that will fail
         revert("SimpleCallback: not implemented");
     }

@@ -254,9 +254,12 @@ contract SettlementLibTest is BaseTest {
         assertEq(ERC20Mock(address(token2)).balanceOf(feeRecipient), initialFeeBalance + feeAmount);
     }
 
-    function testFuzz_settle_result_values(uint128 inAmount, uint128 outAmount, uint128 minAmountOut, uint128 feeAmount)
-        public
-    {
+    function testFuzz_settle_result_values(
+        uint128 inAmount,
+        uint128 outAmount,
+        uint128 minAmountOut,
+        uint128 feeAmount
+    ) public {
         vm.assume(inAmount > 0 && outAmount > 0);
 
         reactor = testReactor;
