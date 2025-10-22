@@ -10,8 +10,8 @@
     "56": {
         "dex": {
             "thena": {
-                "type": "default:openocean-v2",
-                "adapter": "0x0002ADE613182cf8dcc1a88b08bD3af975b51005",
+                "type": "default:odos-v2",
+                "adapter": "0x9A41940FdC45ab52A1D51200e4510Dc584F73E8b",
                 "fee": "0xFee010ebA414C0FEF0b123DFA332bECE6Da69740"
             },
             "pancake": {
