@@ -16,7 +16,8 @@
             },
             "pancake": {
                 "type": "p2:pancakeswap-v2",
-                "adapter": "0x6B296eaF8DEBf8cC349B66d66F53176575B544a3"
+                "adapter": "0x6B296eaF8DEBf8cC349B66d66F53176575B544a3",
+                "fee": "0xFee010ebA414C0FEF0b123DFA332bECE6Da69740"
             }
         }
     }
