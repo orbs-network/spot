@@ -16,6 +16,12 @@ contract CosignerTest is Test {
     uint256 public newOwnerPK;
     address public unauthorized;
 
+    // secp256k1 curve order - maximum valid private key
+    uint256 private constant SECP256K1_CURVE_ORDER = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364140;
+    // Invalid signature - all zeros
+    bytes private constant INVALID_SIGNATURE =
+        hex"0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+
     function setUp() public {
         (initialOwner, initialOwnerPK) = makeAddrAndKey("initialOwner");
         (newOwner, newOwnerPK) = makeAddrAndKey("newOwner");
@@ -53,10 +59,8 @@ contract CosignerTest is Test {
 
     function test_rawSignatureValidation_rejects_invalid_signature() public view {
         bytes32 hash = keccak256("test message");
-        bytes memory signature =
-            hex"0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
 
-        bool valid = wrapper.validateSignature(hash, signature);
+        bool valid = wrapper.validateSignature(hash, INVALID_SIGNATURE);
         assertFalse(valid);
     }
 
@@ -149,8 +153,7 @@ contract CosignerTest is Test {
 
     function testFuzz_rawSignatureValidation_wrong_signer(bytes32 hash, uint256 wrongPK) public view {
         // Bound wrongPK to valid secp256k1 curve order range and ensure it's not the owner's key
-        // secp256k1 curve order: 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
-        wrongPK = bound(wrongPK, 1, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364140);
+        wrongPK = bound(wrongPK, 1, SECP256K1_CURVE_ORDER);
         vm.assume(wrongPK != initialOwnerPK);
         vm.assume(vm.addr(wrongPK) != initialOwner);
 
