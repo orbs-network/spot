@@ -99,12 +99,7 @@ contract CheckOrder is Script, StdCheats {
         });
 
         x.minAmountOut = json.readUint(".execution.minAmountOut");
-        x.fee = Output({
-            token: json.readAddress(".execution.fee.token"),
-            limit: json.readUint(".execution.fee.limit"),
-            stop: json.readUint(".execution.fee.stop"),
-            recipient: json.readAddress(".execution.fee.recipient")
-        });
+        x.fees = abi.decode(json.parseRaw(".execution.fees"), (Output[]));
         x.data = json.readBytes(".execution.data");
     }
 

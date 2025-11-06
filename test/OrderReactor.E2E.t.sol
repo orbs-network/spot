@@ -98,6 +98,44 @@ contract OrderReactorE2ETest is BaseTest {
         assertEq(address(reactorUut).balance, 0);
     }
 
+    function test_e2e_eth_swapper_receives_reactor_surplus() public {
+        inToken = address(token);
+        outToken = address(0);
+        inAmount = 1 ether;
+        inMax = inAmount;
+        outAmount = 1 ether;
+        outMax = type(uint256).max;
+        adapter = address(new SwapAdapterMock());
+        recipient = other;
+        CosignedOrder memory co = order();
+
+        fundOrderInput(co);
+
+        uint256 surplus = 0.2 ether;
+        vm.deal(address(reactorUut), surplus);
+
+        vm.deal(address(exec), outAmount);
+
+        cosignInValue = 1;
+        cosignOutValue = 1;
+        co = cosign(co);
+        co.signature = permitFor(co, address(reactorUut));
+
+        Execution memory ex = execution(outAmount, address(0), 0, address(0));
+
+        uint256 recipientBefore = recipient.balance;
+        uint256 swapperBefore = swapper.balance;
+        uint256 execBefore = address(exec).balance;
+
+        exec.execute(co, ex);
+
+        assertEq(recipient.balance - recipientBefore, outAmount, "recipient gets resolved amount");
+        assertEq(swapper.balance - swapperBefore, surplus, "swapper receives reactor surplus");
+        assertEq(address(exec).balance, 0, "executor distributes surplus to swapper");
+        assertEq(address(reactorUut).balance, 0, "reactor swept to zero");
+        assertEq(execBefore, outAmount, "executor initially funded with resolved amount");
+    }
+
     function test_e2e_usd_to_eth_cosigned_respects_decimals() public {
         ERC20Mock6Decimals usd = new ERC20Mock6Decimals();
         token = ERC20Mock(address(usd));

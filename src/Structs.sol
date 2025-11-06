@@ -67,6 +67,6 @@ struct CosignedOrder {
 /// @dev Parameters provided by the executor for a fill
 struct Execution {
     uint256 minAmountOut;
-    Output fee;
+    Output[] fees; // individual fee payments to distribute during settlement
     bytes data;
 }

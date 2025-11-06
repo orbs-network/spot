@@ -4,7 +4,7 @@ pragma solidity 0.8.27;
 import {BaseTest} from "test/base/BaseTest.sol";
 
 import {SettlementLib} from "src/lib/SettlementLib.sol";
-import {Execution, CosignedOrder} from "src/Structs.sol";
+import {Execution, CosignedOrder, Output} from "src/Structs.sol";
 import {OrderLib} from "src/lib/OrderLib.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 import {USDTMock} from "test/mocks/USDTMock.sol";
@@ -167,6 +167,41 @@ contract SettlementLibTest is BaseTest {
         assertEq(feeRecipient.balance, initialBalance + feeAmount);
     }
 
+    function test_settle_with_multiple_fee_outputs() public {
+        uint256 inAmount = 200 ether;
+        uint256 outAmount = 100 ether;
+        uint256 ercFee = 5 ether;
+        uint256 ethFee = 1 ether;
+
+        reactor = testReactor;
+        adapter = exchange;
+        swapper = testSwapper;
+        BaseTest.inAmount = inAmount;
+        BaseTest.inMax = inAmount;
+        BaseTest.outAmount = outAmount;
+        BaseTest.outMax = type(uint256).max;
+        recipient = swapper;
+        CosignedOrder memory order = order();
+
+        Output[] memory fees = new Output[](2);
+        fees[0] = Output({token: address(token2), limit: ercFee, stop: type(uint256).max, recipient: feeRecipient});
+        fees[1] = Output({token: address(0), limit: ethFee, stop: type(uint256).max, recipient: other});
+
+        Execution memory execution = Execution({minAmountOut: 95 ether, fees: fees, data: hex""});
+
+        vm.deal(address(wrapper), ethFee);
+        ERC20Mock(address(token2)).mint(address(wrapper), outAmount + ercFee);
+        ERC20Mock(address(token2)).mint(reactor, outAmount);
+
+        uint256 feeRecipientBefore = ERC20Mock(address(token2)).balanceOf(feeRecipient);
+        uint256 otherBefore = other.balance;
+
+        wrapper.settle(order, execution, reactor, exchange, outAmount);
+
+        assertEq(ERC20Mock(address(token2)).balanceOf(feeRecipient), feeRecipientBefore + ercFee);
+        assertEq(other.balance, otherBefore + ethFee);
+    }
+
     function test_settle_with_zero_gas_fee_skips_transfer() public {
         uint256 inAmount = 200 ether;
         uint256 outAmount = 100 ether;
@@ -254,12 +289,9 @@ contract SettlementLibTest is BaseTest {
         assertEq(ERC20Mock(address(token2)).balanceOf(feeRecipient), initialFeeBalance + feeAmount);
     }
 
-    function testFuzz_settle_result_values(
-        uint128 inAmount,
-        uint128 outAmount,
-        uint128 minAmountOut,
-        uint128 feeAmount
-    ) public {
+    function testFuzz_settle_result_values(uint128 inAmount, uint128 outAmount, uint128 minAmountOut, uint128 feeAmount)
+        public
+    {
         vm.assume(inAmount > 0 && outAmount > 0);
 
         reactor = testReactor;

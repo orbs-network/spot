@@ -16,11 +16,14 @@ contract P2DexAdapter is IExchangeAdapter {
     address public immutable router;
     address public immutable permit2;
 
+    /// @param _router DEX router that executes swaps.
+    /// @param _permit2 Permit2 contract authorising router allowances.
     constructor(address _router, address _permit2) {
         router = _router;
         permit2 = _permit2;
     }
 
+    /// @inheritdoc IExchangeAdapter
     function delegateSwap(
         bytes32,
         /*hash*/

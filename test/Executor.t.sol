@@ -11,6 +11,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 
 import {OrderLib} from "src/lib/OrderLib.sol";
+import {SettlementLib} from "src/lib/SettlementLib.sol";
 import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/Structs.sol";
 import {USDTMock} from "test/mocks/USDTMock.sol";
 import {MockReactor} from "test/mocks/MockReactor.sol";
@@ -51,6 +52,7 @@ contract ExecutorTest is BaseTest {
         outToken = address(token);
         outMax = 0;
         CosignedOrder memory co = order();
+        _mint(co.order.output.token, address(exec), co.order.output.limit);
         Execution memory ex = execution(0, address(0), 0, address(0));
         exec.execute(co, ex);
 
@@ -69,10 +71,8 @@ contract ExecutorTest is BaseTest {
         // Check that the exchange and execution parameters were passed correctly
         assertEq(reactorMock.lastExchange(), address(adapterMock));
 
-        // Get the components of the lastExecution struct
-        (uint256 minAmountOut, Output memory fee, bytes memory data) = reactorMock.lastExecution();
-        Execution memory actualExecution = Execution({minAmountOut: minAmountOut, fee: fee, data: data});
-
+        // Compare the execution parameters
+        Execution memory actualExecution = reactorMock.lastExecution();
         Execution memory expectedExecution = execution(0, address(0), 0, address(0));
         assertEq(keccak256(abi.encode(actualExecution)), keccak256(abi.encode(expectedExecution)));
     }
@@ -195,12 +195,133 @@ contract ExecutorTest is BaseTest {
         outMax = type(uint256).max;
         recipient = other;
         CosignedOrder memory co = order();
+        _mint(co.order.output.token, address(exec), co.order.output.limit);
         bytes32 orderHash = OrderLib.hash(co.order);
 
         // should not revert; also sets approval for reactor
         vm.prank(address(reactorMock));
         exec.reactorCallback(orderHash, co.order.output.limit, co, execution(0, address(0), 0, address(0)));
         assertEq(IERC20(address(token)).allowance(address(exec), address(reactorMock)), 100);
+    }
+
+    function test_reactorCallback_reverts_when_insufficient_post_swap_amount() public {
+        reactor = address(reactorMock);
+        adapter = address(adapterMock);
+        executor = address(exec);
+        inAmount = 0;
+        inMax = 0;
+        outToken = address(token);
+        outAmount = 100;
+        outMax = type(uint256).max;
+        CosignedOrder memory co = order();
+        bytes32 orderHash = OrderLib.hash(co.order);
+
+        vm.startPrank(address(reactorMock));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                SettlementLib.InsufficientPostSwapBalance.selector, 0, co.order.output.limit, 0, co.order.output.limit
+            )
+        );
+        exec.reactorCallback(orderHash, co.order.output.limit, co, execution(0, address(0), 0, address(0)));
+        vm.stopPrank();
+    }
+
+    function test_reactorCallback_reverts_when_insufficient_post_swap_amount_multiple_outputs() public {
+        reactor = address(reactorMock);
+        adapter = address(adapterMock);
+        executor = address(exec);
+        inAmount = 0;
+        inMax = 0;
+        outToken = address(token);
+        outAmount = 100;
+        outMax = type(uint256).max;
+        CosignedOrder memory co = order();
+        bytes32 orderHash = OrderLib.hash(co.order);
+
+        Output[] memory fees = new Output[](2);
+        fees[0] = Output({token: co.order.output.token, limit: 40, stop: type(uint256).max, recipient: signer});
+        fees[1] = Output({token: co.order.output.token, limit: 60, stop: type(uint256).max, recipient: other});
+        Execution memory params = executionWithFees(0, fees);
+
+        vm.startPrank(address(reactorMock));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                SettlementLib.InsufficientPostSwapBalance.selector, 0, co.order.output.limit, 100, 200
+            )
+        );
+        exec.reactorCallback(orderHash, co.order.output.limit, co, params);
+        vm.stopPrank();
+    }
+
+    function test_reactorCallback_allows_multiple_same_token_outputs_when_funded() public {
+        reactor = address(reactorMock);
+        adapter = address(adapterMock);
+        executor = address(exec);
+        inAmount = 0;
+        inMax = 0;
+        outToken = address(token);
+        outAmount = 100;
+        outMax = type(uint256).max;
+        CosignedOrder memory co = order();
+        bytes32 orderHash = OrderLib.hash(co.order);
+
+        Output[] memory fees = new Output[](2);
+        fees[0] = Output({token: co.order.output.token, limit: 40, stop: type(uint256).max, recipient: signer});
+        fees[1] = Output({token: co.order.output.token, limit: 60, stop: type(uint256).max, recipient: other});
+        Execution memory params = executionWithFees(0, fees);
+
+        uint256 funded = co.order.output.limit + fees[0].limit + fees[1].limit;
+        _mint(co.order.output.token, address(exec), funded);
+
+        uint256 signerBefore = ERC20Mock(address(token)).balanceOf(signer);
+        uint256 otherBefore = ERC20Mock(address(token)).balanceOf(other);
+
+        vm.prank(address(reactorMock));
+        exec.reactorCallback(orderHash, co.order.output.limit, co, params);
+
+        assertEq(IERC20(address(token)).allowance(address(exec), address(reactorMock)), co.order.output.limit);
+        assertEq(ERC20Mock(address(token)).balanceOf(signer), signerBefore + fees[0].limit);
+        assertEq(ERC20Mock(address(token)).balanceOf(other), otherBefore + fees[1].limit);
+        assertEq(
+            ERC20Mock(address(token)).balanceOf(address(exec)),
+            co.order.output.limit,
+            "executor retains resolved amount until reactor pulls"
+        );
+    }
+
+    function test_reactorCallback_ignores_non_matching_fee_tokens_in_guard() public {
+        reactor = address(reactorMock);
+        adapter = address(adapterMock);
+        executor = address(exec);
+        inAmount = 0;
+        inMax = 0;
+        outToken = address(token);
+        outAmount = 80;
+        outMax = type(uint256).max;
+        recipient = signer;
+        CosignedOrder memory co = order();
+        bytes32 orderHash = OrderLib.hash(co.order);
+
+        Output[] memory fees = new Output[](2);
+        fees[0] = Output({token: co.order.output.token, limit: 30, stop: type(uint256).max, recipient: signer});
+        fees[1] = Output({token: address(token2), limit: 70, stop: type(uint256).max, recipient: other});
+        Execution memory params = executionWithFees(0, fees);
+
+        _mint(co.order.output.token, address(exec), co.order.output.limit + fees[0].limit);
+        _mint(address(token2), address(exec), fees[1].limit);
+
+        uint256 signerBefore = ERC20Mock(address(token)).balanceOf(signer);
+        uint256 otherBeforeOrder = ERC20Mock(address(token)).balanceOf(other);
+        uint256 otherBeforeToken2 = ERC20Mock(address(token2)).balanceOf(other);
+
+        vm.prank(address(reactorMock));
+        exec.reactorCallback(orderHash, co.order.output.limit, co, params);
+
+        assertEq(IERC20(address(token)).allowance(address(exec), address(reactorMock)), co.order.output.limit);
+        assertEq(ERC20Mock(address(token)).balanceOf(address(exec)), co.order.output.limit);
+        assertEq(ERC20Mock(address(token)).balanceOf(signer), signerBefore + fees[0].limit);
+        assertEq(ERC20Mock(address(token)).balanceOf(other), otherBeforeOrder);
+        assertEq(ERC20Mock(address(token2)).balanceOf(other), otherBeforeToken2 + fees[1].limit);
     }
 
     // NOTE: This test is no longer relevant as the new protocol only supports single output per order
@@ -230,8 +351,6 @@ contract ExecutorTest is BaseTest {
     // }
 
     function test_reactorCallback_transfers_delta_to_swapper_when_outAmountSwapper_greater() public {
-        _mint(address(token2), address(exec), 100);
-
         reactor = address(reactorMock);
         adapter = address(adapterMock);
         executor = address(exec);
@@ -241,11 +360,13 @@ contract ExecutorTest is BaseTest {
         outAmount = 500;
         outMax = type(uint256).max;
         CosignedOrder memory co = order();
+        Execution memory execParams = execution(600, address(0), 0, address(0));
+        _mint(co.order.output.token, address(exec), execParams.minAmountOut);
         bytes32 orderHash = OrderLib.hash(co.order);
 
         uint256 before = ERC20Mock(address(token2)).balanceOf(signer);
         vm.prank(address(reactorMock));
-        exec.reactorCallback(orderHash, co.order.output.limit, co, execution(600, address(0), 0, address(0)));
+        exec.reactorCallback(orderHash, co.order.output.limit, co, execParams);
         assertEq(ERC20Mock(address(token2)).balanceOf(signer), before + 100);
     }
 
@@ -284,9 +405,6 @@ contract ExecutorTest is BaseTest {
         uint256 feeAmount = 1000;
         address feeRecipient = makeAddr("gasFeeRecipient");
 
-        // Mint gas fee tokens to the executor
-        _mint(feeToken, address(exec), feeAmount);
-
         reactor = address(reactorMock);
         adapter = address(adapterMock);
         executor = address(exec);
@@ -295,6 +413,7 @@ contract ExecutorTest is BaseTest {
         outToken = address(token);
         outMax = 0;
         CosignedOrder memory co = order();
+        _mint(feeToken, address(exec), feeAmount + co.order.output.limit);
 
         Execution memory ex = execution(0, feeToken, feeAmount, feeRecipient);
 

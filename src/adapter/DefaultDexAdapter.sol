@@ -18,10 +18,12 @@ import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 contract DefaultDexAdapter is IExchangeAdapter {
     address public immutable router;
 
+    /// @param _router DEX router address that will receive approvals and swap calldata.
     constructor(address _router) {
         router = _router;
     }
 
+    /// @inheritdoc IExchangeAdapter
     function delegateSwap(
         bytes32,
         /*hash*/

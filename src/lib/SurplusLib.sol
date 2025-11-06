@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.27;
 
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {Constants} from "src/reactor/Constants.sol";
 import {TokenLib} from "src/lib/TokenLib.sol";
 
@@ -18,7 +19,7 @@ library SurplusLib {
     function distribute(address ref, address swapper, address token, uint32 shareBps) internal {
         uint256 total = TokenLib.balanceOf(token);
         if (total == 0) return;
-        uint256 refshare = ref == address(0) ? 0 : (total * shareBps) / Constants.BPS;
+        uint256 refshare = ref == address(0) ? 0 : Math.mulDiv(total, shareBps, Constants.BPS);
         TokenLib.transfer(token, ref, refshare);
         TokenLib.transfer(token, swapper, total - refshare);
         emit Surplus(ref, swapper, token, total, refshare);

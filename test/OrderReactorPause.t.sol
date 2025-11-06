@@ -5,7 +5,7 @@ import {BaseTest} from "test/base/BaseTest.sol";
 import {OrderReactor} from "src/reactor/OrderReactor.sol";
 import {WMAllowed} from "src/lib/WMAllowed.sol";
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
-import {CosignedOrder, Execution, Output} from "src/Structs.sol";
+import {CosignedOrder, Execution} from "src/Structs.sol";
 
 contract OrderReactorPauseTest is BaseTest {
     OrderReactor public reactorUut;
@@ -81,9 +81,7 @@ contract OrderReactorPauseTest is BaseTest {
         cosignOutValue = 100;
 
         CosignedOrder memory co = order();
-        Execution memory ex = Execution({
-            minAmountOut: 0, fee: Output({token: address(0), limit: 0, stop: 0, recipient: address(0)}), data: ""
-        });
+        Execution memory ex = execution(0, address(0), 0, address(0));
 
         // Pause the reactor
         vm.prank(allowedUser);

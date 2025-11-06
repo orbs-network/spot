@@ -50,7 +50,7 @@ contract ResolutionLibFuzzTest is BaseTest {
             return;
         }
 
-        uint256 minOut = (cosignedOutput * (Constants.BPS - slippage)) / Constants.BPS;
+        uint256 minOut = Math.mulDiv(cosignedOutput, Constants.BPS - slippage, Constants.BPS);
         uint256 expected = minOut > limit ? minOut : limit;
         uint256 outAmt = this.callResolve(co);
         assertEq(outAmt, expected);

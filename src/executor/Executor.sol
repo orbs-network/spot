@@ -43,6 +43,8 @@ contract Executor is IReactorCallback, WMAllowed {
             co.order.exchange.adapter,
             abi.encodeWithSelector(IExchangeAdapter.delegateSwap.selector, hash, resolvedAmountOut, co, x)
         );
+
+        SettlementLib.guard(resolvedAmountOut, co, x);
         SettlementLib.settle(hash, resolvedAmountOut, co, x);
     }
 

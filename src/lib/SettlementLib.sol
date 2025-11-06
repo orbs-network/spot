@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.27;
 
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {OrderLib} from "src/lib/OrderLib.sol";
 import {TokenLib} from "src/lib/TokenLib.sol";
 import {Output, CosignedOrder, Execution} from "src/Structs.sol";
@@ -9,6 +10,7 @@ import {Output, CosignedOrder, Execution} from "src/Structs.sol";
 /// @notice Handles token transfers and fee distribution for order execution
 library SettlementLib {
     error InvalidOrder();
+    error InsufficientPostSwapBalance(uint256 balance, uint256 resolved, uint256 fees, uint256 required);
 
     event Settled(
         bytes32 indexed orderHash,
@@ -21,6 +23,20 @@ library SettlementLib {
         uint256 minOut
     );
 
+    /// @dev Minimal balance guard for the primary output token; BI-focused sanity check.
+    function guard(uint256 resolvedAmountOut, CosignedOrder memory co, Execution memory x) internal view {
+        address outToken = co.order.output.token;
+        uint256 fees;
+        for (uint256 i; i < x.fees.length; i++) {
+            if (x.fees[i].token == outToken) {
+                fees += x.fees[i].limit;
+            }
+        }
+        uint256 required = Math.max(resolvedAmountOut, x.minAmountOut) + fees;
+        uint256 balance = TokenLib.balanceOf(outToken);
+        if (balance < required) revert InsufficientPostSwapBalance(balance, resolvedAmountOut, fees, required);
+    }
+
     /// @dev Handles final settlement of an executed order
     /// 1. Prepares output tokens for transfer by setting approval to the reactor
     /// 2. If minimum output exceeds resolved amount, transfers the difference to recipient
@@ -32,7 +48,10 @@ library SettlementLib {
             TokenLib.transfer(co.order.output.token, co.order.output.recipient, x.minAmountOut - resolvedAmountOut);
         }
 
-        TokenLib.transfer(x.fee.token, x.fee.recipient, x.fee.limit);
+        for (uint256 i; i < x.fees.length; i++) {
+            Output memory fee = x.fees[i];
+            TokenLib.transfer(fee.token, fee.recipient, fee.limit);
+        }
 
         emit Settled(
             hash,

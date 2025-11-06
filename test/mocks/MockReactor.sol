@@ -10,7 +10,7 @@ contract MockReactor is IReactor {
     // Tracking fields used by unit tests
     CosignedOrder public lastOrder;
     address public lastExchange;
-    Execution public lastExecution;
+    Execution private _lastExecution;
     address public lastSender;
 
     function executeWithCallback(CosignedOrder calldata cosignedOrder, Execution calldata execution) external payable {
@@ -18,12 +18,16 @@ contract MockReactor is IReactor {
         lastSender = msg.sender;
         lastOrder = cosignedOrder;
         lastExchange = cosignedOrder.order.exchange.adapter;
-        lastExecution = execution;
+        _lastExecution = execution;
 
         bytes32 orderHash = OrderLib.hash(cosignedOrder.order);
         // For mock purposes, we'll use a dummy resolvedAmountOut = co.order.output.limit
         uint256 resolvedAmountOut = cosignedOrder.order.output.limit;
         IReactorCallback(msg.sender).reactorCallback(orderHash, resolvedAmountOut, cosignedOrder, execution);
+    }
+
+    function lastExecution() external view returns (Execution memory) {
+        return _lastExecution;
     }
 
     receive() external payable {}

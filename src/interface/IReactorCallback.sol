@@ -13,7 +13,7 @@ interface IReactorCallback {
     /// @param resolvedAmountOut The resolved output amount
     /// @param co The cosigned order being executed
     /// @param x The execution parameters
-    /// @dev Must have approved each token and amount in outputs to the msg.sender
+    /// @dev Must have approved each token and amount in fees to the msg.sender
     function reactorCallback(bytes32 hash, uint256 resolvedAmountOut, CosignedOrder memory co, Execution memory x)
         external;
 }

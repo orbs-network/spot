@@ -4,6 +4,7 @@ pragma solidity 0.8.27;
 import {Test} from "forge-std/Test.sol";
 import {Vm} from "forge-std/Vm.sol";
 
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SurplusLib} from "src/lib/SurplusLib.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 
@@ -63,7 +64,7 @@ contract SurplusLibTest is Test {
     function test_distribute_nonZeroShareSplitsBalances() public {
         uint256 total = 20 ether;
         uint32 shareBps = 2_500; // 25%
-        uint256 expectedRefShare = (total * shareBps) / 10_000;
+        uint256 expectedRefShare = Math.mulDiv(total, shareBps, 10_000);
 
         token.mint(address(harness), total);
 
@@ -90,7 +91,7 @@ contract SurplusLibTest is Test {
     function test_distribute_nativeTokenSplitsBalances() public {
         uint256 total = 1 ether;
         uint32 shareBps = 3_000; // 30%
-        uint256 expectedRefShare = (total * shareBps) / 10_000;
+        uint256 expectedRefShare = Math.mulDiv(total, shareBps, 10_000);
 
         vm.deal(address(harness), total);
 

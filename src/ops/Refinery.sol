@@ -3,6 +3,7 @@ pragma solidity 0.8.27;
 
 import {IMulticall3} from "forge-std/interfaces/IMulticall3.sol";
 
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {IWM} from "src/interface/IWM.sol";
 import {WMAllowed} from "src/lib/WMAllowed.sol";
 import {Constants} from "src/reactor/Constants.sol";
@@ -22,7 +23,7 @@ contract Refinery is WMAllowed {
 
     function transfer(address token, address recipient, uint256 bps) external onlyAllowed {
         uint256 bal = TokenLib.balanceOf(token);
-        uint256 amount = bal * bps / Constants.BPS;
+        uint256 amount = Math.mulDiv(bal, bps, Constants.BPS);
         TokenLib.transfer(token, recipient, amount);
         if (amount > 0) emit Refined(token, recipient, amount);
     }
