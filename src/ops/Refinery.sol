@@ -13,6 +13,8 @@ import {Multicall3Lib} from "src/lib/Multicall3Lib.sol";
 /// @title Operations utility contract
 /// @notice Provides operations for batching calls and sweeping token balances by basis points
 contract Refinery is WMAllowed {
+    using Math for uint256;
+
     event Refined(address indexed token, address indexed recipient, uint256 amount);
 
     constructor(address _wm) WMAllowed(_wm) {}
@@ -23,7 +25,7 @@ contract Refinery is WMAllowed {
 
     function transfer(address token, address recipient, uint256 bps) external onlyAllowed {
         uint256 bal = TokenLib.balanceOf(token);
-        uint256 amount = Math.mulDiv(bal, bps, Constants.BPS);
+        uint256 amount = bal.mulDiv(bps, Constants.BPS);
         TokenLib.transfer(token, recipient, amount);
         if (amount > 0) emit Refined(token, recipient, amount);
     }

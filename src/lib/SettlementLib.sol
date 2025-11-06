@@ -9,6 +9,8 @@ import {Output, CosignedOrder, Execution} from "src/Structs.sol";
 /// @title Settlement library
 /// @notice Handles token transfers and fee distribution for order execution
 library SettlementLib {
+    using Math for uint256;
+
     error InvalidOrder();
     error InsufficientPostSwapBalance(uint256 balance, uint256 resolved, uint256 fees, uint256 required);
 
@@ -32,7 +34,7 @@ library SettlementLib {
                 fees += x.fees[i].limit;
             }
         }
-        uint256 required = Math.max(resolvedAmountOut, x.minAmountOut) + fees;
+        uint256 required = resolvedAmountOut.max(x.minAmountOut) + fees;
         uint256 balance = TokenLib.balanceOf(outToken);
         if (balance < required) revert InsufficientPostSwapBalance(balance, resolvedAmountOut, fees, required);
     }

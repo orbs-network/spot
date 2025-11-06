@@ -7,6 +7,8 @@ import {Constants} from "src/Constants.sol";
 /// @title Exclusivity override library
 /// @notice Handles exclusive execution rights and BPS-based overrides for competitive execution
 library ExclusivityOverrideLib {
+    using Math for uint256;
+
     error InvalidSender();
     /// @notice Apply exclusivity override to the minimum output amount
     /// @param minOut The base minimum output amount
@@ -26,6 +28,6 @@ library ExclusivityOverrideLib {
         if (msg.sender != exclusiveExecutor && exclusivityBps == 0) revert InvalidSender();
         if (msg.sender == exclusiveExecutor) return minOut;
         uint256 bps = Constants.BPS + uint256(exclusivityBps);
-        return Math.mulDiv(minOut, bps, Constants.BPS);
+        return minOut.mulDiv(bps, Constants.BPS);
     }
 }

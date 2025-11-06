@@ -8,6 +8,8 @@ import {TokenLib} from "src/lib/TokenLib.sol";
 /// @title Surplus distribution library
 /// @notice Distributes token surpluses between referrers and swappers based on BPS shares
 library SurplusLib {
+    using Math for uint256;
+
     event Surplus(address indexed ref, address swapper, address token, uint256 amount, uint256 refshare);
 
     /// @dev Distributes surplus tokens between referrer and swapper based on referrer share
@@ -19,7 +21,7 @@ library SurplusLib {
     function distribute(address ref, address swapper, address token, uint32 shareBps) internal {
         uint256 total = TokenLib.balanceOf(token);
         if (total == 0) return;
-        uint256 refshare = ref == address(0) ? 0 : Math.mulDiv(total, shareBps, Constants.BPS);
+        uint256 refshare = ref == address(0) ? 0 : total.mulDiv(shareBps, Constants.BPS);
         TokenLib.transfer(token, ref, refshare);
         TokenLib.transfer(token, swapper, total - refshare);
         emit Surplus(ref, swapper, token, total, refshare);

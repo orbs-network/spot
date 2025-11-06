@@ -30,7 +30,7 @@ library ResolutionLib {
             denominator *= 10 ** uint256(inputDecimals - outputDecimals);
         }
 
-        uint256 cosignedOutput = Math.mulDiv(numerator, cosigned.cosignatureData.input.value, denominator);
+        uint256 cosignedOutput = numerator.mulDiv(cosigned.cosignatureData.input.value, denominator);
 
         // Treat stop=0 as type(uint256).max (no trigger)
         uint256 effectiveStop = cosigned.order.output.stop == 0 ? type(uint256).max : cosigned.order.output.stop;
