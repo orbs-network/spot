@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.27;
 
-import "forge-std/Script.sol";
+import {Script, console} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {StdCheats} from "forge-std/StdCheats.sol";
 
-import {CosignedOrder, Execution, Exchange, Input, Output, CosignedValue, Cosignature} from "src/Structs.sol";
+import {CosignedOrder, Execution, Exchange, Input, Output, CosignedValue} from "src/Structs.sol";
 import {OrderReactor} from "src/OrderReactor.sol";
-import {RePermit} from "src/RePermit.sol";
 import {OrderLib} from "src/lib/OrderLib.sol";
 
 import {Executor} from "src/Executor.sol";
@@ -99,7 +98,13 @@ contract CheckOrder is Script, StdCheats {
         });
 
         x.minAmountOut = json.readUint(".execution.minAmountOut");
-        x.fees = abi.decode(json.parseRaw(".execution.fees"), (Output[]));
+
+        if (json.keyExists(".execution.fees")) {
+            x.fees = abi.decode(json.parseRaw(".execution.fees"), (Output[]));
+        } else {
+            x.fees = new Output[](0);
+        }
+
         x.data = json.readBytes(".execution.data");
     }
 

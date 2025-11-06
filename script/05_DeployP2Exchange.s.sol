@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.27;
 
-import "forge-std/Script.sol";
+import {Script, console} from "forge-std/Script.sol";
 
 import {P2DexAdapter} from "src/adapter/P2DexAdapter.sol";
 
