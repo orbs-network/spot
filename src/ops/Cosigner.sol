@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.27;
 
-import {AbstractSigner} from "@openzeppelin/contracts/utils/cryptography/signers/AbstractSigner.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
@@ -9,10 +8,10 @@ import {IERC1271} from "@openzeppelin/contracts/interfaces/IERC1271.sol";
 
 /// @title Cosigner
 /// @notice Contract-based cosigner that manages approved signers with time-to-live (TTL)
-/// @dev Extends AbstractSigner and Ownable2Step to provide secure ownership management
+/// @dev Extends Ownable2Step to provide secure ownership management
 /// @dev Owner can approve/revoke signers. Signers can create valid signatures until their TTL expires
 /// @dev Implements ERC-1271 for contract signature validation
-contract Cosigner is AbstractSigner, Ownable2Step, IERC1271 {
+contract Cosigner is Ownable2Step, IERC1271 {
     /// @dev ERC-1271 magic value for valid signatures - computed as bytes4(keccak256("isValidSignature(bytes32,bytes)"))
     bytes4 private constant ERC1271_MAGIC_VALUE = bytes4(keccak256("isValidSignature(bytes32,bytes)"));
 
@@ -70,14 +69,5 @@ contract Cosigner is AbstractSigner, Ownable2Step, IERC1271 {
             return ERC1271_MAGIC_VALUE;
         }
         return INVALID_SIGNATURE;
-    }
-
-    /// @notice Validates that a signature was created by an approved signer
-    /// @dev Implements AbstractSigner's signature validation interface
-    /// @param hash The hash that was signed
-    /// @param signature The signature to validate (ECDSA format: r, s, v)
-    /// @return True if the signature was created by an approved and non-expired signer
-    function _rawSignatureValidation(bytes32 hash, bytes calldata signature) internal view override returns (bool) {
-        return isApprovedNow(ECDSA.recover(hash, signature));
     }
 }

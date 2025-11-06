@@ -266,11 +266,11 @@ contract CosignerTest is Test {
     }
 }
 
-/// @dev Wrapper to expose internal _rawSignatureValidation for testing
+/// @dev Wrapper to expose signature validation logic for testing
 contract CosignerWrapper is Cosigner {
     constructor(address initialOwner) Cosigner(initialOwner) {}
 
     function validateSignature(bytes32 hash, bytes calldata signature) external view returns (bool) {
-        return _rawSignatureValidation(hash, signature);
+        return isApprovedNow(ECDSA.recover(hash, signature));
     }
 }
