@@ -38,31 +38,32 @@ contract CosignerTest is Test {
         assertEq(cosigner.owner(), owner);
     }
 
-    function test_approveSigner_adds_signer_with_ttl() public {
-        uint256 ttl = 1 days;
-        uint256 expectedExpiry = block.timestamp + ttl;
+    function test_approve_adds_signer_with_deadline() public {
+        uint256 deadline = block.timestamp + 1 days;
 
         vm.expectEmit(true, false, false, true);
-        emit Cosigner.SignerApproved(signer1, expectedExpiry);
+        emit Cosigner.SignerApproved(signer1, deadline);
 
         vm.prank(owner);
-        cosigner.approveSigner(signer1, ttl);
+        cosigner.approve(signer1, deadline);
 
-        assertEq(cosigner.approvedSigners(signer1), expectedExpiry);
-        assertTrue(cosigner.isSignerApproved(signer1));
+        assertEq(cosigner.signers(signer1), deadline);
+        assertTrue(cosigner.isApprovedNow(signer1));
     }
 
-    function test_approveSigner_reverts_when_not_owner() public {
+    function test_approve_reverts_when_not_owner() public {
+        uint256 deadline = block.timestamp + 1 days;
         vm.prank(unauthorized);
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, unauthorized));
-        cosigner.approveSigner(signer1, 1 days);
+        cosigner.approve(signer1, deadline);
     }
 
     function test_revokeSigner_removes_signer() public {
+        uint256 deadline = block.timestamp + 1 days;
         vm.prank(owner);
-        cosigner.approveSigner(signer1, 1 days);
+        cosigner.approve(signer1, deadline);
 
-        assertTrue(cosigner.isSignerApproved(signer1));
+        assertTrue(cosigner.isApprovedNow(signer1));
 
         vm.expectEmit(true, false, false, false);
         emit Cosigner.SignerRevoked(signer1);
@@ -70,8 +71,8 @@ contract CosignerTest is Test {
         vm.prank(owner);
         cosigner.revokeSigner(signer1);
 
-        assertEq(cosigner.approvedSigners(signer1), 0);
-        assertFalse(cosigner.isSignerApproved(signer1));
+        assertEq(cosigner.signers(signer1), 0);
+        assertFalse(cosigner.isApprovedNow(signer1));
     }
 
     function test_revokeSigner_reverts_when_not_owner() public {
@@ -80,24 +81,26 @@ contract CosignerTest is Test {
         cosigner.revokeSigner(signer1);
     }
 
-    function test_isSignerApproved_returns_false_for_unapproved() public view {
-        assertFalse(cosigner.isSignerApproved(signer1));
+    function test_isApprovedNow_returns_false_for_unapproved() public view {
+        assertFalse(cosigner.isApprovedNow(signer1));
     }
 
-    function test_isSignerApproved_returns_false_for_expired() public {
+    function test_isApprovedNow_returns_false_for_expired() public {
+        uint256 deadline = block.timestamp + 1 hours;
         vm.prank(owner);
-        cosigner.approveSigner(signer1, 1 hours);
+        cosigner.approve(signer1, deadline);
 
-        assertTrue(cosigner.isSignerApproved(signer1));
+        assertTrue(cosigner.isApprovedNow(signer1));
 
         vm.warp(block.timestamp + 1 hours + 1);
 
-        assertFalse(cosigner.isSignerApproved(signer1));
+        assertFalse(cosigner.isApprovedNow(signer1));
     }
 
     function test_rawSignatureValidation_accepts_approved_signer_signature() public {
+        uint256 deadline = block.timestamp + 1 days;
         vm.prank(owner);
-        wrapper.approveSigner(signer1, 1 days);
+        wrapper.approve(signer1, deadline);
 
         bytes32 hash = keccak256("test message");
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signer1PK, hash);
@@ -117,8 +120,9 @@ contract CosignerTest is Test {
     }
 
     function test_rawSignatureValidation_rejects_expired_signer() public {
+        uint256 deadline = block.timestamp + 1 hours;
         vm.prank(owner);
-        wrapper.approveSigner(signer1, 1 hours);
+        wrapper.approve(signer1, deadline);
 
         bytes32 hash = keccak256("test message");
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signer1PK, hash);
@@ -134,11 +138,11 @@ contract CosignerTest is Test {
         assertFalse(valid);
     }
 
-    function test_rawSignatureValidation_rejects_invalid_signature() public view {
+    function test_rawSignatureValidation_rejects_invalid_signature() public {
         bytes32 hash = keccak256("test message");
 
-        bool valid = wrapper.validateSignature(hash, INVALID_SIGNATURE);
-        assertFalse(valid);
+        vm.expectRevert();
+        wrapper.validateSignature(hash, INVALID_SIGNATURE);
     }
 
     function test_transferOwnership_initiates_two_step_transfer() public {
@@ -196,8 +200,9 @@ contract CosignerTest is Test {
     }
 
     function test_erc1271_returns_magic_value_for_valid_signature() public {
+        uint256 deadline = block.timestamp + 1 days;
         vm.prank(owner);
-        cosigner.approveSigner(signer1, 1 days);
+        cosigner.approve(signer1, deadline);
 
         bytes32 hash = keccak256("test message");
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signer1PK, hash);
@@ -217,8 +222,9 @@ contract CosignerTest is Test {
     }
 
     function testFuzz_rawSignatureValidation_approved_signer(bytes32 hash) public {
+        uint256 deadline = block.timestamp + 1 days;
         vm.prank(owner);
-        wrapper.approveSigner(signer1, 1 days);
+        wrapper.approve(signer1, deadline);
 
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signer1PK, hash);
         bytes memory signature = abi.encodePacked(r, s, v);

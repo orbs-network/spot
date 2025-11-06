@@ -27,9 +27,10 @@ contract CosignerIntegrationTest is BaseTest {
         // Deploy Cosigner contract with owner
         cosignerContract = new Cosigner(owner);
 
-        // Owner approves the signer
+        // Owner approves the signer with deadline
+        uint256 deadline = block.timestamp + 365 days;
         vm.prank(owner);
-        cosignerContract.approveSigner(approvedSigner, 365 days);
+        cosignerContract.approve(approvedSigner, deadline);
     }
 
     /// @dev Helper to cosign with the contract cosigner address
@@ -102,13 +103,14 @@ contract CosignerIntegrationTest is BaseTest {
         cosignInValue = 100;
         cosignOutValue = 200;
 
-        // Approve signer with short TTL
+        // Approve signer with short deadline
         address tempSigner;
         uint256 tempSignerPK;
         (tempSigner, tempSignerPK) = makeAddrAndKey("tempSigner");
 
+        uint256 deadline = block.timestamp + 1 hours;
         vm.prank(owner);
-        cosignerContract.approveSigner(tempSigner, 1 hours);
+        cosignerContract.approve(tempSigner, deadline);
 
         // Create and sign order - should work initially
         CosignedOrder memory co = order();
@@ -148,7 +150,7 @@ contract CosignerIntegrationTest is BaseTest {
     function test_integration_ownership_transfer_does_not_affect_signers() public view {
         // Approved signer should remain valid regardless of ownership transfer
         assertEq(cosignerContract.owner(), owner);
-        assertTrue(cosignerContract.isSignerApproved(approvedSigner));
+        assertTrue(cosignerContract.isApprovedNow(approvedSigner));
     }
 
     function test_integration_multiple_cosigner_contracts_independent() public {
@@ -158,8 +160,9 @@ contract CosignerIntegrationTest is BaseTest {
         Cosigner cosigner2 = new Cosigner(owner2);
 
         // Approve signer2 for cosigner2
+        uint256 deadline2 = block.timestamp + 365 days;
         vm.prank(owner2);
-        cosigner2.approveSigner(signer2, 365 days);
+        cosigner2.approve(signer2, deadline2);
 
         freshness = 300;
         inMax = 2_000;
@@ -188,7 +191,7 @@ contract CosignerIntegrationTest is BaseTest {
         assertEq(cosignerContract.owner(), owner);
         assertEq(cosigner2.owner(), owner2);
         assertTrue(cosignerContract.owner() != cosigner2.owner());
-        assertTrue(cosignerContract.isSignerApproved(approvedSigner));
-        assertTrue(cosigner2.isSignerApproved(signer2));
+        assertTrue(cosignerContract.isApprovedNow(approvedSigner));
+        assertTrue(cosigner2.isApprovedNow(signer2));
     }
 }
