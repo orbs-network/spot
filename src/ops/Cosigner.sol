@@ -57,8 +57,7 @@ contract Cosigner is AbstractSigner, Ownable2Step, IERC1271 {
     /// @param signer The address to check
     /// @return True if the signer is approved and not expired
     function isApprovedNow(address signer) public view returns (bool) {
-        uint256 deadline = signers[signer];
-        return deadline > 0 && block.timestamp < deadline;
+        return block.timestamp < signers[signer];
     }
 
     /// @notice Validates that a signature was created by an approved signer (ERC-1271)
@@ -67,7 +66,7 @@ contract Cosigner is AbstractSigner, Ownable2Step, IERC1271 {
     /// @param signature The signature to validate (ECDSA format: r, s, v)
     /// @return magicValue The ERC-1271 magic value if valid, INVALID_SIGNATURE otherwise
     function isValidSignature(bytes32 hash, bytes calldata signature) external view override returns (bytes4) {
-        if (_rawSignatureValidation(hash, signature)) {
+        if (isApprovedNow(ECDSA.recover(hash, signature))) {
             return ERC1271_MAGIC_VALUE;
         }
         return INVALID_SIGNATURE;
@@ -79,7 +78,6 @@ contract Cosigner is AbstractSigner, Ownable2Step, IERC1271 {
     /// @param signature The signature to validate (ECDSA format: r, s, v)
     /// @return True if the signature was created by an approved and non-expired signer
     function _rawSignatureValidation(bytes32 hash, bytes calldata signature) internal view override returns (bool) {
-        address recovered = ECDSA.recover(hash, signature);
-        return isApprovedNow(recovered);
+        return isApprovedNow(ECDSA.recover(hash, signature));
     }
 }
