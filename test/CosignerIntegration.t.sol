@@ -90,11 +90,11 @@ contract CosignerIntegrationTest is BaseTest {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(unapprovedPK, hash);
         bytes memory signature = abi.encodePacked(r, s, v);
 
-        vm.expectRevert(Cosigner.InvalidSignature.selector);
+        vm.expectRevert(Cosigner.InvalidCosignature.selector);
         cosignerContract.isValidSignature(hash, signature);
     }
 
-    function test_integration_signer_expires_after_ttl() public {
+    function test_integration_signer_expires_after_deadline() public {
         // Setup order parameters
         freshness = 300;
         inMax = 2_000;
@@ -125,7 +125,7 @@ contract CosignerIntegrationTest is BaseTest {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(tempSignerPK, hash);
         bytes memory signature = abi.encodePacked(r, s, v);
 
-        vm.expectRevert(Cosigner.InvalidSignature.selector);
+        vm.expectRevert(Cosigner.InvalidCosignature.selector);
         cosignerContract.isValidSignature(hash, signature);
     }
 
@@ -143,7 +143,7 @@ contract CosignerIntegrationTest is BaseTest {
         cosignerContract.revokeSigner(approvedSigner);
 
         // Signature should now revert as invalid
-        vm.expectRevert(Cosigner.InvalidSignature.selector);
+        vm.expectRevert(Cosigner.InvalidCosignature.selector);
         cosignerContract.isValidSignature(hash, signature);
     }
 

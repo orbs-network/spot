@@ -217,7 +217,7 @@ contract CosignerTest is Test {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signer2PK, hash);
         bytes memory signature = abi.encodePacked(r, s, v);
 
-        vm.expectRevert(Cosigner.InvalidSignature.selector);
+        vm.expectRevert(Cosigner.InvalidCosignature.selector);
         cosigner.isValidSignature(hash, signature);
     }
 

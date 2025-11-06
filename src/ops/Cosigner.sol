@@ -8,9 +8,9 @@ import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {IERC1271} from "@openzeppelin/contracts/interfaces/IERC1271.sol";
 
 /// @title Cosigner
-/// @notice Contract-based cosigner that manages approved signers with time-to-live (TTL)
+/// @notice Contract-based cosigner that manages approved signers with expiration deadlines
 /// @dev Extends AbstractSigner and Ownable2Step to provide secure ownership management
-/// @dev Owner can approve/revoke signers. Signers can create valid signatures until their TTL expires
+/// @dev Owner can approve/revoke signers. Signers can create valid signatures until their deadline expires
 /// @dev Implements ERC-1271 for contract signature validation
 contract Cosigner is AbstractSigner, Ownable2Step, IERC1271 {
     /// @dev ERC-1271 magic value for valid signatures - computed as bytes4(keccak256("isValidSignature(bytes32,bytes)"))
@@ -26,7 +26,7 @@ contract Cosigner is AbstractSigner, Ownable2Step, IERC1271 {
     /// @notice Emitted when a signer is revoked
     event SignerRevoked(address indexed signer);
 
-    error InvalidSignature();
+    error InvalidCosignature();
 
     /// @notice Constructs the Cosigner contract with an initial owner
     /// @param initialOwner The address that will be the initial owner (not a signer by default)
@@ -67,13 +67,13 @@ contract Cosigner is AbstractSigner, Ownable2Step, IERC1271 {
 
     /// @notice Validates that a signature was created by an approved signer (ERC-1271)
     /// @dev Implements IERC1271.isValidSignature for contract signature validation
-    /// @dev Reverts with InvalidSignature if signature is not valid
+    /// @dev Reverts with InvalidCosignature if signature is not valid
     /// @param hash The hash that was signed
     /// @param signature The signature to validate (ECDSA format: r, s, v)
     /// @return magicValue The ERC-1271 magic value if valid
     function isValidSignature(bytes32 hash, bytes calldata signature) external view override returns (bytes4) {
         if (!_rawSignatureValidation(hash, signature)) {
-            revert InvalidSignature();
+            revert InvalidCosignature();
         }
         return ERC1271_MAGIC_VALUE;
     }
