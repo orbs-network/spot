@@ -82,7 +82,7 @@ contract CosignerIntegrationTest is BaseTest {
         assertEq(result, bytes4(keccak256("isValidSignature(bytes32,bytes)"))); // ERC-1271 magic value
     }
 
-    function test_integration_erc1271_returns_invalid_for_unapproved_signature() public {
+    function test_integration_erc1271_reverts_for_unapproved_signature() public {
         // Create an unapproved signer
         (, uint256 unapprovedPK) = makeAddrAndKey("unapproved");
 
@@ -90,8 +90,8 @@ contract CosignerIntegrationTest is BaseTest {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(unapprovedPK, hash);
         bytes memory signature = abi.encodePacked(r, s, v);
 
-        bytes4 result = cosignerContract.isValidSignature(hash, signature);
-        assertEq(result, bytes4(0xffffffff)); // Invalid signature
+        vm.expectRevert(Cosigner.InvalidSignature.selector);
+        cosignerContract.isValidSignature(hash, signature);
     }
 
     function test_integration_signer_expires_after_ttl() public {
@@ -120,13 +120,13 @@ contract CosignerIntegrationTest is BaseTest {
         // Warp past expiry
         vm.warp(block.timestamp + 1 hours + 1);
 
-        // Now signature should be invalid
+        // Now signature should revert as invalid
         bytes32 hash = keccak256("test message");
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(tempSignerPK, hash);
         bytes memory signature = abi.encodePacked(r, s, v);
 
-        bytes4 result = cosignerContract.isValidSignature(hash, signature);
-        assertEq(result, bytes4(0xffffffff));
+        vm.expectRevert(Cosigner.InvalidSignature.selector);
+        cosignerContract.isValidSignature(hash, signature);
     }
 
     function test_integration_revoked_signer_cannot_sign() public {
@@ -142,9 +142,9 @@ contract CosignerIntegrationTest is BaseTest {
         vm.prank(owner);
         cosignerContract.revokeSigner(approvedSigner);
 
-        // Signature should now be invalid
-        result = cosignerContract.isValidSignature(hash, signature);
-        assertEq(result, bytes4(0xffffffff));
+        // Signature should now revert as invalid
+        vm.expectRevert(Cosigner.InvalidSignature.selector);
+        cosignerContract.isValidSignature(hash, signature);
     }
 
     function test_integration_ownership_transfer_does_not_affect_signers() public view {

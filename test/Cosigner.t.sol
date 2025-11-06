@@ -212,13 +212,13 @@ contract CosignerTest is Test {
         assertEq(result, bytes4(keccak256("isValidSignature(bytes32,bytes)")));
     }
 
-    function test_erc1271_returns_invalid_for_unapproved_signature() public view {
+    function test_erc1271_reverts_for_unapproved_signature() public {
         bytes32 hash = keccak256("test message");
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signer2PK, hash);
         bytes memory signature = abi.encodePacked(r, s, v);
 
-        bytes4 result = cosigner.isValidSignature(hash, signature);
-        assertEq(result, bytes4(0xffffffff));
+        vm.expectRevert(Cosigner.InvalidSignature.selector);
+        cosigner.isValidSignature(hash, signature);
     }
 
     function testFuzz_rawSignatureValidation_approved_signer(bytes32 hash) public {

@@ -16,9 +16,6 @@ contract Cosigner is AbstractSigner, Ownable2Step, IERC1271 {
     /// @dev ERC-1271 magic value for valid signatures - computed as bytes4(keccak256("isValidSignature(bytes32,bytes)"))
     bytes4 private constant ERC1271_MAGIC_VALUE = bytes4(keccak256("isValidSignature(bytes32,bytes)"));
 
-    /// @dev Invalid signature return value
-    bytes4 private constant INVALID_SIGNATURE = 0xffffffff;
-
     /// @notice Mapping of signer addresses to their expiration timestamp
     /// @dev Timestamp of 0 means the signer is not approved
     mapping(address => uint256) public signers;
@@ -29,8 +26,7 @@ contract Cosigner is AbstractSigner, Ownable2Step, IERC1271 {
     /// @notice Emitted when a signer is revoked
     event SignerRevoked(address indexed signer);
 
-    error SignerNotApproved();
-    error SignerExpired();
+    error InvalidSignature();
 
     /// @notice Constructs the Cosigner contract with an initial owner
     /// @param initialOwner The address that will be the initial owner (not a signer by default)
@@ -71,13 +67,14 @@ contract Cosigner is AbstractSigner, Ownable2Step, IERC1271 {
 
     /// @notice Validates that a signature was created by an approved signer (ERC-1271)
     /// @dev Implements IERC1271.isValidSignature for contract signature validation
+    /// @dev Reverts with InvalidSignature if signature is not valid
     /// @param hash The hash that was signed
     /// @param signature The signature to validate (ECDSA format: r, s, v)
-    /// @return magicValue The ERC-1271 magic value if valid, INVALID_SIGNATURE otherwise
+    /// @return magicValue The ERC-1271 magic value if valid
     function isValidSignature(bytes32 hash, bytes calldata signature) external view override returns (bytes4) {
-        if (_rawSignatureValidation(hash, signature)) {
-            return ERC1271_MAGIC_VALUE;
+        if (!_rawSignatureValidation(hash, signature)) {
+            revert InvalidSignature();
         }
-        return INVALID_SIGNATURE;
+        return ERC1271_MAGIC_VALUE;
     }
 }
