@@ -6,7 +6,7 @@ import {BaseTest} from "test/base/BaseTest.sol";
 import {CosignatureLib} from "src/lib/CosignatureLib.sol";
 import {OrderLib} from "src/lib/OrderLib.sol";
 import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/Structs.sol";
-import {RePermit} from "src/repermit/RePermit.sol";
+import {RePermit} from "src/RePermit.sol";
 
 contract CosignatureLibTest is BaseTest {
     function setUp() public override {

@@ -30,10 +30,10 @@
 
 ### Core Components
 
-- 🧠 **OrderReactor** (`src/reactor/OrderReactor.sol`): Validates orders, checks epoch constraints, computes minimum output from cosigned prices, and settles via inlined implementation with reentrancy protection. Includes emergency pause functionality controlled by WM allowlist.
-- ✍️ **RePermit** (`src/repermit/RePermit.sol`): Permit2-style EIP-712 signatures with witness data that binds spending allowances to exact order hashes, preventing signature reuse
+- 🧠 **OrderReactor** (`src/OrderReactor.sol`): Validates orders, checks epoch constraints, computes minimum output from cosigned prices, and settles via inlined implementation with reentrancy protection. Includes emergency pause functionality controlled by WM allowlist.
+- ✍️ **RePermit** (`src/RePermit.sol`): Permit2-style EIP-712 signatures with witness data that binds spending allowances to exact order hashes, preventing signature reuse
 - 🧾 **Cosigner**: External service that signs current market prices (input/output ratios) with enforced freshness windows and proper token validation
-- 🛠️ **Executor** (`src/executor/Executor.sol`): Whitelisted fillers that run venue logic via delegatecall to adapters, ensure minimum output requirements, and distribute surplus
+- 🛠️ **Executor** (`src/Executor.sol`): Whitelisted fillers that run venue logic via delegatecall to adapters, ensure minimum output requirements, and distribute surplus
 - 🔐 **WM** (`src/WM.sol`): Two-step ownership allowlist manager for executors and admin functions with event emission
 - 🏭 **Refinery** (`src/Refinery.sol`): Operations utility for batching multicalls and sweeping token balances by basis points
 
@@ -170,7 +170,7 @@ Order memory order = Order({
 
 ## Limits & Constants
 
-- **Maximum Slippage**: 5,000 BPS (50%) - defined in `src/reactor/Constants.sol`
+- **Maximum Slippage**: 5,000 BPS (50%) - defined in `src/Constants.sol`
 - **Basis Points**: 10,000 BPS = 100% - standard denomination for all percentage calculations
 - **Freshness Requirements**: Must be > 0 seconds; must be < epoch duration when epoch != 0
 - **Epoch Behavior**: 0 = single execution, >0 = recurring with specified interval

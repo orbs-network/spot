@@ -11,7 +11,7 @@ import {CosignedOrder, Execution} from "src/Structs.sol";
 import {TokenLib} from "src/lib/TokenLib.sol";
 import {SettlementLib} from "src/lib/SettlementLib.sol";
 
-import {RePermit} from "src/repermit/RePermit.sol";
+import {RePermit} from "src/RePermit.sol";
 import {RePermitLib} from "src/lib/RePermitLib.sol";
 import {OrderValidationLib} from "src/lib/OrderValidationLib.sol";
 import {CosignatureLib} from "src/lib/CosignatureLib.sol";

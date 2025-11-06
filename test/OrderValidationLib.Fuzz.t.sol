@@ -4,7 +4,7 @@ pragma solidity 0.8.27;
 import {OrderValidationLib} from "src/lib/OrderValidationLib.sol";
 import {OrderLib} from "src/lib/OrderLib.sol";
 import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/Structs.sol";
-import {Constants} from "src/reactor/Constants.sol";
+import {Constants} from "src/Constants.sol";
 import {BaseTest} from "test/base/BaseTest.sol";
 
 contract OrderValidationLibFuzzTest is BaseTest {

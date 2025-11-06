@@ -2,7 +2,7 @@
 pragma solidity 0.8.27;
 
 import {BaseTest} from "test/base/BaseTest.sol";
-import {OrderReactor} from "src/reactor/OrderReactor.sol";
+import {OrderReactor} from "src/OrderReactor.sol";
 import {WMAllowed} from "src/lib/WMAllowed.sol";
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 import {CosignedOrder, Execution} from "src/Structs.sol";

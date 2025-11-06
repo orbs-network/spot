@@ -6,11 +6,11 @@ import {stdJson} from "forge-std/StdJson.sol";
 import {StdCheats} from "forge-std/StdCheats.sol";
 
 import {CosignedOrder, Execution, Exchange, Input, Output, CosignedValue, Cosignature} from "src/Structs.sol";
-import {OrderReactor} from "src/reactor/OrderReactor.sol";
-import {RePermit} from "src/repermit/RePermit.sol";
+import {OrderReactor} from "src/OrderReactor.sol";
+import {RePermit} from "src/RePermit.sol";
 import {OrderLib} from "src/lib/OrderLib.sol";
 
-import {Executor} from "src/executor/Executor.sol";
+import {Executor} from "src/Executor.sol";
 import {WM} from "src/ops/WM.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 

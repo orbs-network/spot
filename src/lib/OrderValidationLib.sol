@@ -3,7 +3,7 @@ pragma solidity 0.8.27;
 
 import {OrderLib} from "src/lib/OrderLib.sol";
 import {Order} from "src/Structs.sol";
-import {Constants} from "src/reactor/Constants.sol";
+import {Constants} from "src/Constants.sol";
 
 /// @title Order validation library
 /// @notice Validates order structure and enforces business logic constraints including chain ID verification

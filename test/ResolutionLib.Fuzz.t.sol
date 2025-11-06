@@ -6,7 +6,7 @@ import {BaseTest} from "test/base/BaseTest.sol";
 import {ResolutionLib} from "src/lib/ResolutionLib.sol";
 import {OrderLib} from "src/lib/OrderLib.sol";
 import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/Structs.sol";
-import {Constants} from "src/reactor/Constants.sol";
+import {Constants} from "src/Constants.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 contract ResolutionLibFuzzTest is BaseTest {

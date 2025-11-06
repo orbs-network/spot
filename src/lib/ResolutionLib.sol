@@ -3,7 +3,7 @@ pragma solidity 0.8.27;
 
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {CosignedOrder} from "src/Structs.sol";
-import {Constants} from "src/reactor/Constants.sol";
+import {Constants} from "src/Constants.sol";
 
 /// @title Order resolution library
 /// @notice Computes minimum output amounts from cosigned prices with slippage protection

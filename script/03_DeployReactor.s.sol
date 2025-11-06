@@ -3,7 +3,7 @@ pragma solidity 0.8.27;
 
 import "forge-std/Script.sol";
 
-import {OrderReactor} from "src/reactor/OrderReactor.sol";
+import {OrderReactor} from "src/OrderReactor.sol";
 
 contract DeployReactor is Script {
     function run() public returns (address reactor) {

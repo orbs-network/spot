@@ -3,12 +3,12 @@ pragma solidity 0.8.27;
 
 import {BaseTest} from "test/base/BaseTest.sol";
 import {Vm} from "forge-std/Vm.sol";
-import {Executor} from "src/executor/Executor.sol";
-import {OrderReactor} from "src/reactor/OrderReactor.sol";
+import {Executor} from "src/Executor.sol";
+import {OrderReactor} from "src/OrderReactor.sol";
 import {DefaultDexAdapter} from "src/adapter/DefaultDexAdapter.sol";
 import {Execution, CosignedOrder} from "src/Structs.sol";
 import {OrderLib} from "src/lib/OrderLib.sol";
-import {RePermit} from "src/repermit/RePermit.sol";
+import {RePermit} from "src/RePermit.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 import {ERC20Mock6Decimals} from "test/mocks/ERC20Mock6Decimals.sol";
 import {MockDexRouter} from "test/mocks/MockDexRouter.sol";

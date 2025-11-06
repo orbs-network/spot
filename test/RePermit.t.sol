@@ -3,7 +3,7 @@ pragma solidity 0.8.27;
 
 import {BaseTest} from "test/base/BaseTest.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
-import {RePermit} from "src/repermit/RePermit.sol";
+import {RePermit} from "src/RePermit.sol";
 import {RePermitLib} from "src/lib/RePermitLib.sol";
 
 contract RePermitTest is BaseTest {

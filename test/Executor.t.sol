@@ -3,7 +3,7 @@ pragma solidity 0.8.27;
 
 import {BaseTest} from "test/base/BaseTest.sol";
 
-import {Executor} from "src/executor/Executor.sol";
+import {Executor} from "src/Executor.sol";
 import {WMAllowed} from "src/lib/WMAllowed.sol";
 import {Execution} from "src/Structs.sol";
 

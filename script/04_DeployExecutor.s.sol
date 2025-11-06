@@ -3,7 +3,7 @@ pragma solidity 0.8.27;
 
 import "forge-std/Script.sol";
 
-import {Executor} from "src/executor/Executor.sol";
+import {Executor} from "src/Executor.sol";
 
 contract DeployExecutor is Script {
     function run() public returns (address executor) {

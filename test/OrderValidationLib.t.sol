@@ -6,7 +6,7 @@ import {BaseTest} from "test/base/BaseTest.sol";
 import {OrderValidationLib} from "src/lib/OrderValidationLib.sol";
 import {OrderLib} from "src/lib/OrderLib.sol";
 import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/Structs.sol";
-import {Constants} from "src/reactor/Constants.sol";
+import {Constants} from "src/Constants.sol";
 
 contract OrderValidationLibTest is BaseTest {
     function callValidate(CosignedOrder memory co) external view {

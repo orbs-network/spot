@@ -8,7 +8,7 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 import {WM} from "src/ops/WM.sol";
-import {RePermit} from "src/repermit/RePermit.sol";
+import {RePermit} from "src/RePermit.sol";
 import {RePermitLib} from "src/lib/RePermitLib.sol";
 import {OrderLib} from "src/lib/OrderLib.sol";
 import {Execution} from "src/Structs.sol";
