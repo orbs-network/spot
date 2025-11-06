@@ -10,10 +10,12 @@ import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 contract CosignerTest is Test {
     Cosigner public cosigner;
     CosignerWrapper public wrapper;
-    address public initialOwner;
-    uint256 public initialOwnerPK;
-    address public newOwner;
-    uint256 public newOwnerPK;
+    address public owner;
+    uint256 public ownerPK;
+    address public signer1;
+    uint256 public signer1PK;
+    address public signer2;
+    uint256 public signer2PK;
     address public unauthorized;
 
     // secp256k1 curve order - maximum valid private key
@@ -23,37 +25,112 @@ contract CosignerTest is Test {
         hex"0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
 
     function setUp() public {
-        (initialOwner, initialOwnerPK) = makeAddrAndKey("initialOwner");
-        (newOwner, newOwnerPK) = makeAddrAndKey("newOwner");
+        (owner, ownerPK) = makeAddrAndKey("owner");
+        (signer1, signer1PK) = makeAddrAndKey("signer1");
+        (signer2, signer2PK) = makeAddrAndKey("signer2");
         unauthorized = makeAddr("unauthorized");
 
-        cosigner = new Cosigner(initialOwner);
-        wrapper = new CosignerWrapper(initialOwner);
+        cosigner = new Cosigner(owner);
+        wrapper = new CosignerWrapper(owner);
     }
 
     function test_constructor_sets_initial_owner() public view {
-        assertEq(cosigner.owner(), initialOwner);
+        assertEq(cosigner.owner(), owner);
     }
 
-    function test_signer_returns_current_owner() public view {
-        assertEq(cosigner.signer(), initialOwner);
+    function test_approveSigner_adds_signer_with_ttl() public {
+        uint256 ttl = 1 days;
+        uint256 expectedExpiry = block.timestamp + ttl;
+
+        vm.expectEmit(true, false, false, true);
+        emit Cosigner.SignerApproved(signer1, expectedExpiry);
+
+        vm.prank(owner);
+        cosigner.approveSigner(signer1, ttl);
+
+        assertEq(cosigner.approvedSigners(signer1), expectedExpiry);
+        assertTrue(cosigner.isSignerApproved(signer1));
     }
 
-    function test_rawSignatureValidation_accepts_owner_signature() public view {
+    function test_approveSigner_reverts_when_not_owner() public {
+        vm.prank(unauthorized);
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, unauthorized));
+        cosigner.approveSigner(signer1, 1 days);
+    }
+
+    function test_revokeSigner_removes_signer() public {
+        vm.prank(owner);
+        cosigner.approveSigner(signer1, 1 days);
+
+        assertTrue(cosigner.isSignerApproved(signer1));
+
+        vm.expectEmit(true, false, false, false);
+        emit Cosigner.SignerRevoked(signer1);
+
+        vm.prank(owner);
+        cosigner.revokeSigner(signer1);
+
+        assertEq(cosigner.approvedSigners(signer1), 0);
+        assertFalse(cosigner.isSignerApproved(signer1));
+    }
+
+    function test_revokeSigner_reverts_when_not_owner() public {
+        vm.prank(unauthorized);
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, unauthorized));
+        cosigner.revokeSigner(signer1);
+    }
+
+    function test_isSignerApproved_returns_false_for_unapproved() public view {
+        assertFalse(cosigner.isSignerApproved(signer1));
+    }
+
+    function test_isSignerApproved_returns_false_for_expired() public {
+        vm.prank(owner);
+        cosigner.approveSigner(signer1, 1 hours);
+
+        assertTrue(cosigner.isSignerApproved(signer1));
+
+        vm.warp(block.timestamp + 1 hours + 1);
+
+        assertFalse(cosigner.isSignerApproved(signer1));
+    }
+
+    function test_rawSignatureValidation_accepts_approved_signer_signature() public {
+        vm.prank(owner);
+        wrapper.approveSigner(signer1, 1 days);
+
         bytes32 hash = keccak256("test message");
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(initialOwnerPK, hash);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signer1PK, hash);
         bytes memory signature = abi.encodePacked(r, s, v);
 
         bool valid = wrapper.validateSignature(hash, signature);
         assertTrue(valid);
     }
 
-    function test_rawSignatureValidation_rejects_non_owner_signature() public view {
+    function test_rawSignatureValidation_rejects_unapproved_signer() public view {
         bytes32 hash = keccak256("test message");
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(newOwnerPK, hash);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signer2PK, hash);
         bytes memory signature = abi.encodePacked(r, s, v);
 
         bool valid = wrapper.validateSignature(hash, signature);
+        assertFalse(valid);
+    }
+
+    function test_rawSignatureValidation_rejects_expired_signer() public {
+        vm.prank(owner);
+        wrapper.approveSigner(signer1, 1 hours);
+
+        bytes32 hash = keccak256("test message");
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signer1PK, hash);
+        bytes memory signature = abi.encodePacked(r, s, v);
+
+        // Valid before expiry
+        bool valid = wrapper.validateSignature(hash, signature);
+        assertTrue(valid);
+
+        // Invalid after expiry
+        vm.warp(block.timestamp + 1 hours + 1);
+        valid = wrapper.validateSignature(hash, signature);
         assertFalse(valid);
     }
 
@@ -65,17 +142,19 @@ contract CosignerTest is Test {
     }
 
     function test_transferOwnership_initiates_two_step_transfer() public {
-        vm.prank(initialOwner);
+        address newOwner = makeAddr("newOwner");
+        vm.prank(owner);
         cosigner.transferOwnership(newOwner);
 
         // Owner should still be the initial owner
-        assertEq(cosigner.owner(), initialOwner);
+        assertEq(cosigner.owner(), owner);
         // Pending owner should be set
         assertEq(cosigner.pendingOwner(), newOwner);
     }
 
     function test_acceptOwnership_completes_transfer() public {
-        vm.prank(initialOwner);
+        address newOwner = makeAddr("newOwner");
+        vm.prank(owner);
         cosigner.transferOwnership(newOwner);
 
         vm.prank(newOwner);
@@ -85,45 +164,16 @@ contract CosignerTest is Test {
         assertEq(cosigner.pendingOwner(), address(0));
     }
 
-    function test_signer_updates_after_ownership_transfer() public {
-        vm.prank(initialOwner);
-        cosigner.transferOwnership(newOwner);
-
-        vm.prank(newOwner);
-        cosigner.acceptOwnership();
-
-        assertEq(cosigner.signer(), newOwner);
-    }
-
-    function test_signature_validation_uses_new_owner_after_transfer() public {
-        // Transfer ownership
-        vm.prank(initialOwner);
-        wrapper.transferOwnership(newOwner);
-
-        vm.prank(newOwner);
-        wrapper.acceptOwnership();
-
-        bytes32 hash = keccak256("test message");
-
-        // Old owner's signature should now be invalid
-        (uint8 v1, bytes32 r1, bytes32 s1) = vm.sign(initialOwnerPK, hash);
-        bytes memory oldOwnerSig = abi.encodePacked(r1, s1, v1);
-        assertFalse(wrapper.validateSignature(hash, oldOwnerSig));
-
-        // New owner's signature should be valid
-        (uint8 v2, bytes32 r2, bytes32 s2) = vm.sign(newOwnerPK, hash);
-        bytes memory newOwnerSig = abi.encodePacked(r2, s2, v2);
-        assertTrue(wrapper.validateSignature(hash, newOwnerSig));
-    }
-
     function test_transferOwnership_reverts_when_not_owner() public {
+        address newOwner = makeAddr("newOwner");
         vm.prank(unauthorized);
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, unauthorized));
         cosigner.transferOwnership(newOwner);
     }
 
     function test_acceptOwnership_reverts_when_not_pending_owner() public {
-        vm.prank(initialOwner);
+        address newOwner = makeAddr("newOwner");
+        vm.prank(owner);
         cosigner.transferOwnership(newOwner);
 
         vm.prank(unauthorized);
@@ -132,30 +182,55 @@ contract CosignerTest is Test {
     }
 
     function test_transferOwnership_to_zero_address_cancels_pending() public {
+        address newOwner = makeAddr("newOwner");
         // First initiate transfer
-        vm.prank(initialOwner);
+        vm.prank(owner);
         cosigner.transferOwnership(newOwner);
         assertEq(cosigner.pendingOwner(), newOwner);
 
         // Then cancel by transferring to zero address
-        vm.prank(initialOwner);
+        vm.prank(owner);
         cosigner.transferOwnership(address(0));
         assertEq(cosigner.pendingOwner(), address(0));
-        assertEq(cosigner.owner(), initialOwner);
+        assertEq(cosigner.owner(), owner);
     }
 
-    function testFuzz_rawSignatureValidation_correct_owner(bytes32 hash) public view {
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(initialOwnerPK, hash);
+    function test_erc1271_returns_magic_value_for_valid_signature() public {
+        vm.prank(owner);
+        cosigner.approveSigner(signer1, 1 days);
+
+        bytes32 hash = keccak256("test message");
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signer1PK, hash);
+        bytes memory signature = abi.encodePacked(r, s, v);
+
+        bytes4 result = cosigner.isValidSignature(hash, signature);
+        assertEq(result, bytes4(keccak256("isValidSignature(bytes32,bytes)")));
+    }
+
+    function test_erc1271_returns_invalid_for_unapproved_signature() public view {
+        bytes32 hash = keccak256("test message");
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signer2PK, hash);
+        bytes memory signature = abi.encodePacked(r, s, v);
+
+        bytes4 result = cosigner.isValidSignature(hash, signature);
+        assertEq(result, bytes4(0xffffffff));
+    }
+
+    function testFuzz_rawSignatureValidation_approved_signer(bytes32 hash) public {
+        vm.prank(owner);
+        wrapper.approveSigner(signer1, 1 days);
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signer1PK, hash);
         bytes memory signature = abi.encodePacked(r, s, v);
 
         assertTrue(wrapper.validateSignature(hash, signature));
     }
 
-    function testFuzz_rawSignatureValidation_wrong_signer(bytes32 hash, uint256 wrongPK) public view {
-        // Bound wrongPK to valid secp256k1 curve order range and ensure it's not the owner's key
+    function testFuzz_rawSignatureValidation_unapproved_signer(bytes32 hash, uint256 wrongPK) public view {
+        // Bound wrongPK to valid secp256k1 curve order range
         wrongPK = bound(wrongPK, 1, SECP256K1_CURVE_ORDER);
-        vm.assume(wrongPK != initialOwnerPK);
-        vm.assume(vm.addr(wrongPK) != initialOwner);
+        vm.assume(wrongPK != signer1PK);
+        vm.assume(wrongPK != signer2PK);
 
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(wrongPK, hash);
         bytes memory signature = abi.encodePacked(r, s, v);
@@ -164,19 +239,21 @@ contract CosignerTest is Test {
     }
 
     function test_event_OwnershipTransferStarted() public {
+        address newOwner = makeAddr("newOwner");
         vm.expectEmit(true, true, false, false);
-        emit Ownable2Step.OwnershipTransferStarted(initialOwner, newOwner);
+        emit Ownable2Step.OwnershipTransferStarted(owner, newOwner);
 
-        vm.prank(initialOwner);
+        vm.prank(owner);
         cosigner.transferOwnership(newOwner);
     }
 
     function test_event_OwnershipTransferred() public {
-        vm.prank(initialOwner);
+        address newOwner = makeAddr("newOwner");
+        vm.prank(owner);
         cosigner.transferOwnership(newOwner);
 
         vm.expectEmit(true, true, false, false);
-        emit Ownable.OwnershipTransferred(initialOwner, newOwner);
+        emit Ownable.OwnershipTransferred(owner, newOwner);
 
         vm.prank(newOwner);
         cosigner.acceptOwnership();
