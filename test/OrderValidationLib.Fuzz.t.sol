@@ -33,7 +33,7 @@ contract OrderValidationLibFuzzTest is BaseTest {
         vm.assume(inAmount > 0);
         vm.assume(maxAmount >= inAmount);
         vm.assume(maxOut >= minOut);
-        vm.assume(slippage < Constants.MAX_SLIPPAGE);
+        vm.assume(slippage <= Constants.MAX_SLIPPAGE);
 
         CosignedOrder memory co;
         co.order.reactor = address(this);

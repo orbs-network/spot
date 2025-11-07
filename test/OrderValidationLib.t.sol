@@ -80,7 +80,7 @@ contract OrderValidationLibTest is BaseTest {
     }
 
     function test_validate_reverts_slippageTooHigh() public {
-        slippage = uint32(Constants.MAX_SLIPPAGE);
+        slippage = uint32(Constants.MAX_SLIPPAGE + 1);
         inAmount = 100;
         inMax = 200;
         outAmount = 50;
@@ -88,6 +88,15 @@ contract OrderValidationLibTest is BaseTest {
         CosignedOrder memory co = order();
         vm.expectRevert(OrderValidationLib.InvalidOrderSlippageTooHigh.selector);
         this.callValidate(co);
+    }
+
+    function test_validate_allows_slippageEqualToMax() public {
+        slippage = uint32(Constants.MAX_SLIPPAGE);
+        inAmount = 100;
+        inMax = 200;
+        outAmount = 50;
+        outMax = 100;
+        this.callValidate(order());
     }
 
     function test_validate_reverts_inputTokenZero() public {

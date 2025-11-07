@@ -145,7 +145,7 @@ Order memory order = Order({
 ## Security Model
 
 ### Access Controls
-- **WM Allowlist**: Only approved executors can fill orders via `WM.allowed(address)` check
+- **WM Allowlist**: WM-gated entrypoints restrict privileged admin operations; order execution honors exclusivity rules (setting `exclusivity > 0` allows any filler who satisfies the higher min-output requirement)
 - **Two-Step Ownership**: `WM` uses OpenZeppelin's `Ownable2Step` for secure ownership transfers
 - **Executor Binding**: Orders specify authorized executor; only that executor can fill the order
 - **Non-Exclusive Fillers**: `exclusivity = 0` locks fills to the designated executor; setting it above zero invites third-party fillers who must meet a higher minimum output (scaled by the BPS override). Choose a non-zero value only when you intentionally want open competition on callbacks.
@@ -163,14 +163,14 @@ Order memory order = Order({
 - **Exact Allowances**: `SafeERC20.forceApprove()` prevents allowance accumulation attacks
 
 ### Operational Security
-- **Reentrancy Protection**: `ReentrancyGuard` on all external entry points
+- **Reentrancy Protection**: `OrderReactor` is protected with `ReentrancyGuard`; `Executor` and `Refinery` rely on WM gating and internal invariants instead
 - **Safe Token Handling**: Comprehensive support for USDT-like tokens and ETH
 - **Delegatecall Isolation**: Adapters run in controlled executor context with proper validation
 - **Emergency Pause**: OrderReactor can be paused by WM-allowed addresses to halt order execution during emergencies
 
 ## Limits & Constants
 
-- **Maximum Slippage**: 5,000 BPS (50%) - defined in `src/Constants.sol`
+- **Maximum Slippage**: up to 5,000 BPS (50%) inclusive - defined in `src/Constants.sol`
 - **Basis Points**: 10,000 BPS = 100% - standard denomination for all percentage calculations
 - **Freshness Requirements**: Must be > 0 seconds; must be < epoch duration when epoch != 0
 - **Epoch Behavior**: 0 = single execution, >0 = recurring with specified interval
@@ -203,9 +203,7 @@ forge snapshot --check  # Validate gas consumption changes
 
 ## Multi-Chain Deployment
 
-The protocol is designed for deployment across multiple EVM chains with deterministic addresses via CREATE2. Configuration is managed through `script/input/config.json` with chain-specific parameters.
-
-Supported chains include Ethereum mainnet, Arbitrum, Base, Polygon, and other major L1/L2 networks.
+The protocol is designed for deployment across EVM-compatible chains with deterministic addresses via CREATE2. Configuration is managed through `script/input/config.json`; populate this file with the parameters required for the target network.
 
 ## Contributing
 

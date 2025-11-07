@@ -48,7 +48,7 @@ library OrderValidationLib {
         // Treat stop=0 as type(uint256).max (no trigger)
         uint256 effectiveStop = order.output.stop == 0 ? type(uint256).max : order.output.stop;
         if (order.output.limit > effectiveStop) revert InvalidOrderOutputLimitGtStop();
-        if (order.slippage >= Constants.MAX_SLIPPAGE) revert InvalidOrderSlippageTooHigh();
+        if (order.slippage > Constants.MAX_SLIPPAGE) revert InvalidOrderSlippageTooHigh();
         if (order.input.token == address(0)) revert InvalidOrderInputTokenZero();
         if (order.output.recipient == address(0)) revert InvalidOrderOutputRecipientZero();
         if (order.input.token == order.output.token) revert InvalidOrderSameToken();

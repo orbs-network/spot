@@ -26,7 +26,7 @@ contract ResolutionLibFuzzTest is BaseTest {
         vm.assume(limit < type(uint128).max);
         vm.assume(maxOut > 0 && maxOut < type(uint128).max);
         vm.assume(inputValue > 0 && outputValue > 0 && inputValue < 1e36 && outputValue < 1e36);
-        vm.assume(slippage < Constants.MAX_SLIPPAGE);
+        vm.assume(slippage <= Constants.MAX_SLIPPAGE);
 
         BaseTest.slippage = uint32(slippage);
         // default freshness is 1
