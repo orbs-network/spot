@@ -1,11 +1,11 @@
 {
     "*": {
-        "wm": "0x000be695859F7C15cA460b8E835F9F4F2dF63000",
-        "repermit": "0x0006B7be13a5d80Cb58e988eB682256CB7F6f001",
-        "cosigner": "0x61C4c6670FBA2Fa8Eb5eb2d930ae6d05fC78f05C",
-        "reactor": "0x00009c41a026c10f773ecCD784336e71bBecf002",
-        "executor": "0x0001cc4a51108e75046a066F10ef92b9c3649003",
-        "refinery": "0x000BeBaFb1e0D7e0D460Ddf35d767c22cc2b1004"
+        "wm": "0x000B717EE5729C028cC9767944C0f3C05FcAc000",
+        "repermit": "0x0003Cd995c66F2bC9fFdA6df131780A53F4C3000",
+        "cosigner": "0x00037106c47375787B6Fc6e65b4786fB0DB35000",
+        "reactor": "0x000196f309FB2f509a1E186ba55FAd877e59B001",
+        "executor": "0x00014d91b67ccA8c038E28d8ee742238e5441002",
+        "refinery": "0x000Ea3a692e7048526D6037adC064D8E237409a5"
     },
     "56": {
         "dex": {
