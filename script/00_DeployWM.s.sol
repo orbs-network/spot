@@ -4,7 +4,7 @@ pragma solidity 0.8.27;
 import {Script, console} from "forge-std/Script.sol";
 
 import {WM} from "src/ops/WM.sol";
-import {UpdateWMWhitelist} from "script/01_UpdateWMWhitelist.s.sol";
+import {UpdateWMWhitelist} from "script/00_UpdateWMWhitelist.s.sol";
 
 contract DeployWM is Script {
     function run() public returns (address wmAddr) {
