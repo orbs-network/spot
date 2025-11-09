@@ -72,9 +72,7 @@ contract Cosigner is AbstractSigner, Ownable2Step, IERC1271 {
     /// @param signature The signature to validate (ECDSA format: r, s, v)
     /// @return magicValue The ERC-1271 magic value if valid
     function isValidSignature(bytes32 hash, bytes calldata signature) external view override returns (bytes4) {
-        if (!_rawSignatureValidation(hash, signature)) {
-            revert InvalidCosignature();
-        }
+        if (!_rawSignatureValidation(hash, signature)) revert InvalidCosignature();
         return ERC1271_MAGIC_VALUE;
     }
 }
