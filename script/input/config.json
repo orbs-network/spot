@@ -11,13 +11,13 @@
         "dex": {
             "thena": {
                 "type": "default:odos-v2",
-                "adapter": "0x9A41940FdC45ab52A1D51200e4510Dc584F73E8b",
-                "fee": "0xFee010ebA414C0FEF0b123DFA332bECE6Da69740"
+                "adapter": "0x86121E6C1D8aEf581d21b725ede068cd280a61D4",
+                "fee": "0xfEE0109198Aa36F16e078Bb87EBfDB01b30a59b5"
             },
             "pancake": {
                 "type": "p2:pancakeswap-v2",
-                "adapter": "0x6B296eaF8DEBf8cC349B66d66F53176575B544a3",
-                "fee": "0xFee010ebA414C0FEF0b123DFA332bECE6Da69740"
+                "adapter": "0x7D85a951443595672F17c29C44717AEe08D2c0c7",
+                "fee": "0xFEe000041d9a0A5c91bA37CF2A8b81c7AE74021E"
             }
         }
     }
