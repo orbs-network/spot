@@ -1,0 +1,55 @@
+#!/usr/bin/env zsh
+set -euo pipefail
+
+CONFIG_FILE=script/input/config.json
+args=("$@")
+components=(wm repermit cosigner reactor executor refinery)
+
+camel() {
+  local key=$1
+  case $key in
+    wm)
+      printf 'WM'
+      ;;
+    *)
+      local first=${key[1,1]}
+      printf '%s%s' "${(U)first}" "${key[2,-1]}"
+      ;;
+  esac
+}
+
+run() {
+  local salt=$1 script=$2
+  if [[ -n $salt && $salt != null ]]; then
+    SALT=$salt forge script "$script" "${args[@]}"
+  else
+    forge script "$script" "${args[@]}"
+  fi
+}
+
+load_env() {
+  jq -r '
+    [
+      (."*" // {} | to_entries[] | select((.value | type) != "object")
+        | {k: (.key | ascii_upcase), v: .value}),
+      (."*".salt // {} | to_entries[]
+        | {k: ("SALT_" + (.key | gsub("[: -]"; "_") | ascii_upcase)), v: .value})
+    ]
+    | .[]
+    | select(.v != null and (.v | tostring | length) > 0)
+    | "\(.k)=\(.v)"
+  ' "$CONFIG_FILE" \
+  | while IFS== read -r name value; do
+      [[ -z $name || -z $value ]] && continue
+      export "$name"="$value"
+      printf '%s=%s\n' "$name" "$value"
+    done
+}
+
+load_env
+
+for key in "${components[@]}"; do
+  salt_var="SALT_${(U)key}"
+  salt=${(P)salt_var:-}
+  run "$salt" "Deploy$(camel $key)"
+done

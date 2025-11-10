@@ -7,7 +7,7 @@ import {WM} from "src/ops/WM.sol";
 import {UpdateWMWhitelist} from "script/00_UpdateWMWhitelist.s.sol";
 
 contract DeployWM is Script {
-    function run() public returns (address wmAddr) {
+    function run() public returns (address wm) {
         address owner = vm.envAddress("OWNER");
         bytes32 salt = vm.envOr("SALT", bytes32(0));
 
@@ -16,14 +16,14 @@ contract DeployWM is Script {
 
         vm.broadcast();
         try new WM{salt: salt}(owner) returns (WM deployed) {
-            wmAddr = address(deployed);
+            wm = address(deployed);
         } catch (bytes memory err) {
             console.log("wm deployment skipped");
             console.logBytes(err);
-            wmAddr = vm.envOr("WM", address(0));
+            wm = vm.envOr("WM", address(0));
         }
 
-        vm.setEnv("WM", vm.toString(wmAddr));
+        vm.setEnv("WM", vm.toString(wm));
         new UpdateWMWhitelist().run();
     }
 }
