@@ -44,8 +44,8 @@ struct Order {
 
 struct CosignedValue {
     address token;
-    uint256 value; // in token decimals
-    uint8 decimals; // informative
+    uint256 value; // in 18 decimals
+    uint8 decimals; // token decimals
 }
 
 struct Cosignature {

@@ -16,7 +16,7 @@ contract WM is Ownable2Step {
     }
 
     function set(address[] calldata addr, bool _allowed) external onlyOwner {
-        for (uint256 i = 0; i < addr.length; i++) {
+        for (uint256 i; i < addr.length; i++) {
             allowed[addr[i]] = _allowed;
             emit AllowedSet(addr[i], _allowed);
         }

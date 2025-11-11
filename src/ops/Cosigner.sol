@@ -44,7 +44,7 @@ contract Cosigner is AbstractSigner, Ownable2Step, IERC1271 {
     /// @notice Revokes a signer's approval
     /// @dev Only the owner can revoke signers
     /// @param signer The address to revoke
-    function revokeSigner(address signer) external onlyOwner {
+    function revoke(address signer) external onlyOwner {
         signers[signer] = 0;
         emit SignerRevoked(signer);
     }

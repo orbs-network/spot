@@ -140,7 +140,7 @@ contract CosignerIntegrationTest is BaseTest {
 
         // Revoke signer
         vm.prank(owner);
-        cosignerContract.revokeSigner(approvedSigner);
+        cosignerContract.revoke(approvedSigner);
 
         // Signature should now revert as invalid
         vm.expectRevert(Cosigner.InvalidCosignature.selector);

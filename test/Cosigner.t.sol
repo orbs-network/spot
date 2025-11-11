@@ -69,7 +69,7 @@ contract CosignerTest is Test {
         emit Cosigner.SignerRevoked(signer1);
 
         vm.prank(owner);
-        cosigner.revokeSigner(signer1);
+        cosigner.revoke(signer1);
 
         assertEq(cosigner.signers(signer1), 0);
         assertFalse(cosigner.isApprovedNow(signer1));
@@ -78,7 +78,7 @@ contract CosignerTest is Test {
     function test_revokeSigner_reverts_when_not_owner() public {
         vm.prank(unauthorized);
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, unauthorized));
-        cosigner.revokeSigner(signer1);
+        cosigner.revoke(signer1);
     }
 
     function test_isApprovedNow_returns_false_for_unapproved() public view {

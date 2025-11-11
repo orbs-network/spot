@@ -11,7 +11,6 @@ import {Output, CosignedOrder, Execution} from "src/Structs.sol";
 library SettlementLib {
     using Math for uint256;
 
-    error InvalidOrder();
     error InsufficientPostSwapBalance(uint256 balance, uint256 resolved, uint256 fees, uint256 required);
 
     event Settled(

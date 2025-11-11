@@ -10,7 +10,7 @@ import {TokenLib} from "src/lib/TokenLib.sol";
 library SurplusLib {
     using Math for uint256;
 
-    event Surplus(address indexed ref, address swapper, address token, uint256 amount, uint256 refshare);
+    event Surplus(address indexed ref, address indexed swapper, address token, uint256 amount, uint256 refshare);
 
     /// @dev Distributes surplus tokens between referrer and swapper based on referrer share
     /// 1. Get total balance of specified token held by this contract

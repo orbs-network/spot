@@ -10,6 +10,7 @@ library ExclusivityOverrideLib {
     using Math for uint256;
 
     error InvalidSender();
+
     /// @notice Apply exclusivity override to the minimum output amount
     /// @param minOut The base minimum output amount
     /// @param exclusiveExecutor The address that has exclusive execution rights
@@ -19,15 +20,13 @@ library ExclusivityOverrideLib {
     /// 1. If sender is not exclusive executor and no override is set, revert
     /// 2. If sender is exclusive executor, return original minOut (no penalty)
     /// 3. For non-exclusive senders, increase minOut by exclusivityBps to create competitive advantage
-
-    function applyExclusivityOverride(uint256 minOut, address exclusiveExecutor, uint32 exclusivityBps)
+    function applyOutput(uint256 minOut, address exclusiveExecutor, uint32 exclusivityBps)
         internal
         view
         returns (uint256)
     {
         if (msg.sender != exclusiveExecutor && exclusivityBps == 0) revert InvalidSender();
         if (msg.sender == exclusiveExecutor) return minOut;
-        uint256 bps = Constants.BPS + uint256(exclusivityBps);
-        return minOut.mulDiv(bps, Constants.BPS);
+        return minOut.mulDiv(Constants.BPS + exclusivityBps, Constants.BPS);
     }
 }

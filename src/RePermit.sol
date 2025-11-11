@@ -33,7 +33,7 @@ contract RePermit is EIP712, IEIP712 {
     }
 
     function cancel(bytes32[] calldata digests) external {
-        for (uint256 i = 0; i < digests.length; i++) {
+        for (uint256 i; i < digests.length; i++) {
             spent[msg.sender][digests[i]] = type(uint256).max;
             emit RePermitLib.Cancel(msg.sender, digests[i]);
         }

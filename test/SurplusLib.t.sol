@@ -20,7 +20,7 @@ contract SurplusLibTest is Test {
     address internal swapper;
     address internal ref;
 
-    event Surplus(address indexed ref, address swapper, address token, uint256 amount, uint256 refshare);
+    event Surplus(address indexed ref, address indexed swapper, address token, uint256 amount, uint256 refshare);
 
     function setUp() public {
         harness = new SurplusHarness();
