@@ -14,5 +14,7 @@ contract DeployRepermit is Script {
 
         vm.broadcast();
         repermit = address(new RePermit{salt: salt}());
+
+        vm.setEnv("REPERMIT", vm.toString(repermit));
     }
 }

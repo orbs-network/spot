@@ -15,5 +15,7 @@ contract DeployCosigner is Script {
 
         vm.broadcast();
         cosigner = address(new Cosigner{salt: salt}(owner));
+
+        vm.setEnv("COSIGNER", vm.toString(cosigner));
     }
 }

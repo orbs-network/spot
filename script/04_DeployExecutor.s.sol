@@ -16,5 +16,7 @@ contract DeployExecutor is Script {
 
         vm.broadcast();
         executor = address(new Executor{salt: salt}(reactor, wm));
+
+        vm.setEnv("EXECUTOR", vm.toString(executor));
     }
 }

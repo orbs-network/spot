@@ -17,5 +17,7 @@ contract DeployReactor is Script {
 
         vm.broadcast();
         reactor = address(new OrderReactor{salt: salt}(repermit, cosigner, wm));
+
+        vm.setEnv("REACTOR", vm.toString(reactor));
     }
 }

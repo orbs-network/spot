@@ -15,5 +15,7 @@ contract DeployRefinery is Script {
 
         vm.broadcast();
         refinery = address(new Refinery{salt: salt}(wm));
+
+        vm.setEnv("REFINERY", vm.toString(refinery));
     }
 }
