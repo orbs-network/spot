@@ -240,7 +240,7 @@ abstract contract BaseTest is Test {
             return;
         }
         ERC20Mock(tokenAddr).mint(swapperAddr, co.order.input.maxAmount);
-        vm.prank(swapperAddr);
+        hoax(swapperAddr);
         ERC20Mock(tokenAddr).approve(repermit, co.order.input.maxAmount);
     }
 

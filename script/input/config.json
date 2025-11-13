@@ -1,44 +1,44 @@
 {
-    "*": {
-        "wm": "0x0005d5cE0dB57e5BE3b2b8b6FeB75f0ccd015000",
-        "repermit": "0x00002a9C4D9497df5Bd31768eC5d30eEf5405000",
-        "cosigner": "0x0007ec53404c423C935e830ec21903e184690000",
-        "reactor": "0x0006a959430e8fBB858D81B2D1140B0ae5c26001",
-        "executor": "0x000eBA869d76C618ddc4A6D685A0820A620Ce002",
-        "refinery": "0x000aFDb5B8eF4DB66fB99728b7b0F84fdB7009a5",
-        "salt": {
-            "wm": "0xc9b46eae42dfeba3222a0315bf682f33cd5cc9d60c9625642e88406f8415f152",
-            "repermit": "0x4871dc9008e605821ea9677b65ea2a60ffb774afb31e0dcaea2e192880096be7",
-            "cosigner": "0x37576f2ac1d2a602f00777611edf6f0cbc27611b0980b29bc7856fa79b2b8073",
-            "reactor": "0x034169222370f2fd587ef8998082d762cceef58a272330215f5110ec0d76d400",
-            "executor": "0xea139bc421fa5e272bed3db74233b2e02077e0aacf8b855f87961e98f2fb467f",
-            "refinery": "0xef150cdf24b1232370bb316b592dcdc1b8f78abdde9673357e7727a67a024643",
-            "pancake:fee": "0x1bb06c661db52081054a90e0186736d0de20138032966a6365f22c4e7ebb908e",
-            "thena:fee": "0x2b76d2d2e4694882da9a4fec8aec5ec83a0a218a33ca7ba346eefc81f0fdd5f5",
-            "spooky:fee": "0x42e0bb5df7aa74249ffb8ac3bc1e244e58515989171f093a4a319cb9874eeec3"
-        }
-    },
-    "56": {
-        "dex": {
-            "thena": {
-                "type": "default:odos-v2",
-                "adapter": "0x86121E6C1D8aEf581d21b725ede068cd280a61D4",
-                "fee": "0xfEE0109198Aa36F16e078Bb87EBfDB01b30a59b5"
-            },
-            "pancake": {
-                "type": "p2:pancakeswap-v2",
-                "adapter": "0x7D85a951443595672F17c29C44717AEe08D2c0c7",
-                "fee": "0xFEe000041d9a0A5c91bA37CF2A8b81c7AE74021E"
-            }
-        }
-    },
-    "146": {
-        "dex": {
-            "spooky": {
-                "type": "default:magpie-v3",
-                "adapter": "0x8c52b68b37F6bdBFBf738553F2159eB307a9C50f",
-                "fee": "0xFee070DAcd6C09647599CBf955A13E318b3A0C07"
-            }
-        }
+  "*": {
+    "wm": "0x0005d5cE0dB57e5BE3b2b8b6FeB75f0ccd015000",
+    "repermit": "0x00002a9C4D9497df5Bd31768eC5d30eEf5405000",
+    "cosigner": "0x0007ec53404c423C935e830ec21903e184690000",
+    "reactor": "0x0006a959430e8fBB858D81B2D1140B0ae5c26001",
+    "executor": "0x000eBA869d76C618ddc4A6D685A0820A620Ce002",
+    "refinery": "0x000aFDb5B8eF4DB66fB99728b7b0F84fdB7009a5",
+    "salt": {
+      "wm": "0xc9b46eae42dfeba3222a0315bf682f33cd5cc9d60c9625642e88406f8415f152",
+      "repermit": "0x4871dc9008e605821ea9677b65ea2a60ffb774afb31e0dcaea2e192880096be7",
+      "cosigner": "0x37576f2ac1d2a602f00777611edf6f0cbc27611b0980b29bc7856fa79b2b8073",
+      "reactor": "0x034169222370f2fd587ef8998082d762cceef58a272330215f5110ec0d76d400",
+      "executor": "0xea139bc421fa5e272bed3db74233b2e02077e0aacf8b855f87961e98f2fb467f",
+      "refinery": "0xef150cdf24b1232370bb316b592dcdc1b8f78abdde9673357e7727a67a024643",
+      "pancake:fee": "0x00cd7f0074dc488a6d781d1bde1fb481a5ace19e406bf6f529fbc54fb561efdc",
+      "thena:fee": "0xacc9cfeeff0f6cbe044d4dee490f12d087988d009d6be819d8c73bb4c63b848b",
+      "spooky:fee": "0x7f44868af80881fc29e6e445eda1cd2d0c14da3d38da28812ff9693ab4d73625"
     }
+  },
+  "56": {
+    "dex": {
+      "thena": {
+        "type": "default:odos-v2",
+        "adapter": "0xB75218ba5A99bF57Fd02556B70F05A4A0f1Dbe67",
+        "fee": "0xFEE010f666BF7E7A3B0Ec9dffb8A694fc5628436"
+      },
+      "pancake": {
+        "type": "p2:pancakeswap-v2",
+        "adapter": "0x654272F7e6e6E912D38650f783eFd44452fD6ee5",
+        "fee": "0xfee0009f5a5b4a85Bd93fa8Af96A2CF89a2347b3"
+      }
+    }
+  },
+  "146": {
+    "dex": {
+      "spooky": {
+        "type": "default:magpie-v3",
+        "adapter": "0xdCee7FDdB932104329d528144Cd17A408722B7e2",
+        "fee": "0xFEE0703bc635d246f21DC6BbB91e16fF23f139c3"
+      }
+    }
+  }
 }

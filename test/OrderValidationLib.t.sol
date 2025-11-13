@@ -154,7 +154,7 @@ contract OrderValidationLibTest is BaseTest {
         CosignedOrder memory co = order();
         co.order.exclusivity = 100;
         address notExecutor = makeAddr("notExecutor");
-        vm.prank(notExecutor);
+        hoax(notExecutor);
         this.callValidate(co);
     }
 

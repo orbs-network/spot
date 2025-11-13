@@ -44,7 +44,7 @@ contract CosignerTest is Test {
         vm.expectEmit(true, false, false, true);
         emit Cosigner.SignerApproved(signer1, deadline);
 
-        vm.prank(owner);
+        hoax(owner);
         cosigner.approve(signer1, deadline);
 
         assertEq(cosigner.signers(signer1), deadline);
@@ -53,14 +53,14 @@ contract CosignerTest is Test {
 
     function test_approve_reverts_when_not_owner() public {
         uint256 deadline = block.timestamp + 1 days;
-        vm.prank(unauthorized);
+        hoax(unauthorized);
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, unauthorized));
         cosigner.approve(signer1, deadline);
     }
 
     function test_revokeSigner_removes_signer() public {
         uint256 deadline = block.timestamp + 1 days;
-        vm.prank(owner);
+        hoax(owner);
         cosigner.approve(signer1, deadline);
 
         assertTrue(cosigner.isApprovedNow(signer1));
@@ -68,7 +68,7 @@ contract CosignerTest is Test {
         vm.expectEmit(true, false, false, false);
         emit Cosigner.SignerRevoked(signer1);
 
-        vm.prank(owner);
+        hoax(owner);
         cosigner.revoke(signer1);
 
         assertEq(cosigner.signers(signer1), 0);
@@ -76,7 +76,7 @@ contract CosignerTest is Test {
     }
 
     function test_revokeSigner_reverts_when_not_owner() public {
-        vm.prank(unauthorized);
+        hoax(unauthorized);
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, unauthorized));
         cosigner.revoke(signer1);
     }
@@ -87,7 +87,7 @@ contract CosignerTest is Test {
 
     function test_isApprovedNow_returns_false_for_expired() public {
         uint256 deadline = block.timestamp + 1 hours;
-        vm.prank(owner);
+        hoax(owner);
         cosigner.approve(signer1, deadline);
 
         assertTrue(cosigner.isApprovedNow(signer1));
@@ -99,7 +99,7 @@ contract CosignerTest is Test {
 
     function test_rawSignatureValidation_accepts_approved_signer_signature() public {
         uint256 deadline = block.timestamp + 1 days;
-        vm.prank(owner);
+        hoax(owner);
         wrapper.approve(signer1, deadline);
 
         bytes32 hash = keccak256("test message");
@@ -121,7 +121,7 @@ contract CosignerTest is Test {
 
     function test_rawSignatureValidation_rejects_expired_signer() public {
         uint256 deadline = block.timestamp + 1 hours;
-        vm.prank(owner);
+        hoax(owner);
         wrapper.approve(signer1, deadline);
 
         bytes32 hash = keccak256("test message");
@@ -145,9 +145,29 @@ contract CosignerTest is Test {
         wrapper.validateSignature(hash, INVALID_SIGNATURE);
     }
 
+    function test_zeroAddressApproval_cannotBypassSignatureValidation() public {
+        uint256 deadline = block.timestamp + 1 days;
+        hoax(owner);
+        wrapper.approve(address(0), deadline);
+
+        // Sanity: zero address entry is considered "approved" at the storage level
+        assertTrue(wrapper.isApprovedNow(address(0)));
+
+        bytes32 hash = keccak256("attempt zero signer");
+
+        // Any signature that would need to recover to address(0) reverts inside ECDSA
+        vm.expectRevert(ECDSA.ECDSAInvalidSignature.selector);
+        wrapper.validateSignature(hash, INVALID_SIGNATURE);
+
+        // Valid signatures from real private keys still fail because they recover to non-zero addresses
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signer1PK, hash);
+        bytes memory signature = abi.encodePacked(r, s, v);
+        assertFalse(wrapper.validateSignature(hash, signature));
+    }
+
     function test_transferOwnership_initiates_two_step_transfer() public {
         address newOwner = makeAddr("newOwner");
-        vm.prank(owner);
+        hoax(owner);
         cosigner.transferOwnership(newOwner);
 
         // Owner should still be the initial owner
@@ -158,10 +178,10 @@ contract CosignerTest is Test {
 
     function test_acceptOwnership_completes_transfer() public {
         address newOwner = makeAddr("newOwner");
-        vm.prank(owner);
+        hoax(owner);
         cosigner.transferOwnership(newOwner);
 
-        vm.prank(newOwner);
+        hoax(newOwner);
         cosigner.acceptOwnership();
 
         assertEq(cosigner.owner(), newOwner);
@@ -170,17 +190,17 @@ contract CosignerTest is Test {
 
     function test_transferOwnership_reverts_when_not_owner() public {
         address newOwner = makeAddr("newOwner");
-        vm.prank(unauthorized);
+        hoax(unauthorized);
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, unauthorized));
         cosigner.transferOwnership(newOwner);
     }
 
     function test_acceptOwnership_reverts_when_not_pending_owner() public {
         address newOwner = makeAddr("newOwner");
-        vm.prank(owner);
+        hoax(owner);
         cosigner.transferOwnership(newOwner);
 
-        vm.prank(unauthorized);
+        hoax(unauthorized);
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, unauthorized));
         cosigner.acceptOwnership();
     }
@@ -188,12 +208,12 @@ contract CosignerTest is Test {
     function test_transferOwnership_to_zero_address_cancels_pending() public {
         address newOwner = makeAddr("newOwner");
         // First initiate transfer
-        vm.prank(owner);
+        hoax(owner);
         cosigner.transferOwnership(newOwner);
         assertEq(cosigner.pendingOwner(), newOwner);
 
         // Then cancel by transferring to zero address
-        vm.prank(owner);
+        hoax(owner);
         cosigner.transferOwnership(address(0));
         assertEq(cosigner.pendingOwner(), address(0));
         assertEq(cosigner.owner(), owner);
@@ -201,7 +221,7 @@ contract CosignerTest is Test {
 
     function test_erc1271_returns_magic_value_for_valid_signature() public {
         uint256 deadline = block.timestamp + 1 days;
-        vm.prank(owner);
+        hoax(owner);
         cosigner.approve(signer1, deadline);
 
         bytes32 hash = keccak256("test message");
@@ -223,7 +243,7 @@ contract CosignerTest is Test {
 
     function testFuzz_rawSignatureValidation_approved_signer(bytes32 hash) public {
         uint256 deadline = block.timestamp + 1 days;
-        vm.prank(owner);
+        hoax(owner);
         wrapper.approve(signer1, deadline);
 
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signer1PK, hash);
@@ -249,19 +269,19 @@ contract CosignerTest is Test {
         vm.expectEmit(true, true, false, false);
         emit Ownable2Step.OwnershipTransferStarted(owner, newOwner);
 
-        vm.prank(owner);
+        hoax(owner);
         cosigner.transferOwnership(newOwner);
     }
 
     function test_event_OwnershipTransferred() public {
         address newOwner = makeAddr("newOwner");
-        vm.prank(owner);
+        hoax(owner);
         cosigner.transferOwnership(newOwner);
 
         vm.expectEmit(true, true, false, false);
         emit Ownable.OwnershipTransferred(owner, newOwner);
 
-        vm.prank(newOwner);
+        hoax(newOwner);
         cosigner.acceptOwnership();
     }
 }

@@ -101,7 +101,7 @@ contract DefaultDexAdapterTest is BaseTest {
         CosignedOrder memory cosignedOrder = order();
 
         // Pre-set a non-zero allowance to test forceApprove behavior
-        vm.prank(address(adapterUut));
+        hoax(address(adapterUut));
         usdt.approve(address(router), 1);
 
         bytes memory data = abi.encodeWithSelector(

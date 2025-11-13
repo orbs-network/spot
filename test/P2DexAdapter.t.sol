@@ -39,9 +39,9 @@ contract P2DexAdapterTest is BaseTest {
             MockDexRouter.doSwap.selector, address(token), 1000 ether, address(token2), 2000 ether, signer
         );
 
-        vm.prank(address(adapterUut));
+        hoax(address(adapterUut));
         ERC20Mock(address(token)).approve(address(permit2), 1);
-        vm.prank(address(adapterUut));
+        hoax(address(adapterUut));
         ERC20Mock(address(token)).approve(address(router), 1);
 
         uint256 beforeBalance = ERC20Mock(address(token2)).balanceOf(signer);
@@ -111,9 +111,9 @@ contract P2DexAdapterTest is BaseTest {
         outMax = type(uint256).max;
         CosignedOrder memory cosignedOrder = order();
 
-        vm.prank(address(adapterUut));
+        hoax(address(adapterUut));
         usdt.approve(address(router), 1);
-        vm.prank(address(adapterUut));
+        hoax(address(adapterUut));
         usdt.approve(address(permit2), 1);
 
         bytes memory data = abi.encodeWithSelector(

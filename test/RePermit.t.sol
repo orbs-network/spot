@@ -166,7 +166,7 @@ contract RePermitTest is BaseTest {
 
         // Call from a different spender
         address attacker = makeAddr("attacker");
-        vm.startPrank(attacker);
+        startHoax(attacker);
         vm.expectRevert(RePermit.InvalidSignature.selector);
         uut.repermitWitnessTransferFrom(permit, request, signer, witness, witnessTypeString, signature);
         vm.stopPrank();

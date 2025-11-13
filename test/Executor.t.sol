@@ -122,7 +122,7 @@ contract ExecutorTest is BaseTest {
         bytes32 orderHash = OrderLib.hash(co.order);
 
         // call from reactor
-        vm.prank(address(reactorMock));
+        hoax(address(reactorMock));
         exec.reactorCallback(orderHash, co.order.output.limit, co, execution(0, address(0), 0, address(0)));
 
         // multicall executed: executor now holds minted tokens
@@ -137,7 +137,7 @@ contract ExecutorTest is BaseTest {
         USDTMock usdt = new USDTMock();
 
         // pre-set a non-zero allowance from executor to reactor
-        vm.prank(address(exec));
+        hoax(address(exec));
         usdt.approve(address(reactorMock), 1);
 
         // mint to executor
@@ -156,7 +156,7 @@ contract ExecutorTest is BaseTest {
         bytes32 orderHash = OrderLib.hash(co.order);
 
         // call from reactor; should internally forceApprove to exact amount (approve(0) then approve(1234))
-        vm.prank(address(reactorMock));
+        hoax(address(reactorMock));
         exec.reactorCallback(orderHash, co.order.output.limit, co, execution(0, address(0), 0, address(0)));
 
         // final allowance set to exact amount
@@ -179,7 +179,7 @@ contract ExecutorTest is BaseTest {
         bytes32 orderHash = OrderLib.hash(co.order);
 
         uint256 beforeBal = address(reactorMock).balance;
-        vm.prank(address(reactorMock));
+        vm.prank(address(reactorMock), address(reactorMock));
         exec.reactorCallback(orderHash, co.order.output.limit, co, execution(0, address(0), 0, address(0)));
         assertEq(address(reactorMock).balance, beforeBal + 987);
     }
@@ -199,7 +199,7 @@ contract ExecutorTest is BaseTest {
         bytes32 orderHash = OrderLib.hash(co.order);
 
         // should not revert; also sets approval for reactor
-        vm.prank(address(reactorMock));
+        hoax(address(reactorMock));
         exec.reactorCallback(orderHash, co.order.output.limit, co, execution(0, address(0), 0, address(0)));
         assertEq(IERC20(address(token)).allowance(address(exec), address(reactorMock)), 100);
     }
@@ -216,7 +216,7 @@ contract ExecutorTest is BaseTest {
         CosignedOrder memory co = order();
         bytes32 orderHash = OrderLib.hash(co.order);
 
-        vm.startPrank(address(reactorMock));
+        startHoax(address(reactorMock));
         vm.expectRevert(
             abi.encodeWithSelector(
                 SettlementLib.InsufficientPostSwapBalance.selector, 0, co.order.output.limit, 0, co.order.output.limit
@@ -243,7 +243,7 @@ contract ExecutorTest is BaseTest {
         fees[1] = Output({token: co.order.output.token, limit: 60, stop: type(uint256).max, recipient: other});
         Execution memory params = executionWithFees(0, fees);
 
-        vm.startPrank(address(reactorMock));
+        startHoax(address(reactorMock));
         vm.expectRevert(
             abi.encodeWithSelector(
                 SettlementLib.InsufficientPostSwapBalance.selector, 0, co.order.output.limit, 100, 200
@@ -276,7 +276,7 @@ contract ExecutorTest is BaseTest {
         uint256 signerBefore = ERC20Mock(address(token)).balanceOf(signer);
         uint256 otherBefore = ERC20Mock(address(token)).balanceOf(other);
 
-        vm.prank(address(reactorMock));
+        hoax(address(reactorMock));
         exec.reactorCallback(orderHash, co.order.output.limit, co, params);
 
         assertEq(IERC20(address(token)).allowance(address(exec), address(reactorMock)), co.order.output.limit);
@@ -314,7 +314,7 @@ contract ExecutorTest is BaseTest {
         uint256 otherBeforeOrder = ERC20Mock(address(token)).balanceOf(other);
         uint256 otherBeforeToken2 = ERC20Mock(address(token2)).balanceOf(other);
 
-        vm.prank(address(reactorMock));
+        hoax(address(reactorMock));
         exec.reactorCallback(orderHash, co.order.output.limit, co, params);
 
         assertEq(IERC20(address(token)).allowance(address(exec), address(reactorMock)), co.order.output.limit);
@@ -335,7 +335,7 @@ contract ExecutorTest is BaseTest {
     //     ros[0] = _dummyCosignedOrder(address(token), 0);
     //     ros[0].outputs = outs;
     //
-    //     vm.prank(address(reactorMock));
+    //     hoax(address(reactorMock));
     //     vm.expectRevert(Executor.InvalidOrder.selector);
     //     exec.reactorCallback(
     //         ros,
@@ -365,7 +365,7 @@ contract ExecutorTest is BaseTest {
         bytes32 orderHash = OrderLib.hash(co.order);
 
         uint256 before = ERC20Mock(address(token2)).balanceOf(signer);
-        vm.prank(address(reactorMock));
+        hoax(address(reactorMock));
         exec.reactorCallback(orderHash, co.order.output.limit, co, execParams);
         assertEq(ERC20Mock(address(token2)).balanceOf(signer), before + 100);
     }

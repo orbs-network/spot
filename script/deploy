@@ -2,54 +2,117 @@
 set -euo pipefail
 
 CONFIG_FILE=script/input/config.json
-args=("$@")
 components=(wm repermit cosigner reactor executor refinery)
+dex=""
+args=()
 
-camel() {
-  local key=$1
-  case $key in
-    wm)
-      printf 'WM'
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -d|--dex)
+      [[ $# -lt 2 || -z $2 ]] && { printf 'error: missing dex name\n' >&2; exit 1; }
+      dex=${2:l}
+      shift 2
       ;;
     *)
-      local first=${key[1,1]}
-      printf '%s%s' "${(U)first}" "${key[2,-1]}"
+      args+=("$1")
+      shift
       ;;
   esac
+done
+
+salt_for() {
+  local key=$1 chain=${CHAIN_ID:-}
+  jq -r --arg key "$key" --arg chain "$chain" '
+    (."*".salt[$key])
+    // (if ($chain | length) > 0 then (.[$chain].salt[$key]) else null end)
+    // ""
+  ' "$CONFIG_FILE"
+}
+
+update_config() {
+  local target=$1 address=$2 tmp=$(mktemp)
+  if [[ $target == global:* ]]; then
+    jq --arg key "${target#global:}" --arg addr "$address" '
+      setpath(["*", $key]; $addr)
+    ' "$CONFIG_FILE" >"$tmp"
+  else
+    local chain dex field
+    local IFS=':'
+    read -r _ chain dex field <<< "$target"
+    jq --arg chain "$chain" --arg dex "$dex" --arg field "$field" --arg addr "$address" '
+      setpath([$chain, "dex", $dex, $field]; $addr)
+    ' "$CONFIG_FILE" >"$tmp"
+  fi
+  mv "$tmp" "$CONFIG_FILE"
+  printf 'Updated %s -> %s\n' "$target" "$address"
+  echo
 }
 
 run() {
-  local salt=$1 script=$2
+  local salt=$1 script=$2 target=${3:-} tmp=$(mktemp)
+  local load_opts=(-u)
+  [[ -n ${CHAIN_ID:-} ]] && load_opts+=(-c "$CHAIN_ID")
+  local cmd=(load "${load_opts[@]}" "$CONFIG_FILE" forge script "$script" "${args[@]}" --json)
+
   if [[ -n $salt && $salt != null ]]; then
-    SALT=$salt forge script "$script" "${args[@]}"
+    if ! env SALT=$salt "${cmd[@]}" >"$tmp"; then
+      cat "$tmp"
+      rm -f "$tmp"
+      return 1
+    fi
   else
-    forge script "$script" "${args[@]}"
+    if ! "${cmd[@]}" >"$tmp"; then
+      cat "$tmp"
+      rm -f "$tmp"
+      return 1
+    fi
   fi
+
+  jq -r '.logs[]?' "$tmp"
+  if [[ -n $target ]]; then
+    local address=$(jq -r '.returns[]?.value | select(. != null)' "$tmp" | tail -n1)
+    [[ -n $address ]] && update_config "$target" "$address"
+  fi
+
+  rm -f "$tmp"
 }
 
-load_env() {
-  jq -r '
-    [
-      (."*" // {} | to_entries[] | select((.value | type) != "object")
-        | {k: (.key | ascii_upcase), v: .value}),
-      (."*".salt // {} | to_entries[]
-        | {k: ("SALT_" + (.key | gsub("[: -]"; "_") | ascii_upcase)), v: .value})
-    ]
-    | .[]
-    | select(.v != null and (.v | tostring | length) > 0)
-    | "\(.k)=\(.v)"
-  ' "$CONFIG_FILE" \
-  | while IFS== read -r name value; do
-      [[ -z $name || -z $value ]] && continue
-      export "$name"="$value"
-      printf '%s=%s\n' "$name" "$value"
-    done
+deploy_dex() {
+  local dex=$1 chain_id=${CHAIN_ID:-}
+  if [[ -z $chain_id ]]; then
+    printf 'error: CHAIN_ID is required for -d/--dex\n' >&2
+    exit 1
+  fi
+
+  local dex_type
+  if ! dex_type=$(jq -er --arg chain "$chain_id" --arg dex "$dex" '
+      .[$chain].dex[$dex].type
+      // error("dex \"" + $dex + "\" is not configured for chain " + $chain)
+    ' "$CONFIG_FILE"); then
+    exit 1
+  fi
+
+  local script
+  case ${dex_type%%:*} in
+    default) script=DeployDefaultExchange ;;
+    p2) script=DeployP2Exchange ;;
+    *) printf 'error: unsupported adapter type %s\n' "$dex_type" >&2; exit 1 ;;
+  esac
+
+  run "$(salt_for "${dex}:adapter")" "$script" "dex:${chain_id}:${dex}:adapter"
+  run "$(salt_for "${dex}:fee")" DeployRefinery "dex:${chain_id}:${dex}:fee"
 }
 
-load_env
+if [[ -n $dex ]]; then
+  deploy_dex "$dex"
+  exit 0
+fi
 
 for key in "${components[@]}"; do
-  salt_var="SALT_${(U)key}"
-  salt=${(P)salt_var:-}
-  run "$salt" "Deploy$(camel $key)"
+  if [[ $key == wm ]]; then
+    script=DeployWM
+  else
+    script="Deploy${(U)key[1,1]}${key[2,-1]}"
+  fi
+  run "$(salt_for "$key")" "$script" "global:$key"
 done

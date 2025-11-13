@@ -126,7 +126,7 @@ contract WMTest is BaseTest {
         uut.acceptOwnership();
 
         // Now accept from pending
-        vm.prank(pending);
+        hoax(pending);
         uut.acceptOwnership();
         assertEq(uut.owner(), pending);
 

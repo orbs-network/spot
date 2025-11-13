@@ -29,7 +29,7 @@ contract CosignerIntegrationTest is BaseTest {
 
         // Owner approves the signer with deadline
         uint256 deadline = block.timestamp + 365 days;
-        vm.prank(owner);
+        hoax(owner);
         cosignerContract.approve(approvedSigner, deadline);
     }
 
@@ -109,7 +109,7 @@ contract CosignerIntegrationTest is BaseTest {
         (tempSigner, tempSignerPK) = makeAddrAndKey("tempSigner");
 
         uint256 deadline = block.timestamp + 1 hours;
-        vm.prank(owner);
+        hoax(owner);
         cosignerContract.approve(tempSigner, deadline);
 
         // Create and sign order - should work initially
@@ -139,7 +139,7 @@ contract CosignerIntegrationTest is BaseTest {
         assertEq(result, bytes4(keccak256("isValidSignature(bytes32,bytes)")));
 
         // Revoke signer
-        vm.prank(owner);
+        hoax(owner);
         cosignerContract.revoke(approvedSigner);
 
         // Signature should now revert as invalid
@@ -161,7 +161,7 @@ contract CosignerIntegrationTest is BaseTest {
 
         // Approve signer2 for cosigner2
         uint256 deadline2 = block.timestamp + 365 days;
-        vm.prank(owner2);
+        hoax(owner2);
         cosigner2.approve(signer2, deadline2);
 
         freshness = 300;

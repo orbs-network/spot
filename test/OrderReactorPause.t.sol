@@ -26,7 +26,7 @@ contract OrderReactorPauseTest is BaseTest {
     function test_pause_allowed_user_can_pause() public {
         assertFalse(reactorUut.paused());
 
-        vm.prank(allowedUser);
+        hoax(allowedUser);
         reactorUut.pause();
 
         assertTrue(reactorUut.paused());
@@ -35,7 +35,7 @@ contract OrderReactorPauseTest is BaseTest {
     function test_pause_reverts_when_not_allowed() public {
         assertFalse(reactorUut.paused());
 
-        vm.prank(notAllowedUser);
+        hoax(notAllowedUser);
         vm.expectRevert(WMAllowed.NotAllowed.selector);
         reactorUut.pause();
 
@@ -44,24 +44,24 @@ contract OrderReactorPauseTest is BaseTest {
 
     function test_unpause_allowed_user_can_unpause() public {
         // First pause the reactor
-        vm.prank(allowedUser);
+        hoax(allowedUser);
         reactorUut.pause();
         assertTrue(reactorUut.paused());
 
         // Then unpause it
-        vm.prank(allowedUser);
+        hoax(allowedUser);
         reactorUut.unpause();
         assertFalse(reactorUut.paused());
     }
 
     function test_unpause_reverts_when_not_allowed() public {
         // First pause the reactor as allowed user
-        vm.prank(allowedUser);
+        hoax(allowedUser);
         reactorUut.pause();
         assertTrue(reactorUut.paused());
 
         // Try to unpause as non-allowed user
-        vm.prank(notAllowedUser);
+        hoax(notAllowedUser);
         vm.expectRevert(WMAllowed.NotAllowed.selector);
         reactorUut.unpause();
 
@@ -84,7 +84,7 @@ contract OrderReactorPauseTest is BaseTest {
         Execution memory ex = execution(0, address(0), 0, address(0));
 
         // Pause the reactor
-        vm.prank(allowedUser);
+        hoax(allowedUser);
         reactorUut.pause();
 
         // Fund the order input

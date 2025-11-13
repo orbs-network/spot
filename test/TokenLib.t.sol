@@ -33,7 +33,7 @@ contract TokenLibTest is Test {
 
     function test_transferFrom_zero_amount_noop() public {
         token.mint(from, 1 ether);
-        vm.prank(from);
+        hoax(from);
         token.approve(address(harness), 1 ether);
 
         uint256 fromBefore = token.balanceOf(from);
@@ -47,7 +47,7 @@ contract TokenLibTest is Test {
 
     function test_prepareFor_zero_amount_noop() public {
         token.mint(address(harness), 1 ether);
-        vm.prank(address(harness));
+        hoax(address(harness));
         token.approve(to, 123);
 
         uint256 allowanceBefore = token.allowance(address(harness), to);
