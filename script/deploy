@@ -2,7 +2,15 @@
 set -euo pipefail
 
 CONFIG_FILE=script/input/config.json
-components=(wm repermit cosigner reactor executor refinery)
+components=(
+  wm:WM
+  repermit:RePermit
+  cosigner:Cosigner
+  reactor:OrderReactor
+  executor:Executor
+  refinery:Refinery
+)
+
 dex=""
 args=()
 
@@ -44,37 +52,42 @@ update_config() {
     ' "$CONFIG_FILE" >"$tmp"
   fi
   mv "$tmp" "$CONFIG_FILE"
-  printf 'Updated %s -> %s\n' "$target" "$address"
-  echo
+  printf 'Updated %s -> %s\n\n' "$target" "$address"
 }
 
 run() {
-  local salt=$1 script=$2 target=${3:-} tmp=$(mktemp)
+  local salt=$1 script=$2 target=${3:-} contract=${4:-} tmp=$(mktemp)
   local load_opts=(-u)
   [[ -n ${CHAIN_ID:-} ]] && load_opts+=(-c "$CHAIN_ID")
   local cmd=(load "${load_opts[@]}" "$CONFIG_FILE" forge script "$script" "${args[@]}" --json)
+  [[ -n $salt && $salt != null ]] && cmd=(env SALT=$salt "${cmd[@]}")
 
-  if [[ -n $salt && $salt != null ]]; then
-    if ! env SALT=$salt "${cmd[@]}" >"$tmp"; then
-      cat "$tmp"
-      rm -f "$tmp"
-      return 1
-    fi
-  else
-    if ! "${cmd[@]}" >"$tmp"; then
-      cat "$tmp"
-      rm -f "$tmp"
-      return 1
-    fi
+  if ! "${cmd[@]}" >"$tmp"; then
+    cat "$tmp"
+    rm -f "$tmp"
+    return 1
   fi
 
   jq -r '.logs[]?' "$tmp"
   if [[ -n $target ]]; then
     local address=$(jq -r '.returns[]?.value | select(. != null)' "$tmp" | tail -n1)
-    [[ -n $address ]] && update_config "$target" "$address"
+    if [[ -n $address ]]; then
+      update_config "$target" "$address"
+      [[ -n $contract ]] && verify_contract "$address" "$contract"
+    fi
   fi
 
   rm -f "$tmp"
+}
+
+verify_contract() {
+  local address=$1 contract=$2
+  [[ -z $address || -z $contract ]] && return
+  printf 'Verifying %s at %s\n' "$contract" "$address"
+  if ! forge verify-contract "$address" "$contract" --watch; then
+    printf 'error: verification failed for %s\n' "$contract" >&2
+    exit 1
+  fi
 }
 
 deploy_dex() {
@@ -92,15 +105,21 @@ deploy_dex() {
     exit 1
   fi
 
-  local script
+  local script adapter_contract
   case ${dex_type%%:*} in
-    default) script=DeployDefaultExchange ;;
-    p2) script=DeployP2Exchange ;;
+    default)
+      script=DeployDefaultExchange
+      adapter_contract=DefaultDexAdapter
+      ;;
+    p2)
+      script=DeployP2Exchange
+      adapter_contract=P2DexAdapter
+      ;;
     *) printf 'error: unsupported adapter type %s\n' "$dex_type" >&2; exit 1 ;;
   esac
 
-  run "$(salt_for "${dex}:adapter")" "$script" "dex:${chain_id}:${dex}:adapter"
-  run "$(salt_for "${dex}:fee")" DeployRefinery "dex:${chain_id}:${dex}:fee"
+  run "$(salt_for "${dex}:adapter")" "$script" "dex:${chain_id}:${dex}:adapter" "$adapter_contract"
+  run "$(salt_for "${dex}:fee")" DeployRefinery "dex:${chain_id}:${dex}:fee" Refinery
 }
 
 if [[ -n $dex ]]; then
@@ -108,11 +127,12 @@ if [[ -n $dex ]]; then
   exit 0
 fi
 
-for key in "${components[@]}"; do
+for entry in "${components[@]}"; do
+  IFS=':' read -r key contract <<< "$entry"
   if [[ $key == wm ]]; then
     script=DeployWM
   else
     script="Deploy${(U)key[1,1]}${key[2,-1]}"
   fi
-  run "$(salt_for "$key")" "$script" "global:$key"
+  run "$(salt_for "$key")" "$script" "global:$key" "$contract"
 done
