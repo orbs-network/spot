@@ -15,7 +15,8 @@
       "refinery": "0xef150cdf24b1232370bb316b592dcdc1b8f78abdde9673357e7727a67a024643",
       "pancake:fee": "0x00cd7f0074dc488a6d781d1bde1fb481a5ace19e406bf6f529fbc54fb561efdc",
       "thena:fee": "0xacc9cfeeff0f6cbe044d4dee490f12d087988d009d6be819d8c73bb4c63b848b",
-      "spooky:fee": "0x7f44868af80881fc29e6e445eda1cd2d0c14da3d38da28812ff9693ab4d73625"
+      "spooky:fee": "0x7f44868af80881fc29e6e445eda1cd2d0c14da3d38da28812ff9693ab4d73625",
+      "quick:fee": "0x7cd20e543b83bf8f110ec132cbb62086b1c5578b229e3b8366e447c0bc4ef962"
     }
   },
   "56": {
@@ -38,6 +39,15 @@
         "type": "default:magpie-v3",
         "adapter": "0xdCee7FDdB932104329d528144Cd17A408722B7e2",
         "fee": "0xFEE0703bc635d246f21DC6BbB91e16fF23f139c3"
+      }
+    }
+  },
+  "137": {
+    "dex": {
+      "quick": {
+        "type": "paraswap:paraswap-v5",
+        "adapter": "0x023fD6848234f2655818705237F77F02215FEfe5",
+        "fee": "0xfee020Df7770A3473495e961C019652FC194A175"
       }
     }
   }

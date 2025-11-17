@@ -104,6 +104,10 @@ deploy_dex() {
       script=DeployP2Exchange
       adapter_contract=P2DexAdapter
       ;;
+    paraswap)
+      script=DeployParaswapExchange
+      adapter_contract=ParaswapDexAdapter
+      ;;
     *) printf 'error: unsupported adapter type %s\n' "$dex_type" >&2; exit 1 ;;
   esac
 
