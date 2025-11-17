@@ -40,14 +40,14 @@ salt_for() {
 update_config() {
   local target=$1 address=$2 tmp=$(mktemp)
   if [[ $target == global:* ]]; then
-    jq --arg key "${target#global:}" --arg addr "$address" '
+    jq --indent 4 --arg key "${target#global:}" --arg addr "$address" '
       setpath(["*", $key]; $addr)
     ' "$CONFIG_FILE" >"$tmp"
   else
     local chain dex field
     local IFS=':'
     read -r _ chain dex field <<< "$target"
-    jq --arg chain "$chain" --arg dex "$dex" --arg field "$field" --arg addr "$address" '
+    jq --indent 4 --arg chain "$chain" --arg dex "$dex" --arg field "$field" --arg addr "$address" '
       setpath([$chain, "dex", $dex, $field]; $addr)
     ' "$CONFIG_FILE" >"$tmp"
   fi
