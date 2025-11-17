@@ -50,5 +50,14 @@
                 "fee": "0xfee020Df7770A3473495e961C019652FC194A175"
             }
         }
+    },
+    "8453": {
+        "dex": {
+            "quick": {
+                "type": "default:kyber-v2",
+                "adapter": "0xc73F03c929A123Ee2f3A98EC18BB240f03980AE5",
+                "fee": "0xfee020Df7770A3473495e961C019652FC194A175"
+            }
+        }
     }
 }
