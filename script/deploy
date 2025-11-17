@@ -73,21 +73,10 @@ run() {
     local address=$(jq -r '.returns[]?.value | select(. != null)' "$tmp" | tail -n1)
     if [[ -n $address ]]; then
       update_config "$target" "$address"
-      [[ -n $contract ]] && verify_contract "$address" "$contract"
     fi
   fi
 
   rm -f "$tmp"
-}
-
-verify_contract() {
-  local address=$1 contract=$2
-  [[ -z $address || -z $contract ]] && return
-  printf 'Verifying %s at %s\n' "$contract" "$address"
-  if ! forge verify-contract "$address" "$contract" --watch; then
-    printf 'error: verification failed for %s\n' "$contract" >&2
-    exit 1
-  fi
 }
 
 deploy_dex() {
