@@ -17,7 +17,8 @@
             "thena:fee": "0xacc9cfeeff0f6cbe044d4dee490f12d087988d009d6be819d8c73bb4c63b848b",
             "spooky:fee": "0x7f44868af80881fc29e6e445eda1cd2d0c14da3d38da28812ff9693ab4d73625",
             "quick:fee": "0x7cd20e543b83bf8f110ec132cbb62086b1c5578b229e3b8366e447c0bc4ef962",
-            "lynex:fee": "0x86c8a2c8c1e81396849862ece4bf4c2d3d0ec512150414c4a02f1dc2546032fa"
+            "lynex:fee": "0x86c8a2c8c1e81396849862ece4bf4c2d3d0ec512150414c4a02f1dc2546032fa",
+            "chronos:fee": "0x881e9f51fe105293f62136f97888529c39509e7f7d05237516965dc8f22873a0"
         }
     },
     "56": {
@@ -67,6 +68,15 @@
                 "type": "default:openocean",
                 "adapter": "0x4FF6A97A67fe395212f168f011D71fE79E4396f2",
                 "fee": "0xfee110c75386b3fbe76A16C3c862386eb94Af4E2"
+            }
+        }
+    },
+    "42161": {
+        "dex": {
+            "chronos": {
+                "type": "default:odos-v2",
+                "adapter": "0xa734b32151108139e48dCA06eE721538d90A9Ef6",
+                "fee": "0xfEe1201aB4EA5C2154fA4C855E15b1e95853BAF1"
             }
         }
     }

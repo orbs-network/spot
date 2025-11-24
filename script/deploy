@@ -12,6 +12,7 @@ components=(
 )
 
 dex=""
+verify=false
 args=()
 
 while [[ $# -gt 0 ]]; do
@@ -20,6 +21,10 @@ while [[ $# -gt 0 ]]; do
       [[ $# -lt 2 || -z $2 ]] && { printf 'error: missing dex name\n' >&2; exit 1; }
       dex=${2:l}
       shift 2
+      ;;
+    -v|--verify)
+      verify=true
+      shift
       ;;
     *)
       args+=("$1")
@@ -114,6 +119,28 @@ deploy_dex() {
   run "$(salt_for "${dex}:adapter")" "$script" "dex:${chain_id}:${dex}:adapter" "$adapter_contract"
   run "$(salt_for "${dex}:fee")" DeployRefinery "dex:${chain_id}:${dex}:fee" Refinery
 }
+
+verify_contracts() {
+  local load_opts=(-u)
+  [[ -n ${CHAIN_ID:-} ]] && load_opts+=(-c "$CHAIN_ID")
+
+  typeset -A targets=(
+    [repermit]=RePermit
+    [executor]=Executor
+    [reactor]=OrderReactor
+  )
+
+  for key contract in ${(kv)targets}; do
+    local env_var=${(U)key}
+    local script='addr=${'"${env_var}"':-}; if [[ -z $addr ]]; then printf "warning: env var %s not set; skipping verify for %s\n" '"${env_var}"' '"${contract}"' >&2; exit 0; fi; forge v "$addr" '"${contract}"' "$@"'
+    load "${load_opts[@]}" "$CONFIG_FILE" sh -c "$script" _ "${args[@]}"
+  done
+}
+
+if $verify; then
+  verify_contracts
+  exit 0
+fi
 
 if [[ -n $dex ]]; then
   deploy_dex "$dex"
