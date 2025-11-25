@@ -22,7 +22,8 @@
             "arbidex": "0xecf5d808a253311ebcc8b49b46f27d0d1894c516415fb28c05435419125d34bd",
             "ramses": "0xfc64d7fb186b226c598c7a7b95de384c215d9a9c247f913f5bbfea3e7ff69513",
             "omni": "0x3dddfb4dbba2810c547d5748d7d2b5bbd33b059e010080cb805a77ab5c5ae9ac",
-            "blackhole": "0x54e61c2c49ffb3388107684eeb084a44230a73671585f3a73d1bdca972b98db4"
+            "blackhole": "0x54e61c2c49ffb3388107684eeb084a44230a73671585f3a73d1bdca972b98db4",
+            "newera": "0x9984d9f22d63083ec6d34a86df538fa3545410441a7cbc15192a60cb97c5d115"
         }
     },
     "56": {
@@ -36,6 +37,11 @@
                 "type": "p2:pancakeswap-v2",
                 "adapter": "0x654272F7e6e6E912D38650f783eFd44452fD6ee5",
                 "fee": "0xfee0009f5a5b4a85Bd93fa8Af96A2CF89a2347b3"
+            },
+            "newera": {
+                "type": "default:odos-v2",
+                "adapter": "0x845f459271D800f6Ab32D78400b8Aa18414E80b0",
+                "fee": "0xFEe160050a2581FE119e7D94cd2CF84826FdD090"
             }
         }
     },
