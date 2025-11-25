@@ -26,7 +26,8 @@
             "newera": "0x9984d9f22d63083ec6d34a86df538fa3545410441a7cbc15192a60cb97c5d115",
             "swapx": "0x0300297d5e04f45f4e335486f7f00bdda8b3d4b3e1eb5026bb82557c308458fc",
             "shadow": "0xfa10edf1099dddfd84d4bc718d788d6fd02def2864eaf5f6954a15f2811c5d51",
-            "kodiak": "0x6e27f4de99f94db3f76ceb172c7248d7fd1be1721661c17ebd8514d6d44aa9b2"
+            "kodiak": "0x6e27f4de99f94db3f76ceb172c7248d7fd1be1721661c17ebd8514d6d44aa9b2",
+            "dragon": "0x3033e08507b0ada3d225e9b4cfb14c44569f696d255bffcadeaf57e894f0e6a9"
         }
     },
     "56": {
@@ -133,6 +134,15 @@
                 "type": "default:kodiak",
                 "adapter": "0xBbaa527Aac00b1Ee9A3909D4D8c4447630E29B1F",
                 "fee": "0xFeE190B3dbaf4D37D8D24d4342CcCEB94b61f091"
+            }
+        }
+    },
+    "1329": {
+        "dex": {
+            "dragon": {
+                "type": "default:dragon",
+                "adapter": "0x02d9d5882129241b67ec21Ebc2C86e1BE9BC9890",
+                "fee": "0xfEE050dD0f4ACe21f4325C26244C7431dDFd0DD8"
             }
         }
     }
