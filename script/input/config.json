@@ -18,7 +18,8 @@
             "spooky:fee": "0x7f44868af80881fc29e6e445eda1cd2d0c14da3d38da28812ff9693ab4d73625",
             "quick:fee": "0x7cd20e543b83bf8f110ec132cbb62086b1c5578b229e3b8366e447c0bc4ef962",
             "lynex:fee": "0x86c8a2c8c1e81396849862ece4bf4c2d3d0ec512150414c4a02f1dc2546032fa",
-            "chronos:fee": "0x881e9f51fe105293f62136f97888529c39509e7f7d05237516965dc8f22873a0"
+            "chronos:fee": "0x881e9f51fe105293f62136f97888529c39509e7f7d05237516965dc8f22873a0",
+            "arbidex:fee": "0xecf5d808a253311ebcc8b49b46f27d0d1894c516415fb28c05435419125d34bd"
         }
     },
     "56": {
@@ -73,6 +74,11 @@
     },
     "42161": {
         "dex": {
+            "arbidex": {
+                "type": "default:odos-v2",
+                "adapter": "0xa734b32151108139e48dCA06eE721538d90A9Ef6",
+                "fee": "0xFEE1308a8a9ee46530f9A73119a9BA25faFe9975"
+            },
             "chronos": {
                 "type": "default:odos-v2",
                 "adapter": "0xa734b32151108139e48dCA06eE721538d90A9Ef6",
