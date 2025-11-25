@@ -93,7 +93,7 @@
             },
             "chronos": {
                 "type": "default:odos-v2",
-                "adapter": "0xa734b32151108139e48dCA06eE721538d90A9Ef6",
+                "adapter": "0x4Ff90F32aceD08b3e3257B018EA495Fd1Bfe4455",
                 "fee": "0xfEe1201aB4EA5C2154fA4C855E15b1e95853BAF1"
             }
         }
