@@ -156,7 +156,9 @@
     "14": {
         "dex": {
             "spark": {
-                "type": "default:spark"
+                "type": "default:spark",
+                "adapter": "0xB18c633B6584A33E45a8840a759f56dF17117b1D",
+                "fee": "0xfEe080c8D34ef71D744D3B060544Ff3A9a52C3Bf"
             }
         }
     }
