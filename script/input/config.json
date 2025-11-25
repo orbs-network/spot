@@ -13,14 +13,15 @@
             "reactor": "0x034169222370f2fd587ef8998082d762cceef58a272330215f5110ec0d76d400",
             "executor": "0xea139bc421fa5e272bed3db74233b2e02077e0aacf8b855f87961e98f2fb467f",
             "refinery": "0xef150cdf24b1232370bb316b592dcdc1b8f78abdde9673357e7727a67a024643",
-            "pancake:fee": "0x00cd7f0074dc488a6d781d1bde1fb481a5ace19e406bf6f529fbc54fb561efdc",
-            "thena:fee": "0xacc9cfeeff0f6cbe044d4dee490f12d087988d009d6be819d8c73bb4c63b848b",
-            "spooky:fee": "0x7f44868af80881fc29e6e445eda1cd2d0c14da3d38da28812ff9693ab4d73625",
-            "quick:fee": "0x7cd20e543b83bf8f110ec132cbb62086b1c5578b229e3b8366e447c0bc4ef962",
-            "lynex:fee": "0x86c8a2c8c1e81396849862ece4bf4c2d3d0ec512150414c4a02f1dc2546032fa",
-            "chronos:fee": "0x881e9f51fe105293f62136f97888529c39509e7f7d05237516965dc8f22873a0",
-            "arbidex:fee": "0xecf5d808a253311ebcc8b49b46f27d0d1894c516415fb28c05435419125d34bd",
-            "ramses:fee": "0xfc64d7fb186b226c598c7a7b95de384c215d9a9c247f913f5bbfea3e7ff69513"
+            "pancake": "0x00cd7f0074dc488a6d781d1bde1fb481a5ace19e406bf6f529fbc54fb561efdc",
+            "thena": "0xacc9cfeeff0f6cbe044d4dee490f12d087988d009d6be819d8c73bb4c63b848b",
+            "spooky": "0x7f44868af80881fc29e6e445eda1cd2d0c14da3d38da28812ff9693ab4d73625",
+            "quick": "0x7cd20e543b83bf8f110ec132cbb62086b1c5578b229e3b8366e447c0bc4ef962",
+            "lynex": "0x86c8a2c8c1e81396849862ece4bf4c2d3d0ec512150414c4a02f1dc2546032fa",
+            "chronos": "0x881e9f51fe105293f62136f97888529c39509e7f7d05237516965dc8f22873a0",
+            "arbidex": "0xecf5d808a253311ebcc8b49b46f27d0d1894c516415fb28c05435419125d34bd",
+            "ramses": "0xfc64d7fb186b226c598c7a7b95de384c215d9a9c247f913f5bbfea3e7ff69513",
+            "omni": "0x3dddfb4dbba2810c547d5748d7d2b5bbd33b059e010080cb805a77ab5c5ae9ac"
         }
     },
     "56": {
@@ -84,6 +85,11 @@
                 "type": "paraswap:paraswap-v5",
                 "adapter": "0x023fD6848234f2655818705237F77F02215FEfe5",
                 "fee": "0xfee030dD1192582A0bE2801b60E325966d788B74"
+            },
+            "omni": {
+                "type": "paraswap:paraswap-v5",
+                "adapter": "0xa1baE146161223cd9dCa7137F68eb385934130BE",
+                "fee": "0xfeE170e776E03a30379eb11b08193372622eC190"
             },
             "chronos": {
                 "type": "default:odos-v2",

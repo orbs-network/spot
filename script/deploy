@@ -116,8 +116,9 @@ deploy_dex() {
     *) printf 'error: unsupported adapter type %s\n' "$dex_type" >&2; exit 1 ;;
   esac
 
-  run "$(salt_for "${dex}:adapter")" "$script" "dex:${chain_id}:${dex}:adapter" "$adapter_contract"
-  run "$(salt_for "${dex}:fee")" DeployRefinery "dex:${chain_id}:${dex}:fee" Refinery
+  salt="$(salt_for "$dex")"
+  run "$salt" "$script" "dex:${chain_id}:${dex}:adapter" "$adapter_contract"
+  run "$salt" DeployRefinery "dex:${chain_id}:${dex}:fee" Refinery
 }
 
 verify_contracts() {
