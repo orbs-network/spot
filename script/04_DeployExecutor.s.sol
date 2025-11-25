@@ -14,8 +14,14 @@ contract DeployExecutor is Script {
         bytes32 initCodeHash = hashInitCode(type(Executor).creationCode, abi.encode(reactor, wm));
         console.logBytes32(initCodeHash);
 
-        vm.broadcast();
-        executor = address(new Executor{salt: salt}(reactor, wm));
+        address expected = vm.computeCreate2Address(salt, initCodeHash);
+        if (expected.code.length > 0) {
+            console.log("Executor already deployed at:", expected);
+            executor = expected;
+        } else {
+            vm.broadcast();
+            executor = address(new Executor{salt: salt}(reactor, wm));
+        }
 
         vm.setEnv("EXECUTOR", vm.toString(executor));
     }

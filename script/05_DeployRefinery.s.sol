@@ -13,8 +13,14 @@ contract DeployRefinery is Script {
         bytes32 initCodeHash = hashInitCode(type(Refinery).creationCode, abi.encode(wm));
         console.logBytes32(initCodeHash);
 
-        vm.broadcast();
-        refinery = address(new Refinery{salt: salt}(wm));
+        address expected = vm.computeCreate2Address(salt, initCodeHash);
+        if (expected.code.length > 0) {
+            console.log("Refinery already deployed at:", expected);
+            refinery = expected;
+        } else {
+            vm.broadcast();
+            refinery = address(new Refinery{salt: salt}(wm));
+        }
 
         vm.setEnv("REFINERY", vm.toString(refinery));
     }

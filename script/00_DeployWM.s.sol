@@ -14,13 +14,13 @@ contract DeployWM is Script {
         bytes32 initCodeHash = hashInitCode(type(WM).creationCode, abi.encode(owner));
         console.logBytes32(initCodeHash);
 
-        vm.broadcast();
-        try new WM{salt: salt}(owner) returns (WM deployed) {
-            wm = address(deployed);
-        } catch (bytes memory err) {
-            console.log("wm deployment skipped");
-            console.logBytes(err);
-            wm = vm.envOr("WM", address(0));
+        address expected = vm.computeCreate2Address(salt, initCodeHash);
+        if (expected.code.length > 0) {
+            console.log("WM already deployed at:", expected);
+            wm = expected;
+        } else {
+            vm.broadcast();
+            wm = address(new WM{salt: salt}(owner));
         }
 
         vm.setEnv("WM", vm.toString(wm));

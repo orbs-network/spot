@@ -13,7 +13,13 @@ contract DeployParaswapExchange is Script {
         bytes32 initCodeHash = hashInitCode(type(ParaswapDexAdapter).creationCode, abi.encode(router));
         console.logBytes32(initCodeHash);
 
-        vm.broadcast();
-        exchange = address(new ParaswapDexAdapter{salt: salt}(router));
+        address expected = vm.computeCreate2Address(salt, initCodeHash);
+        if (expected.code.length > 0) {
+            console.log("ParaswapDexAdapter already deployed at:", expected);
+            exchange = expected;
+        } else {
+            vm.broadcast();
+            exchange = address(new ParaswapDexAdapter{salt: salt}(router));
+        }
     }
 }

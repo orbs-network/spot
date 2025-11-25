@@ -14,7 +14,13 @@ contract DeployP2Exchange is Script {
         bytes32 initCodeHash = hashInitCode(type(P2DexAdapter).creationCode, abi.encode(router, permit2));
         console.logBytes32(initCodeHash);
 
-        vm.broadcast();
-        exchange = address(new P2DexAdapter{salt: salt}(router, permit2));
+        address expected = vm.computeCreate2Address(salt, initCodeHash);
+        if (expected.code.length > 0) {
+            console.log("P2DexAdapter already deployed at:", expected);
+            exchange = expected;
+        } else {
+            vm.broadcast();
+            exchange = address(new P2DexAdapter{salt: salt}(router, permit2));
+        }
     }
 }

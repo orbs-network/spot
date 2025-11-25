@@ -13,8 +13,14 @@ contract DeployCosigner is Script {
         bytes32 initCodeHash = hashInitCode(type(Cosigner).creationCode, abi.encode(owner));
         console.logBytes32(initCodeHash);
 
-        vm.broadcast();
-        cosigner = address(new Cosigner{salt: salt}(owner));
+        address expected = vm.computeCreate2Address(salt, initCodeHash);
+        if (expected.code.length > 0) {
+            console.log("Cosigner already deployed at:", expected);
+            cosigner = expected;
+        } else {
+            vm.broadcast();
+            cosigner = address(new Cosigner{salt: salt}(owner));
+        }
 
         vm.setEnv("COSIGNER", vm.toString(cosigner));
     }

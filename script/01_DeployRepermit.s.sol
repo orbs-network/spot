@@ -12,8 +12,14 @@ contract DeployRepermit is Script {
         bytes32 initCodeHash = hashInitCode(type(RePermit).creationCode);
         console.logBytes32(initCodeHash);
 
-        vm.broadcast();
-        repermit = address(new RePermit{salt: salt}());
+        address expected = vm.computeCreate2Address(salt, initCodeHash);
+        if (expected.code.length > 0) {
+            console.log("RePermit already deployed at:", expected);
+            repermit = expected;
+        } else {
+            vm.broadcast();
+            repermit = address(new RePermit{salt: salt}());
+        }
 
         vm.setEnv("REPERMIT", vm.toString(repermit));
     }

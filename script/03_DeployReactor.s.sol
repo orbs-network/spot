@@ -15,8 +15,14 @@ contract DeployReactor is Script {
         bytes32 initCodeHash = hashInitCode(type(OrderReactor).creationCode, abi.encode(repermit, cosigner, wm));
         console.logBytes32(initCodeHash);
 
-        vm.broadcast();
-        reactor = address(new OrderReactor{salt: salt}(repermit, cosigner, wm));
+        address expected = vm.computeCreate2Address(salt, initCodeHash);
+        if (expected.code.length > 0) {
+            console.log("OrderReactor already deployed at:", expected);
+            reactor = expected;
+        } else {
+            vm.broadcast();
+            reactor = address(new OrderReactor{salt: salt}(repermit, cosigner, wm));
+        }
 
         vm.setEnv("REACTOR", vm.toString(reactor));
     }

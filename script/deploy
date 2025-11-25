@@ -61,17 +61,20 @@ update_config() {
 }
 
 run() {
-  local salt=$1 script=$2 target=${3:-} contract=${4:-} tmp=$(mktemp)
+  local salt=$1 script=$2 target=${3:-} contract=${4:-} tmp=$(mktemp) raw_tmp=$(mktemp)
   local load_opts=(-u)
   [[ -n ${CHAIN_ID:-} ]] && load_opts+=(-c "$CHAIN_ID")
   local cmd=(load "${load_opts[@]}" "$CONFIG_FILE" forge script "$script" "${args[@]}" --json)
   [[ -n $salt && $salt != null ]] && cmd=(env SALT=$salt "${cmd[@]}")
 
-  if ! "${cmd[@]}" >"$tmp"; then
-    cat "$tmp"
-    rm -f "$tmp"
+  if ! "${cmd[@]}" >"$raw_tmp"; then
+    cat "$raw_tmp"
+    rm -f "$tmp" "$raw_tmp"
     return 1
   fi
+
+  grep -E '^[[:space:]]*[\{\[]' "$raw_tmp" > "$tmp" || true
+  rm -f "$raw_tmp"
 
   jq -r '.logs[]?' "$tmp"
   if [[ -n $target ]]; then

@@ -13,7 +13,13 @@ contract DeployDefaultExchange is Script {
         bytes32 initCodeHash = hashInitCode(type(DefaultDexAdapter).creationCode, abi.encode(router));
         console.logBytes32(initCodeHash);
 
-        vm.broadcast();
-        exchange = address(new DefaultDexAdapter{salt: salt}(router));
+        address expected = vm.computeCreate2Address(salt, initCodeHash);
+        if (expected.code.length > 0) {
+            console.log("DefaultDexAdapter already deployed at:", expected);
+            exchange = expected;
+        } else {
+            vm.broadcast();
+            exchange = address(new DefaultDexAdapter{salt: salt}(router));
+        }
     }
 }
