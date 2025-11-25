@@ -21,7 +21,8 @@
             "chronos": "0x881e9f51fe105293f62136f97888529c39509e7f7d05237516965dc8f22873a0",
             "arbidex": "0xecf5d808a253311ebcc8b49b46f27d0d1894c516415fb28c05435419125d34bd",
             "ramses": "0xfc64d7fb186b226c598c7a7b95de384c215d9a9c247f913f5bbfea3e7ff69513",
-            "omni": "0x3dddfb4dbba2810c547d5748d7d2b5bbd33b059e010080cb805a77ab5c5ae9ac"
+            "omni": "0x3dddfb4dbba2810c547d5748d7d2b5bbd33b059e010080cb805a77ab5c5ae9ac",
+            "blackhole": "0x54e61c2c49ffb3388107684eeb084a44230a73671585f3a73d1bdca972b98db4"
         }
     },
     "56": {
@@ -95,6 +96,15 @@
                 "type": "default:odos-v2",
                 "adapter": "0x4Ff90F32aceD08b3e3257B018EA495Fd1Bfe4455",
                 "fee": "0xfEe1201aB4EA5C2154fA4C855E15b1e95853BAF1"
+            }
+        }
+    },
+    "43114": {
+        "dex": {
+            "blackhole": {
+                "type": "default:kyber-v2",
+                "adapter": "0x426ec4bc0d58B80959CDE77576a1942dd40592Fa",
+                "fee": "0xfEe200BB03CfD10af8F27039092D693d73D19b21"
             }
         }
     }
