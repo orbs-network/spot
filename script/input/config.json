@@ -27,7 +27,8 @@
             "swapx": "0x0300297d5e04f45f4e335486f7f00bdda8b3d4b3e1eb5026bb82557c308458fc",
             "shadow": "0xfa10edf1099dddfd84d4bc718d788d6fd02def2864eaf5f6954a15f2811c5d51",
             "kodiak": "0x6e27f4de99f94db3f76ceb172c7248d7fd1be1721661c17ebd8514d6d44aa9b2",
-            "dragon": "0x3033e08507b0ada3d225e9b4cfb14c44569f696d255bffcadeaf57e894f0e6a9"
+            "dragon": "0x3033e08507b0ada3d225e9b4cfb14c44569f696d255bffcadeaf57e894f0e6a9",
+            "teafi": "0x8f2d59f57d40b6f656e77d386eef94985c4922156f467da72451981f3b2b9792"
         }
     },
     "56": {
@@ -74,6 +75,11 @@
                 "type": "paraswap:paraswap-v5",
                 "adapter": "0x023fD6848234f2655818705237F77F02215FEfe5",
                 "fee": "0xfee020Df7770A3473495e961C019652FC194A175"
+            },
+            "teafi": {
+                "type": "paraswap:paraswap-v5",
+                "adapter": "0xe95db7a60164B112C64cE67bA8587b1d4a0E0D29",
+                "fee": "0xfee040447313b609c8Fc3DE24953A52FE7d9147a"
             }
         }
     },
