@@ -25,7 +25,8 @@
             "blackhole": "0x54e61c2c49ffb3388107684eeb084a44230a73671585f3a73d1bdca972b98db4",
             "newera": "0x9984d9f22d63083ec6d34a86df538fa3545410441a7cbc15192a60cb97c5d115",
             "swapx": "0x0300297d5e04f45f4e335486f7f00bdda8b3d4b3e1eb5026bb82557c308458fc",
-            "shadow": "0xfa10edf1099dddfd84d4bc718d788d6fd02def2864eaf5f6954a15f2811c5d51"
+            "shadow": "0xfa10edf1099dddfd84d4bc718d788d6fd02def2864eaf5f6954a15f2811c5d51",
+            "kodiak": "0x6e27f4de99f94db3f76ceb172c7248d7fd1be1721661c17ebd8514d6d44aa9b2"
         }
     },
     "56": {
@@ -123,6 +124,15 @@
                 "type": "default:kyber-v2",
                 "adapter": "0x426ec4bc0d58B80959CDE77576a1942dd40592Fa",
                 "fee": "0xfEe200BB03CfD10af8F27039092D693d73D19b21"
+            }
+        }
+    },
+    "80094": {
+        "dex": {
+            "kodiak": {
+                "type": "default:kodiak",
+                "adapter": "0xBbaa527Aac00b1Ee9A3909D4D8c4447630E29B1F",
+                "fee": "0xFeE190B3dbaf4D37D8D24d4342CcCEB94b61f091"
             }
         }
     }
