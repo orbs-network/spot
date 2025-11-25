@@ -23,7 +23,8 @@
             "ramses": "0xfc64d7fb186b226c598c7a7b95de384c215d9a9c247f913f5bbfea3e7ff69513",
             "omni": "0x3dddfb4dbba2810c547d5748d7d2b5bbd33b059e010080cb805a77ab5c5ae9ac",
             "blackhole": "0x54e61c2c49ffb3388107684eeb084a44230a73671585f3a73d1bdca972b98db4",
-            "newera": "0x9984d9f22d63083ec6d34a86df538fa3545410441a7cbc15192a60cb97c5d115"
+            "newera": "0x9984d9f22d63083ec6d34a86df538fa3545410441a7cbc15192a60cb97c5d115",
+            "swapx": "0x0300297d5e04f45f4e335486f7f00bdda8b3d4b3e1eb5026bb82557c308458fc"
         }
     },
     "56": {
@@ -51,6 +52,11 @@
                 "type": "default:magpie-v3",
                 "adapter": "0xdCee7FDdB932104329d528144Cd17A408722B7e2",
                 "fee": "0xFEE0703bc635d246f21DC6BbB91e16fF23f139c3"
+            },
+            "swapx": {
+                "type": "default:openocean-v2",
+                "adapter": "0xecc733D6F6f2DEa341832D650E30822118884FEb",
+                "fee": "0xfEE0905dA9819a743E1b9bD9b869BBD382DE6808"
             }
         }
     },
