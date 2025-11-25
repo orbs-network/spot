@@ -24,7 +24,8 @@
             "omni": "0x3dddfb4dbba2810c547d5748d7d2b5bbd33b059e010080cb805a77ab5c5ae9ac",
             "blackhole": "0x54e61c2c49ffb3388107684eeb084a44230a73671585f3a73d1bdca972b98db4",
             "newera": "0x9984d9f22d63083ec6d34a86df538fa3545410441a7cbc15192a60cb97c5d115",
-            "swapx": "0x0300297d5e04f45f4e335486f7f00bdda8b3d4b3e1eb5026bb82557c308458fc"
+            "swapx": "0x0300297d5e04f45f4e335486f7f00bdda8b3d4b3e1eb5026bb82557c308458fc",
+            "shadow": "0xfa10edf1099dddfd84d4bc718d788d6fd02def2864eaf5f6954a15f2811c5d51"
         }
     },
     "56": {
@@ -57,6 +58,11 @@
                 "type": "default:openocean-v2",
                 "adapter": "0xecc733D6F6f2DEa341832D650E30822118884FEb",
                 "fee": "0xfEE0905dA9819a743E1b9bD9b869BBD382DE6808"
+            },
+            "shadow": {
+                "type": "default:magpie-v3",
+                "adapter": "0x5f3E5F6ACCfc65243A01Da3E93b5A700285592C3",
+                "fee": "0xfee100055Bfdc8Bf9Ac35e6D2B0004a0A98887b1"
             }
         }
     },
