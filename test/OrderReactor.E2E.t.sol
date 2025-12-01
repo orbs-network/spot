@@ -270,6 +270,57 @@ contract OrderReactorE2ETest is BaseTest {
         assertEq(RePermit(repermit).spent(signer, permitDigest), inAmount * 2);
     }
 
+    function test_e2e_single_chunk_epoch_tiny_first_window_can_fill_next_window() public {
+        inToken = address(token);
+        outToken = address(token2);
+        inAmount = 1 ether;
+        inMax = inAmount; // single chunk budget
+        outAmount = 500 ether;
+        outMax = type(uint256).max;
+        freshness = 30;
+
+        CosignedOrder memory co = order();
+        uint32 epochSeconds = 60;
+        co.order.epoch = epochSeconds;
+
+        cosignInValue = 500;
+        cosignOutValue = 1;
+        co.signature = permitFor(co, address(reactorUut));
+
+        fundOrderInput(co);
+
+        bytes32 orderHash = OrderLib.hash(co.order);
+        uint256 offset = uint256(orderHash) % epochSeconds;
+
+        // Force the initial window to have only 1 second left by jumping to the end of the bucket
+        uint256 mod = (block.timestamp + offset) % epochSeconds;
+        uint256 deltaToTinyWindow = (epochSeconds - 1 + epochSeconds - mod) % epochSeconds;
+        vm.warp(block.timestamp + deltaToTinyWindow);
+        uint256 secondsLeft = epochSeconds - ((block.timestamp + offset) % epochSeconds);
+        assertEq(secondsLeft, 1, "expected a tiny first window");
+
+        uint256 bucketBeforeSkip = (block.timestamp + offset) / epochSeconds;
+
+        // Skip the tiny first window and move into the next bucket
+        vm.warp(block.timestamp + secondsLeft + 1);
+        uint256 bucketWeFill = (block.timestamp + offset) / epochSeconds;
+        assertEq(bucketWeFill, bucketBeforeSkip + 1, "should be in the second window");
+
+        co = cosign(co);
+
+        Execution memory ex = executionWithData(
+            outAmount,
+            abi.encodeWithSelector(MockDexRouter.doSwap.selector, inToken, inAmount, outToken, outAmount, address(exec))
+        );
+
+        uint256 before = ERC20Mock(outToken).balanceOf(recipient);
+        exec.execute(co, ex);
+        assertEq(ERC20Mock(outToken).balanceOf(recipient) - before, outAmount);
+
+        uint256 storedEpoch = reactorUut.epochs(orderHash);
+        assertEq(storedEpoch, bucketWeFill + 1, "stored epoch should reflect the filled bucket");
+    }
+
     function test_e2e_stop_loss_respects_max_output_trigger() public {
         inToken = address(token);
         outToken = address(token2);

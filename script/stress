@@ -1,0 +1,149 @@
+#!/bin/zsh
+set -euo pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname "$0")" && pwd)"
+SKELETON="$SCRIPT_DIR/input/repermit.skeleton.json"
+CONFIG="$SCRIPT_DIR/input/config.json"
+SINK="https://order-sink-dev.orbs.network/orders/new"
+
+for bin in cast jq curl a sigsplit; do
+    command -v "$bin" >/dev/null 2>&1 || {
+        echo "Missing required command: $bin" >&2
+        exit 1
+    }
+done
+
+function worker() {
+    local INDEX=$1
+    local CHUNK=$2
+    local IN=$3
+    local OUT=$4
+    local WALLET=$5
+    local NONCE_BASE=$6
+    local REPERMIT=$7
+    local REACTOR=$8
+    local EXECUTOR=$9
+    local ADAPTER=${10}
+    local REF=${11}
+    local CHAIN=${12}
+    
+    local NONCE=$((NONCE_BASE + INDEX))
+    local DEADLINE=$(($(date +%s) + 3600))
+    local TMP=$(mktemp)
+
+    jq --arg n "$NONCE" --arg d "$DEADLINE" --arg i "$IN" --arg a "$CHUNK" --arg o "$OUT" --arg w "$WALLET" \
+       --arg c "$CHAIN" --arg rp "$REPERMIT" --arg r "$REACTOR" --arg e "$EXECUTOR" --arg ad "$ADAPTER" --arg rf "$REF" \
+       '
+       .domain.chainId = ($c | tonumber) |
+       .domain.verifyingContract = $rp |
+       .message.permitted.token = $i |
+       .message.permitted.amount = $a |
+       .message.spender = $r |
+       .message.nonce = $n |
+       .message.deadline = $d |
+       .message.witness.reactor = $r |
+       .message.witness.executor = $e |
+       .message.witness.exchange.adapter = $ad |
+       .message.witness.exchange.ref = $rf |
+       .message.witness.exchange.share = 0 |
+       .message.witness.exchange.data = "0x" |
+       .message.witness.swapper = $w |
+       .message.witness.nonce = $n |
+       .message.witness.deadline = $d |
+       .message.witness.chainid = ($c | tonumber) |
+       .message.witness.exclusivity = 0 |
+       .message.witness.epoch = 0 |
+       .message.witness.slippage = 500 |
+       .message.witness.freshness = 60 |
+       .message.witness.input.token = $i |
+       .message.witness.input.amount = $a |
+       .message.witness.input.maxAmount = $a |
+       .message.witness.output.token = $o |
+       .message.witness.output.limit = "0" |
+       .message.witness.output.stop = "0" |
+       .message.witness.output.recipient = $w' \
+       "$SKELETON" > "$TMP"
+
+    local SIG=$(cast wallet sign --data --from-file "$TMP")
+    
+    # Check if SIG looks like a signature (0x followed by hex)
+    if [[ "$SIG" != 0x* || ${#SIG} -lt 130 ]]; then
+         echo "Error: Failed to sign. cast returned: $SIG"
+         rm "$TMP"
+         return 1
+    fi
+
+    local V R S
+    read V R S <<< $(sigsplit "$SIG")
+    local ORDER=$(jq -c '.message' "$TMP")
+    rm "$TMP"
+
+    local PAYLOAD='{"signature":{"v":"'"$V"'","r":"'"$R"'","s":"'"$S"'"},"order":'"$ORDER"',"status":"pending"}'
+
+    echo "[worker $INDEX] payload built"
+
+    curl -s "$SINK" -H 'content-type: application/json' \
+         --data-raw "$PAYLOAD"
+    echo "Submitted $INDEX"
+}
+
+[[ "${1:-}" == "worker" ]] && { shift; worker "$@"; exit 0; }
+
+[[ -z "${1:-}" ]] && { echo "Usage: $0 <count>"; exit 1; }
+
+COUNT=$1
+
+CHAIN=$(cast chain-id)
+REPERMIT=$(jq -r '."*".repermit' "$CONFIG")
+REACTOR=$(jq -r '."*".reactor' "$CONFIG")
+EXECUTOR=$(jq -r '."*".executor' "$CONFIG")
+
+DEX=$(jq -r --arg c "$CHAIN" '.[$c].dex|keys_unsorted|.[0]' "$CONFIG")
+[[ "$DEX" == "null" ]] && { echo "No DEX for $CHAIN"; exit 1; }
+
+ADAPTER=$(jq -r --arg c "$CHAIN" --arg d "$DEX" '.[$c].dex[$d].adapter' "$CONFIG")
+REF=$(jq -r --arg c "$CHAIN" --arg d "$DEX" '.[$c].dex[$d].fee' "$CONFIG")
+
+W=$(a w)
+B=$(a wbtc)
+WALLET=$(cast wallet address)
+
+BAL_W=$(cast call "$W" "balanceOf(address)(uint256)" "$WALLET" | awk '{print $1}' | tr -d '"')
+BAL_B=$(cast call "$B" "balanceOf(address)(uint256)" "$WALLET" | awk '{print $1}' | tr -d '"')
+DEC_W=$(cast call "$W" "decimals()(uint8)" | awk '{print $1}' | tr -d '"')
+DEC_B=$(cast call "$B" "decimals()(uint8)" | awk '{print $1}' | tr -d '"')
+
+if (( $(cast to-unit "$BAL_W" "$DEC_W") >= $(cast to-unit "$BAL_B" "$DEC_B") )); then
+    IN="$W"; OUT="$B"; TOTAL="$BAL_W"; DEC_IN="$DEC_W"; DEC_OUT="$DEC_B"
+else
+    IN="$B"; OUT="$W"; TOTAL="$BAL_B"; DEC_IN="$DEC_B"; DEC_OUT="$DEC_W"
+fi
+[[ "$TOTAL" -eq 0 ]] && { echo "No balance"; exit 1; }
+SYM_IN=$(cast call "$IN" "symbol()(string)" | tr -d '"')
+SYM_OUT=$(cast call "$OUT" "symbol()(string)" | tr -d '"')
+CHUNK=$((TOTAL/COUNT))
+if (( CHUNK == 0 )); then
+    echo "Amount per order resolved to 0; reduce order count or increase balance."
+    exit 1
+fi
+
+echo "---------------------------------------------------"
+echo "Chain ID:       $CHAIN"
+echo "Wallet:         $WALLET"
+echo "DEX:            $DEX"
+echo "Adapter:        $ADAPTER"
+echo "Token IN:       $IN ($SYM_IN)"
+echo "Token OUT:      $OUT ($SYM_OUT)"
+echo "Decimals (IN):  $DEC_IN"
+echo "Decimals (OUT): $DEC_OUT"
+echo "Balance W:      $(cast to-unit "$BAL_W" "$DEC_W")"
+echo "Balance B:      $(cast to-unit "$BAL_B" "$DEC_B")"
+echo "Selected Total: $(cast to-unit "$TOTAL" "$DEC_IN")"
+echo "Orders:         $COUNT"
+echo "Amount/Order:   $(cast to-unit "$CHUNK" "$DEC_IN")"
+echo "---------------------------------------------------"
+
+NONCE_BASE="$(date +%s)000"
+seq 0 $((COUNT - 1)) | xargs -P 0 -I{} "$(realpath "$0")" worker {} "$CHUNK" "$IN" "$OUT" "$WALLET" \
+    "$NONCE_BASE" "$REPERMIT" "$REACTOR" "$EXECUTOR" "$ADAPTER" "$REF" "$CHAIN"
+echo "Done"
