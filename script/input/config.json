@@ -29,7 +29,8 @@
             "kodiak": "0x6e27f4de99f94db3f76ceb172c7248d7fd1be1721661c17ebd8514d6d44aa9b2",
             "dragon": "0x3033e08507b0ada3d225e9b4cfb14c44569f696d255bffcadeaf57e894f0e6a9",
             "teafi": "0x8f2d59f57d40b6f656e77d386eef94985c4922156f467da72451981f3b2b9792",
-            "spark": "0xe786e8724dd849eba63dc84f2941fd16acc9393e4c530886780501472308d8cf"
+            "spark": "0xe786e8724dd849eba63dc84f2941fd16acc9393e4c530886780501472308d8cf",
+            "nami": "0xaa0d39d2b622f6cf1d2d29019a390d1dc0cdfd3c3fb26143c05d072306a80f00"
         }
     },
     "56": {
@@ -150,6 +151,11 @@
                 "type": "default:dragon",
                 "adapter": "0x02d9d5882129241b67ec21Ebc2C86e1BE9BC9890",
                 "fee": "0xfEE050dD0f4ACe21f4325C26244C7431dDFd0DD8"
+            },
+            "nami": {
+                "type": "default:bungee",
+                "adapter": "0x7799106EFcF75a7780d4A133465bde0e8c5485B6",
+                "fee": "0xFEE140090305382fD57F04F11E8bc22f6d242C8f"
             }
         }
     },
