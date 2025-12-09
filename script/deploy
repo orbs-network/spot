@@ -119,9 +119,21 @@ deploy_dex() {
     *) printf 'error: unsupported adapter type %s\n' "$dex_type" >&2; exit 1 ;;
   esac
 
-  salt="$(salt_for "$dex")"
-  run "$salt" "$script" "dex:${chain_id}:${dex}:adapter" "$adapter_contract"
-  run "$salt" DeployRefinery "dex:${chain_id}:${dex}:fee" Refinery
+  local adapter_address fee_address
+  adapter_address=$(jq -r --arg chain "$chain_id" --arg dex "$dex" '.[$chain].dex[$dex].adapter // ""' "$CONFIG_FILE")
+  fee_address=$(jq -r --arg chain "$chain_id" --arg dex "$dex" '.[$chain].dex[$dex].fee // ""' "$CONFIG_FILE")
+
+  if [[ -n $adapter_address ]]; then
+    printf 'Adapter already configured for %s on chain %s (%s); skipping deployment\n' "$dex" "$chain_id" "$adapter_address"
+  else
+    run "" "$script" "dex:${chain_id}:${dex}:adapter" "$adapter_contract"
+  fi
+
+  if [[ -n $fee_address ]]; then
+    printf 'Fee already configured for %s on chain %s (%s); skipping deployment\n' "$dex" "$chain_id" "$fee_address"
+  else
+    run "" DeployRefinery "dex:${chain_id}:${dex}:fee" Refinery
+  fi
 }
 
 verify_contracts() {
