@@ -8,6 +8,14 @@ import {Refinery} from "src/ops/Refinery.sol";
 import {WMAllowed} from "src/lib/WMAllowed.sol";
 import {IMulticall3} from "forge-std/interfaces/IMulticall3.sol";
 
+contract PayableTarget {
+    uint256 public lastValue;
+
+    function record() external payable {
+        lastValue = msg.value;
+    }
+}
+
 contract RefineryTest is BaseTest {
     Refinery internal refinery;
 
@@ -20,7 +28,7 @@ contract RefineryTest is BaseTest {
 
     function test_cant_execute_if_not_allowed() public {
         disallowThis();
-        IMulticall3.Call3[] memory calls = new IMulticall3.Call3[](0);
+        IMulticall3.Call3Value[] memory calls = new IMulticall3.Call3Value[](0);
         vm.expectRevert(WMAllowed.NotAllowed.selector);
         refinery.execute(calls);
     }
@@ -33,19 +41,39 @@ contract RefineryTest is BaseTest {
 
     function test_execute() public {
         allowThis();
-        IMulticall3.Call3[] memory calls = new IMulticall3.Call3[](1);
-        calls[0] = IMulticall3.Call3({
+        IMulticall3.Call3Value[] memory calls = new IMulticall3.Call3Value[](1);
+        calls[0] = IMulticall3.Call3Value({
             target: address(token),
             allowFailure: false,
+            value: 0,
             callData: abi.encodeWithSignature("mint(address,uint256)", other, 1e18)
         });
         refinery.execute(calls);
         assertEq(token.balanceOf(other), 1e18);
     }
 
+    function test_execute_with_value_forwards_eth() public {
+        allowThis();
+        PayableTarget target = new PayableTarget();
+
+        IMulticall3.Call3Value[] memory calls = new IMulticall3.Call3Value[](1);
+        calls[0] = IMulticall3.Call3Value({
+            target: address(target),
+            allowFailure: false,
+            value: 0.25 ether,
+            callData: abi.encodeWithSelector(target.record.selector)
+        });
+
+        refinery.execute{value: 0.25 ether}(calls);
+
+        assertEq(address(target).balance, 0.25 ether);
+        assertEq(target.lastValue(), 0.25 ether);
+        assertEq(address(refinery).balance, 0);
+    }
+
     function test_execute_empty_calls_ok() public {
         allowThis();
-        IMulticall3.Call3[] memory calls = new IMulticall3.Call3[](0);
+        IMulticall3.Call3Value[] memory calls = new IMulticall3.Call3Value[](0);
         refinery.execute(calls);
         // nothing to assert beyond not reverting
     }
@@ -53,10 +81,11 @@ contract RefineryTest is BaseTest {
     function test_execute_call_failure_allowFailure_true_does_not_revert() public {
         allowThis();
         // Attempt to transfer tokens from refinery without balance -> underlying call fails
-        IMulticall3.Call3[] memory calls = new IMulticall3.Call3[](1);
-        calls[0] = IMulticall3.Call3({
+        IMulticall3.Call3Value[] memory calls = new IMulticall3.Call3Value[](1);
+        calls[0] = IMulticall3.Call3Value({
             target: address(token),
             allowFailure: true,
+            value: 0,
             callData: abi.encodeWithSignature("transfer(address,uint256)", other, 1e18)
         });
         refinery.execute(calls);
@@ -64,10 +93,11 @@ contract RefineryTest is BaseTest {
 
     function test_execute_call_failure_allowFailure_false_reverts() public {
         allowThis();
-        IMulticall3.Call3[] memory calls = new IMulticall3.Call3[](1);
-        calls[0] = IMulticall3.Call3({
+        IMulticall3.Call3Value[] memory calls = new IMulticall3.Call3Value[](1);
+        calls[0] = IMulticall3.Call3Value({
             target: address(token),
             allowFailure: false,
+            value: 0,
             callData: abi.encodeWithSignature("transfer(address,uint256)", other, 1e18)
         });
         vm.expectRevert();

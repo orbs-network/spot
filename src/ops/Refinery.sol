@@ -19,8 +19,14 @@ contract Refinery is WMAllowed {
 
     constructor(address _wm) WMAllowed(_wm) {}
 
-    function execute(IMulticall3.Call3[] calldata calls) external onlyAllowed returns (IMulticall3.Result[] memory) {
-        return Multicall3Lib.aggregate3(calls);
+    /// @notice Executes a batch of calls, forwarding native value per call when requested.
+    function execute(IMulticall3.Call3Value[] calldata calls)
+        external
+        payable
+        onlyAllowed
+        returns (IMulticall3.Result[] memory)
+    {
+        return Multicall3Lib.aggregate3Value(calls);
     }
 
     function transfer(address token, address recipient, uint256 bps) external onlyAllowed {
