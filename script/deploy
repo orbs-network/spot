@@ -60,12 +60,26 @@ update_config() {
   printf 'Updated %s -> %s\n\n' "$target" "$address"
 }
 
+should_update_config() {
+  local broadcast=false debug=false arg
+  for arg in "${args[@]}"; do
+    case $arg in
+      --broadcast) broadcast=true ;;
+      --resume) broadcast=true ;;
+      --debug) debug=true ;;
+    esac
+  done
+  $broadcast && ! $debug
+}
+
 run() {
   local salt=$1 script=$2 target=${3:-} contract=${4:-} tmp=$(mktemp) raw_tmp=$(mktemp)
   local load_opts=(-u)
   [[ -n ${CHAIN_ID:-} ]] && load_opts+=(-c "$CHAIN_ID")
   local cmd=(load "${load_opts[@]}" "$CONFIG_FILE" forge script "$script" "${args[@]}" --json)
-  [[ -n $salt && $salt != null ]] && cmd=(env SALT=$salt "${cmd[@]}")
+  if [[ -n $salt && $salt != null ]]; then
+    cmd=(env SALT=$salt "${cmd[@]}")
+  fi
 
   if ! "${cmd[@]}" >"$raw_tmp"; then
     cat "$raw_tmp"
@@ -80,7 +94,11 @@ run() {
   if [[ -n $target ]]; then
     local address=$(jq -r '.returns[]?.value | select(. != null)' "$tmp" | tail -n1)
     if [[ -n $address ]]; then
-      update_config "$target" "$address"
+      if should_update_config; then
+        update_config "$target" "$address"
+      else
+        printf 'Resolved %s -> %s (dry run; config not updated)\n\n' "$target" "$address"
+      fi
     fi
   fi
 
