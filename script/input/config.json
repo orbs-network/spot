@@ -24,11 +24,13 @@
             },
             "pancake": {
                 "type": "p2:pancakeswap-v2",
-                "adapter": "0x654272F7e6e6E912D38650f783eFd44452fD6ee5"
+                "adapter": "0x654272F7e6e6E912D38650f783eFd44452fD6ee5",
+                "fee": "0x840Df4684B35BC68BcdA3F6707A3c82A0D662f8b"
             },
             "newera": {
                 "type": "default:odos-v2",
-                "adapter": "0x845f459271D800f6Ab32D78400b8Aa18414E80b0"
+                "adapter": "0x845f459271D800f6Ab32D78400b8Aa18414E80b0",
+                "fee": "0x840Df4684B35BC68BcdA3F6707A3c82A0D662f8b"
             }
         }
     },
