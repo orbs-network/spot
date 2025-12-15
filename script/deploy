@@ -42,6 +42,13 @@ salt_for() {
   ' "$CONFIG_FILE"
 }
 
+dex_salt_for() {
+  local dex=${1:-}
+  [[ -z $dex ]] && { printf 'error: missing dex name for salt\n' >&2; exit 1; }
+  command -v cast >/dev/null 2>&1 || { printf 'error: cast is required to compute dex salt\n' >&2; exit 1; }
+  cast keccak "$dex"
+}
+
 update_config() {
   local target=$1 address=$2 tmp=$(mktemp)
   if [[ $target == global:* ]]; then
@@ -112,6 +119,9 @@ deploy_dex() {
     exit 1
   fi
 
+  local dex_salt
+  dex_salt=$(dex_salt_for "$dex")
+
   local dex_type
   if ! dex_type=$(jq -er --arg chain "$chain_id" --arg dex "$dex" '
       .[$chain].dex[$dex].type
@@ -144,13 +154,13 @@ deploy_dex() {
   if [[ -n $adapter_address ]]; then
     printf 'Adapter already configured for %s on chain %s (%s); skipping deployment\n' "$dex" "$chain_id" "$adapter_address"
   else
-    run "" "$script" "dex:${chain_id}:${dex}:adapter" "$adapter_contract"
+    run "$dex_salt" "$script" "dex:${chain_id}:${dex}:adapter" "$adapter_contract"
   fi
 
   if [[ -n $fee_address ]]; then
     printf 'Fee already configured for %s on chain %s (%s); skipping deployment\n' "$dex" "$chain_id" "$fee_address"
   else
-    run "" DeployRefinery "dex:${chain_id}:${dex}:fee" Refinery
+    run "$dex_salt" DeployRefinery "dex:${chain_id}:${dex}:fee" Refinery
   fi
 }
 
