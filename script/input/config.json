@@ -19,7 +19,8 @@
         "dex": {
             "thena": {
                 "type": "default:odos-v2",
-                "adapter": "0xB75218ba5A99bF57Fd02556B70F05A4A0f1Dbe67"
+                "adapter": "0xB75218ba5A99bF57Fd02556B70F05A4A0f1Dbe67",
+                "fee": "0x15eBc8b5b3877512FFF23650188694A9a8891FAc"
             },
             "pancake": {
                 "type": "p2:pancakeswap-v2",
