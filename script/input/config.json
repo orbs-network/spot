@@ -43,11 +43,13 @@
             },
             "swapx": {
                 "type": "default:openocean-v2",
-                "adapter": "0xecc733D6F6f2DEa341832D650E30822118884FEb"
+                "adapter": "0xecc733D6F6f2DEa341832D650E30822118884FEb",
+                "fee": "0x6E03f7BC0f141894612AA017796096399623895F"
             },
             "shadow": {
                 "type": "default:magpie-v3",
-                "adapter": "0x5f3E5F6ACCfc65243A01Da3E93b5A700285592C3"
+                "adapter": "0x5f3E5F6ACCfc65243A01Da3E93b5A700285592C3",
+                "fee": "0xb9e3751fAF3187E1bC468E56a707a8A91754460e"
             }
         }
     },
