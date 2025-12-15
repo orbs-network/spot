@@ -57,11 +57,13 @@
         "dex": {
             "quick": {
                 "type": "paraswap:paraswap-v5",
-                "adapter": "0x023fD6848234f2655818705237F77F02215FEfe5"
+                "adapter": "0x023fD6848234f2655818705237F77F02215FEfe5",
+                "fee": "0xd207DC6a6dA88f27c8DB78201F974161b1d84b1f"
             },
             "teafi": {
                 "type": "paraswap:paraswap-v5",
-                "adapter": "0xe95db7a60164B112C64cE67bA8587b1d4a0E0D29"
+                "adapter": "0xe95db7a60164B112C64cE67bA8587b1d4a0E0D29",
+                "fee": "0x04Ff96e2c4D62b5771795d307AD679a25b3D2D50"
             }
         }
     },
@@ -69,7 +71,8 @@
         "dex": {
             "quick": {
                 "type": "default:kyber-v2",
-                "adapter": "0xc73F03c929A123Ee2f3A98EC18BB240f03980AE5"
+                "adapter": "0xc73F03c929A123Ee2f3A98EC18BB240f03980AE5",
+                "fee": "0xd207DC6a6dA88f27c8DB78201F974161b1d84b1f"
             }
         }
     },
@@ -77,7 +80,8 @@
         "dex": {
             "lynex": {
                 "type": "default:openocean",
-                "adapter": "0x4FF6A97A67fe395212f168f011D71fE79E4396f2"
+                "adapter": "0x4FF6A97A67fe395212f168f011D71fE79E4396f2",
+                "fee": "0xcb36ed1B1BfAD8F7FC9651f52d21f04A68677423"
             }
         }
     },
@@ -85,19 +89,23 @@
         "dex": {
             "arbidex": {
                 "type": "default:odos-v2",
-                "adapter": "0xa734b32151108139e48dCA06eE721538d90A9Ef6"
+                "adapter": "0xa734b32151108139e48dCA06eE721538d90A9Ef6",
+                "fee": "0xa0c11852f8A44e32F9EC10AD25986A53842f72Ca"
             },
             "ramses": {
                 "type": "paraswap:paraswap-v5",
-                "adapter": "0x023fD6848234f2655818705237F77F02215FEfe5"
+                "adapter": "0x023fD6848234f2655818705237F77F02215FEfe5",
+                "fee": "0xB5BaCB60ECDa0bEF809B2A26eC9B4B926835D7af"
             },
             "omni": {
                 "type": "paraswap:paraswap-v5",
-                "adapter": "0xa1baE146161223cd9dCa7137F68eb385934130BE"
+                "adapter": "0xa1baE146161223cd9dCa7137F68eb385934130BE",
+                "fee": "0xba5291526c30B097E9F1Fd1Be301E2ab6E0782aa"
             },
             "chronos": {
                 "type": "default:odos-v2",
-                "adapter": "0x4Ff90F32aceD08b3e3257B018EA495Fd1Bfe4455"
+                "adapter": "0x4Ff90F32aceD08b3e3257B018EA495Fd1Bfe4455",
+                "fee": "0x5729af83240EFecAa18eafaAE82961c2DD045Dbe"
             }
         }
     },
@@ -105,7 +113,8 @@
         "dex": {
             "blackhole": {
                 "type": "default:kyber-v2",
-                "adapter": "0x426ec4bc0d58B80959CDE77576a1942dd40592Fa"
+                "adapter": "0x426ec4bc0d58B80959CDE77576a1942dd40592Fa",
+                "fee": "0x7f8B62520D9B5DA0ED517cc36e8dcb2a356f1928"
             }
         }
     },
@@ -113,7 +122,8 @@
         "dex": {
             "kodiak": {
                 "type": "default:kodiak",
-                "adapter": "0xBbaa527Aac00b1Ee9A3909D4D8c4447630E29B1F"
+                "adapter": "0xBbaa527Aac00b1Ee9A3909D4D8c4447630E29B1F",
+                "fee": "0xBA47Ec15aFbCF6e7e9F52900632049530bB6bAe4"
             }
         }
     },
@@ -121,11 +131,13 @@
         "dex": {
             "dragon": {
                 "type": "default:dragon",
-                "adapter": "0x02d9d5882129241b67ec21Ebc2C86e1BE9BC9890"
+                "adapter": "0x02d9d5882129241b67ec21Ebc2C86e1BE9BC9890",
+                "fee": "0x0dc1E0525202b32e89bA78ed55b1e5cEdB751334"
             },
             "nami": {
                 "type": "default:bungee",
-                "adapter": "0x7799106EFcF75a7780d4A133465bde0e8c5485B6"
+                "adapter": "0x7799106EFcF75a7780d4A133465bde0e8c5485B6",
+                "fee": "0xeB58450e23632003f013568703F54446070E2E80"
             }
         }
     },
@@ -133,7 +145,8 @@
         "dex": {
             "spark": {
                 "type": "default:spark",
-                "adapter": "0xB18c633B6584A33E45a8840a759f56dF17117b1D"
+                "adapter": "0xB18c633B6584A33E45a8840a759f56dF17117b1D",
+                "fee": "0xaeA8C3e1a129A77686E115b1a46D9aD8405F7D2b"
             }
         }
     }
