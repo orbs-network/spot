@@ -23,7 +23,7 @@ function config(chainId, dexName) {
   const dexOverrides = dex?.[dexName];
   if (!dexOverrides) return;
 
-  return { ...baseDefaults, ...chainDefaults, ...dexOverrides, abi: abis() };
+  return { ...baseDefaults, ...chainDefaults, ...dexOverrides };
 }
 
-module.exports = { config };
+module.exports = { config, abis };
