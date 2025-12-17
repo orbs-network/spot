@@ -149,5 +149,14 @@
                 "fee": "0xaeA8C3e1a129A77686E115b1a46D9aD8405F7D2b"
             }
         }
+    },
+    "143": {
+        "dex": {
+            "yowie": {
+                "type": "default:openocean-v2",
+                "adapter": "0x18bc9533c3539073B9A9acF12b0AbF7cB73e0F1f",
+                "fee": "0x6AF3eE77A3A3257777F5649aFa611b4C7Fd975Ef"
+            }
+        }
     }
 }
