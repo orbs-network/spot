@@ -135,8 +135,8 @@
                 "fee": "0x0dc1E0525202b32e89bA78ed55b1e5cEdB751334"
             },
             "nami": {
-                "type": "default:bungee",
-                "adapter": "0x7799106EFcF75a7780d4A133465bde0e8c5485B6",
+                "type": "default:openocean-v2",
+                "adapter": "0x2D4A1237A98f8cb03C3C85960e859aA44036a306",
                 "fee": "0xeB58450e23632003f013568703F54446070E2E80"
             }
         }
