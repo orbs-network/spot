@@ -26,4 +26,4 @@ function config(chainId, dexName) {
   return { ...baseDefaults, ...chainDefaults, ...dexOverrides };
 }
 
-module.exports = { config, abis };
+module.exports = { config, abis, raw };
