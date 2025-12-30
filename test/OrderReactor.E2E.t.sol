@@ -11,6 +11,7 @@ import {OrderLib} from "src/lib/OrderLib.sol";
 import {RePermit} from "src/RePermit.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 import {ERC20Mock6Decimals} from "test/mocks/ERC20Mock6Decimals.sol";
+import {FeeOnTransferERC20Mock} from "test/mocks/FeeOnTransferERC20Mock.sol";
 import {MockDexRouter} from "test/mocks/MockDexRouter.sol";
 import {SwapAdapterMock} from "test/mocks/SwapAdapter.sol";
 import {ResolutionLib} from "src/lib/ResolutionLib.sol";
@@ -532,5 +533,52 @@ contract OrderReactorE2ETest is BaseTest {
         exec.execute(co, ex);
 
         assertEq(ERC20Mock(inToken).balanceOf(feeRecipient), feeAmount);
+    }
+
+    function test_e2e_fee_on_transfer_input_token() public {
+        address feeRecipient = makeAddr("feeRecipient");
+        uint256 feeBps = 1_000; // 10%
+
+        FeeOnTransferERC20Mock feeToken =
+            new FeeOnTransferERC20Mock("Fee Token", "FEE", feeBps, feeRecipient);
+
+        inToken = address(feeToken);
+        outToken = address(token2);
+        inAmount = 1_000;
+        inMax = inAmount;
+        outAmount = 0;
+        outMax = type(uint256).max;
+        slippage = 0;
+
+        CosignedOrder memory co = order();
+
+        uint256 fee1 = (inAmount * feeBps) / 10_000;
+        uint256 afterFirst = inAmount - fee1;
+        uint256 fee2 = (afterFirst * feeBps) / 10_000;
+        uint256 expectedOut = afterFirst - fee2;
+
+        feeToken.mint(signer, inAmount);
+        hoax(signer);
+        feeToken.approve(repermit, inAmount);
+
+        cosignInValue = expectedOut;
+        cosignOutValue = inAmount;
+        co = cosign(co);
+        co.signature = permitFor(co, address(reactorUut));
+
+        Execution memory ex = executionWithData(
+            expectedOut,
+            abi.encodeWithSelector(
+                MockDexRouter.doSwap.selector, inToken, afterFirst, outToken, expectedOut, address(exec)
+            )
+        );
+
+        uint256 recipientBefore = ERC20Mock(outToken).balanceOf(recipient);
+        uint256 feeRecipientBefore = feeToken.balanceOf(feeRecipient);
+
+        exec.execute(co, ex);
+
+        assertEq(ERC20Mock(outToken).balanceOf(recipient) - recipientBefore, expectedOut);
+        assertEq(feeToken.balanceOf(feeRecipient) - feeRecipientBefore, fee1 + fee2);
     }
 }
