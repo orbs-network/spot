@@ -539,8 +539,7 @@ contract OrderReactorE2ETest is BaseTest {
         address feeRecipient = makeAddr("feeRecipient");
         uint256 feeBps = 1_000; // 10%
 
-        FeeOnTransferERC20Mock feeToken =
-            new FeeOnTransferERC20Mock("Fee Token", "FEE", feeBps, feeRecipient);
+        FeeOnTransferERC20Mock feeToken = new FeeOnTransferERC20Mock("Fee Token", "FEE", feeBps, feeRecipient);
 
         inToken = address(feeToken);
         outToken = address(token2);
