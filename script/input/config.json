@@ -115,6 +115,11 @@
                 "type": "default:kyber-v2",
                 "adapter": "0x426ec4bc0d58B80959CDE77576a1942dd40592Fa",
                 "fee": "0x7f8B62520D9B5DA0ED517cc36e8dcb2a356f1928"
+            },
+            "pangolin": {
+                "type": "default:kyber",
+                "adapter": "0x528976137fE33360c3F149D2f3E33FD8cA53E1DA",
+                "fee": "0xde92da99D188Ceb54A11ec711EF52D808A6260B5"
             }
         }
     },
@@ -156,6 +161,11 @@
                 "type": "default:openocean-v2",
                 "adapter": "0x18bc9533c3539073B9A9acF12b0AbF7cB73e0F1f",
                 "fee": "0x6AF3eE77A3A3257777F5649aFa611b4C7Fd975Ef"
+            },
+            "pangolin": {
+                "type": "default:kyber",
+                "adapter": "0xb93f9a7768B3359f27E2b94F903fdE49E6f22Fe0",
+                "fee": "0xde92da99D188Ceb54A11ec711EF52D808A6260B5"
             }
         }
     }
