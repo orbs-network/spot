@@ -139,8 +139,8 @@
                 "fee": "0x7f8B62520D9B5DA0ED517cc36e8dcb2a356f1928"
             },
             "pangolin": {
-                "type": "default:kyber",
-                "adapter": "0x528976137fE33360c3F149D2f3E33FD8cA53E1DA",
+                "type": "default:kyber-v2",
+                "adapter": "0xd7D9CAA2910f49F37AC3447f5cAd27153944354A",
                 "fee": "0xde92da99D188Ceb54A11ec711EF52D808A6260B5"
             }
         }
@@ -185,8 +185,8 @@
                 "fee": "0x6AF3eE77A3A3257777F5649aFa611b4C7Fd975Ef"
             },
             "pangolin": {
-                "type": "default:kyber",
-                "adapter": "0xb93f9a7768B3359f27E2b94F903fdE49E6f22Fe0",
+                "type": "default:kyber-v2",
+                "adapter": "0xd7D9CAA2910f49F37AC3447f5cAd27153944354A",
                 "fee": "0xde92da99D188Ceb54A11ec711EF52D808A6260B5"
             }
         }
