@@ -1,6 +1,6 @@
 {
     "name": "@orbs-network/spot",
-    "version": "1.9.2",
+    "version": "1.9.3",
     "description": "**A DeFi protocol for noncustodial advanced order types on EVM chains.**",
     "homepage": "https://github.com/orbs-network/spot#readme",
     "bugs": {
