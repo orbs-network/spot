@@ -105,6 +105,10 @@ contract CheckOrder is Script, StdCheats {
             x.fees = new Output[](0);
         }
 
+        if (json.keyExists(".execution.target")) {
+            x.target = json.readAddress(".execution.target");
+        }
+
         x.data = json.readBytes(".execution.data");
     }
 

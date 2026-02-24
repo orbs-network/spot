@@ -3,6 +3,7 @@ pragma solidity 0.8.27;
 
 import {BaseTest} from "test/base/BaseTest.sol";
 import {ParaswapDexAdapter} from "src/adapter/ParaswapDexAdapter.sol";
+import {IExchangeAdapter} from "src/interface/IExchangeAdapter.sol";
 import {Execution, CosignedOrder} from "src/Structs.sol";
 import {OrderLib} from "src/lib/OrderLib.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
@@ -41,7 +42,7 @@ contract ParaswapDexAdapterTest is BaseTest {
 
         bytes32 hash = OrderLib.hash(cosignedOrder.order);
         uint256 resolvedAmountOut = cosignedOrder.order.output.limit;
-        Execution memory x = executionWithData(0, data);
+        Execution memory x = executionWithTargetData(0, address(router), data);
         adapterUut.delegateSwap(hash, resolvedAmountOut, cosignedOrder, x);
 
         assertEq(ERC20Mock(address(token2)).balanceOf(signer), beforeBalance + 2000 ether);
@@ -60,7 +61,7 @@ contract ParaswapDexAdapterTest is BaseTest {
         bytes32 hash = OrderLib.hash(cosignedOrder.order);
         uint256 resolvedAmountOut = cosignedOrder.order.output.limit;
         vm.expectRevert();
-        Execution memory x = executionWithData(0, data);
+        Execution memory x = executionWithTargetData(0, address(router), data);
         adapterUut.delegateSwap(hash, resolvedAmountOut, cosignedOrder, x);
     }
 
@@ -80,7 +81,7 @@ contract ParaswapDexAdapterTest is BaseTest {
         bytes32 hash = OrderLib.hash(cosignedOrder.order);
         uint256 resolvedAmountOut = cosignedOrder.order.output.limit;
         vm.expectRevert("Mock ParaSwap swap failed");
-        Execution memory x = executionWithData(0, data);
+        Execution memory x = executionWithTargetData(0, address(router), data);
         adapterUut.delegateSwap(hash, resolvedAmountOut, cosignedOrder, x);
     }
 
@@ -105,9 +106,27 @@ contract ParaswapDexAdapterTest is BaseTest {
 
         bytes32 hash = OrderLib.hash(cosignedOrder.order);
         uint256 resolvedAmountOut = cosignedOrder.order.output.limit;
-        Execution memory x = executionWithData(0, data);
+        Execution memory x = executionWithTargetData(0, address(router), data);
         adapterUut.delegateSwap(hash, resolvedAmountOut, cosignedOrder, x);
 
         assertEq(usdt.allowance(address(adapterUut), address(tokenTransferProxy)), 0);
+    }
+
+    function test_swap_reverts_invalid_target() public {
+        inAmount = 1000 ether;
+        inMax = inAmount;
+        outAmount = 600 ether;
+        outMax = type(uint256).max;
+        CosignedOrder memory cosignedOrder = order();
+
+        bytes memory data = abi.encodeWithSelector(
+            MockParaswapAugustus.doSwap.selector, address(token), inAmount, address(token2), 2000 ether, signer
+        );
+
+        bytes32 hash = OrderLib.hash(cosignedOrder.order);
+        uint256 resolvedAmountOut = cosignedOrder.order.output.limit;
+        vm.expectRevert(IExchangeAdapter.InvalidTarget.selector);
+        Execution memory x = executionWithTargetData(0, makeAddr("wrongTarget"), data);
+        adapterUut.delegateSwap(hash, resolvedAmountOut, cosignedOrder, x);
     }
 }

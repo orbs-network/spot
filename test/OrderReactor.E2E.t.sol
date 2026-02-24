@@ -60,8 +60,9 @@ contract OrderReactorE2ETest is BaseTest {
         co = cosign(co);
         co.signature = permitFor(co, address(reactorUut));
 
-        Execution memory ex = executionWithData(
+        Execution memory ex = executionWithTargetData(
             600 ether,
+            address(router),
             abi.encodeWithSelector(MockDexRouter.doSwap.selector, inToken, inAmount, outToken, 0, address(exec))
         );
 
@@ -245,8 +246,9 @@ contract OrderReactorE2ETest is BaseTest {
 
         fundOrderInput(co);
 
-        Execution memory ex = executionWithData(
+        Execution memory ex = executionWithTargetData(
             500 ether,
+            address(router),
             abi.encodeWithSelector(MockDexRouter.doSwap.selector, inToken, inAmount, outToken, 500 ether, address(exec))
         );
 
@@ -309,8 +311,9 @@ contract OrderReactorE2ETest is BaseTest {
 
         co = cosign(co);
 
-        Execution memory ex = executionWithData(
+        Execution memory ex = executionWithTargetData(
             outAmount,
+            address(router),
             abi.encodeWithSelector(MockDexRouter.doSwap.selector, inToken, inAmount, outToken, outAmount, address(exec))
         );
 
@@ -340,8 +343,9 @@ contract OrderReactorE2ETest is BaseTest {
 
         co.signature = permitFor(co, address(reactorUut));
 
-        Execution memory ex = executionWithData(
+        Execution memory ex = executionWithTargetData(
             0.5 ether,
+            address(router),
             abi.encodeWithSelector(MockDexRouter.doSwap.selector, inToken, inAmount, outToken, 0.5 ether, address(exec))
         );
 
@@ -376,8 +380,9 @@ contract OrderReactorE2ETest is BaseTest {
         co = cosign(co);
         co.signature = permitFor(co, address(reactorUut));
 
-        Execution memory ex = executionWithData(
+        Execution memory ex = executionWithTargetData(
             600 ether,
+            address(router),
             abi.encodeWithSelector(MockDexRouter.doSwap.selector, inToken, inAmount, outToken, 0, address(exec))
         );
 
@@ -476,8 +481,10 @@ contract OrderReactorE2ETest is BaseTest {
         ERC20Mock(outToken).mint(address(exec), 1_000);
         ERC20Mock(inToken).mint(address(exec), 200);
 
-        Execution memory ex = executionWithData(
-            550, abi.encodeWithSelector(MockDexRouter.doSwap.selector, inToken, inAmount, outToken, 600, address(exec))
+        Execution memory ex = executionWithTargetData(
+            550,
+            address(router),
+            abi.encodeWithSelector(MockDexRouter.doSwap.selector, inToken, inAmount, outToken, 600, address(exec))
         );
 
         uint256 recipientBefore = ERC20Mock(outToken).balanceOf(recipient);
@@ -522,11 +529,12 @@ contract OrderReactorE2ETest is BaseTest {
         uint256 feeAmount = 50;
         ERC20Mock(inToken).mint(address(exec), feeAmount);
 
-        Execution memory ex = executionWithFee(
+        Execution memory ex = executionWithTargetFee(
             100,
             inToken,
             feeAmount,
             feeRecipient,
+            address(router),
             abi.encodeWithSelector(MockDexRouter.doSwap.selector, inToken, inAmount, outToken, 100, address(exec))
         );
 
@@ -565,8 +573,9 @@ contract OrderReactorE2ETest is BaseTest {
         co = cosign(co);
         co.signature = permitFor(co, address(reactorUut));
 
-        Execution memory ex = executionWithData(
+        Execution memory ex = executionWithTargetData(
             expectedOut,
+            address(router),
             abi.encodeWithSelector(
                 MockDexRouter.doSwap.selector, inToken, afterFirst, outToken, expectedOut, address(exec)
             )

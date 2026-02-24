@@ -35,6 +35,8 @@ contract DefaultDexAdapter is IExchangeAdapter {
         external
         override
     {
+        if (x.target != router) revert InvalidTarget();
+
         SafeERC20.forceApprove(IERC20(co.order.input.token), router, co.order.input.amount);
         Address.functionCall(router, x.data);
         SafeERC20.forceApprove(IERC20(co.order.input.token), router, 0);

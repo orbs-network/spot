@@ -35,6 +35,8 @@ contract P2DexAdapter is IExchangeAdapter {
         external
         override
     {
+        if (x.target != router) revert InvalidTarget();
+
         IPermit2(permit2).approve(co.order.input.token, router, type(uint160).max, type(uint48).max);
         SafeERC20.forceApprove(IERC20(co.order.input.token), permit2, co.order.input.amount);
         SafeERC20.forceApprove(IERC20(co.order.input.token), router, co.order.input.amount);

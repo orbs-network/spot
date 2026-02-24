@@ -187,7 +187,7 @@ contract SettlementLibTest is BaseTest {
         fees[0] = Output({token: address(token2), limit: ercFee, stop: type(uint256).max, recipient: feeRecipient});
         fees[1] = Output({token: address(0), limit: ethFee, stop: type(uint256).max, recipient: other});
 
-        Execution memory execution = Execution({minAmountOut: 95 ether, fees: fees, data: hex""});
+        Execution memory execution = Execution({minAmountOut: 95 ether, fees: fees, target: address(0), data: hex""});
 
         vm.deal(address(wrapper), ethFee);
         ERC20Mock(address(token2)).mint(address(wrapper), outAmount + ercFee);

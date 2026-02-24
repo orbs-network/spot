@@ -37,6 +37,8 @@ contract ParaswapDexAdapter is IExchangeAdapter {
         external
         override
     {
+        if (x.target != router) revert InvalidTarget();
+
         IERC20 inputToken = IERC20(co.order.input.token);
         address tokenTransferProxy = IParaswapAugustus(router).getTokenTransferProxy();
 

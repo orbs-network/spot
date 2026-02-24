@@ -157,26 +157,33 @@ abstract contract BaseTest is Test {
     {
         Output[] memory fees = new Output[](1);
         fees[0] = Output({token: feeToken, limit: feeAmount, recipient: feeRecipient, stop: type(uint256).max});
-        ex = Execution({minAmountOut: minOut, fees: fees, data: hex""});
+        ex = Execution({minAmountOut: minOut, fees: fees, target: address(0), data: hex""});
     }
 
-    function executionWithData(uint256 minOut, bytes memory data) internal pure returns (Execution memory ex) {
+    function executionWithTargetData(uint256 minOut, address target, bytes memory data)
+        internal
+        pure
+        returns (Execution memory ex)
+    {
         ex = execution(minOut, address(0), 0, address(0));
+        ex.target = target;
         ex.data = data;
     }
 
     function executionWithFees(uint256 minOut, Output[] memory fees) internal pure returns (Execution memory ex) {
-        ex = Execution({minAmountOut: minOut, fees: fees, data: hex""});
+        ex = Execution({minAmountOut: minOut, fees: fees, target: address(0), data: hex""});
     }
 
-    function executionWithFee(
+    function executionWithTargetFee(
         uint256 minOut,
         address feeToken,
         uint256 feeAmount,
         address feeRecipient,
+        address target,
         bytes memory data
     ) internal pure returns (Execution memory ex) {
         ex = execution(minOut, feeToken, feeAmount, feeRecipient);
+        ex.target = target;
         ex.data = data;
     }
 

@@ -68,5 +68,6 @@ struct CosignedOrder {
 struct Execution {
     uint256 minAmountOut; // minimum acceptable output to recipient after slippage and fees
     Output[] fees; // individual fee payments to distribute during settlement
+    address target; // target contract selected by the executor for adapter-level routing
     bytes data;
 }
