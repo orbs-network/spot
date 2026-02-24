@@ -7,12 +7,13 @@ import {CosignatureLib} from "src/lib/CosignatureLib.sol";
 import {OrderLib} from "src/lib/OrderLib.sol";
 import {CosignedOrder} from "src/Structs.sol";
 import {IEIP712} from "src/interface/IEIP712.sol";
+import {MockCommitteeSync} from "test/mocks/MockCommitteeSync.sol";
 
 /// @title CosignerIntegrationTest
-/// @notice Integration tests demonstrating that the Cosigner contract works with existing CosignatureLib
+/// @notice Integration tests for CommitteeSync-backed Cosigner behavior with CosignatureLib
 contract CosignerIntegrationTest is BaseTest {
     Cosigner public cosignerContract;
-    address public owner;
+    MockCommitteeSync public committee;
     address public approvedSigner;
     uint256 public approvedSignerPK;
 
@@ -20,20 +21,14 @@ contract CosignerIntegrationTest is BaseTest {
         super.setUp();
         vm.warp(1 days);
 
-        // Owner is separate from signer
-        owner = makeAddr("owner");
+        committee = new MockCommitteeSync();
+        cosignerContract = new Cosigner(address(committee));
         (approvedSigner, approvedSignerPK) = makeAddrAndKey("approvedSigner");
 
-        // Deploy Cosigner contract with owner
-        cosignerContract = new Cosigner(owner);
-
-        // Owner approves the signer with deadline
-        uint256 deadline = block.timestamp + 365 days;
-        hoax(owner);
-        cosignerContract.approve(approvedSigner, deadline);
+        uint256 signerExpires = block.timestamp + 365 days;
+        committee.setConfig(cosignerContract.KEY(), approvedSigner, abi.encode(signerExpires));
     }
 
-    /// @dev Helper to cosign with the contract cosigner address
     function cosignWithContract(CosignedOrder memory co, address cosignerAddr, uint256 pk)
         internal
         view
@@ -57,7 +52,6 @@ contract CosignerIntegrationTest is BaseTest {
     }
 
     function test_integration_cosigner_contract_validates_with_CosignatureLib() public {
-        // Setup order parameters
         freshness = 300;
         inMax = 2_000;
         outAmount = 500;
@@ -65,11 +59,9 @@ contract CosignerIntegrationTest is BaseTest {
         cosignInValue = 100;
         cosignOutValue = 200;
 
-        // Create and sign order with approved signer
         CosignedOrder memory co = order();
         co = cosignWithContract(co, address(cosignerContract), approvedSignerPK);
 
-        // Validate using CosignatureLib with the Cosigner contract address
         CosignatureLib.validate(co, address(cosignerContract), repermit);
     }
 
@@ -79,11 +71,10 @@ contract CosignerIntegrationTest is BaseTest {
         bytes memory signature = abi.encodePacked(r, s, v);
 
         bytes4 result = cosignerContract.isValidSignature(hash, signature);
-        assertEq(result, bytes4(keccak256("isValidSignature(bytes32,bytes)"))); // ERC-1271 magic value
+        assertEq(result, bytes4(keccak256("isValidSignature(bytes32,bytes)")));
     }
 
     function test_integration_erc1271_reverts_for_unapproved_signature() public {
-        // Create an unapproved signer
         (, uint256 unapprovedPK) = makeAddrAndKey("unapproved");
 
         bytes32 hash = keccak256("test message");
@@ -95,7 +86,6 @@ contract CosignerIntegrationTest is BaseTest {
     }
 
     function test_integration_signer_expires_after_deadline() public {
-        // Setup order parameters
         freshness = 300;
         inMax = 2_000;
         outAmount = 500;
@@ -103,24 +93,16 @@ contract CosignerIntegrationTest is BaseTest {
         cosignInValue = 100;
         cosignOutValue = 200;
 
-        // Approve signer with short deadline
-        address tempSigner;
-        uint256 tempSignerPK;
-        (tempSigner, tempSignerPK) = makeAddrAndKey("tempSigner");
+        (address tempSigner, uint256 tempSignerPK) = makeAddrAndKey("tempSigner");
+        uint256 signerExpires = block.timestamp + 1 hours;
+        committee.setConfig(cosignerContract.KEY(), tempSigner, abi.encode(signerExpires));
 
-        uint256 deadline = block.timestamp + 1 hours;
-        hoax(owner);
-        cosignerContract.approve(tempSigner, deadline);
-
-        // Create and sign order - should work initially
         CosignedOrder memory co = order();
         co = cosignWithContract(co, address(cosignerContract), tempSignerPK);
         CosignatureLib.validate(co, address(cosignerContract), repermit);
 
-        // Warp past expiry
         vm.warp(block.timestamp + 1 hours + 1);
 
-        // Now signature should revert as invalid
         bytes32 hash = keccak256("test message");
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(tempSignerPK, hash);
         bytes memory signature = abi.encodePacked(r, s, v);
@@ -134,35 +116,20 @@ contract CosignerIntegrationTest is BaseTest {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(approvedSignerPK, hash);
         bytes memory signature = abi.encodePacked(r, s, v);
 
-        // Verify signature is valid before revocation
         bytes4 result = cosignerContract.isValidSignature(hash, signature);
         assertEq(result, bytes4(keccak256("isValidSignature(bytes32,bytes)")));
 
-        // Revoke signer
-        hoax(owner);
-        cosignerContract.revoke(approvedSigner);
+        committee.clearConfig(cosignerContract.KEY(), approvedSigner);
 
-        // Signature should now revert as invalid
         vm.expectRevert(Cosigner.InvalidCosignature.selector);
         cosignerContract.isValidSignature(hash, signature);
     }
 
-    function test_integration_ownership_transfer_does_not_affect_signers() public view {
-        // Approved signer should remain valid regardless of ownership transfer
-        assertEq(cosignerContract.owner(), owner);
-        assertTrue(cosignerContract.isApprovedNow(approvedSigner));
-    }
-
     function test_integration_multiple_cosigner_contracts_independent() public {
-        // Deploy a second cosigner with a different owner and signer
-        address owner2 = makeAddr("owner2");
+        MockCommitteeSync committee2 = new MockCommitteeSync();
         (address signer2, uint256 signer2PK) = makeAddrAndKey("signer2");
-        Cosigner cosigner2 = new Cosigner(owner2);
-
-        // Approve signer2 for cosigner2
-        uint256 deadline2 = block.timestamp + 365 days;
-        hoax(owner2);
-        cosigner2.approve(signer2, deadline2);
+        Cosigner cosigner2 = new Cosigner(address(committee2));
+        committee2.setConfig(cosigner2.KEY(), signer2, abi.encode(block.timestamp + 365 days));
 
         freshness = 300;
         inMax = 2_000;
@@ -171,26 +138,16 @@ contract CosignerIntegrationTest is BaseTest {
         cosignInValue = 100;
         cosignOutValue = 200;
 
-        // Create order signed by approvedSigner for cosignerContract
         CosignedOrder memory co1 = order();
         co1 = cosignWithContract(co1, address(cosignerContract), approvedSignerPK);
-
-        // Should validate with cosignerContract
         CosignatureLib.validate(co1, address(cosignerContract), repermit);
 
-        // Create order for cosigner2
         CosignedOrder memory co2 = order();
-
-        // Sign with signer2's key
         co2 = cosignWithContract(co2, address(cosigner2), signer2PK);
-
-        // Should validate with cosigner2
         CosignatureLib.validate(co2, address(cosigner2), repermit);
 
-        // Verify both cosigners have different owners and signers
-        assertEq(cosignerContract.owner(), owner);
-        assertEq(cosigner2.owner(), owner2);
-        assertTrue(cosignerContract.owner() != cosigner2.owner());
+        assertEq(address(cosignerContract.committee()), address(committee));
+        assertEq(address(cosigner2.committee()), address(committee2));
         assertTrue(cosignerContract.isApprovedNow(approvedSigner));
         assertTrue(cosigner2.isApprovedNow(signer2));
     }
