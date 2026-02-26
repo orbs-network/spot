@@ -14,7 +14,6 @@ import {SettlementLib} from "src/lib/SettlementLib.sol";
 /// @notice Whitelisted filler contract that runs venue logic and handles surplus distribution
 contract Executor is IReactorCallback, WMAllowed {
     error InvalidSender();
-    error InvalidOrder();
 
     address public immutable reactor;
 
