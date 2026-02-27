@@ -44,7 +44,7 @@ contract SettlerTest is BaseTest {
         inAmount = 100 ether;
         inMax = inAmount;
         outAmount = 55 ether;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
         CosignedOrder memory co = order();
 
         bytes32 hash = OrderLib.hash(co.order);
@@ -83,7 +83,7 @@ contract SettlerTest is BaseTest {
         inAmount = 100 ether;
         inMax = inAmount;
         outAmount = 55 ether;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
         CosignedOrder memory co = order();
 
         bytes32 hash = OrderLib.hash(co.order);
@@ -121,7 +121,7 @@ contract SettlerTest is BaseTest {
         inAmount = 100 ether;
         inMax = inAmount;
         outAmount = 1 ether;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
         CosignedOrder memory co = order();
 
         bytes32 hash = OrderLib.hash(co.order);

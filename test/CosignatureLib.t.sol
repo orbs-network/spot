@@ -4,9 +4,7 @@ pragma solidity 0.8.27;
 import {BaseTest} from "test/base/BaseTest.sol";
 
 import {CosignatureLib} from "src/lib/CosignatureLib.sol";
-import {OrderLib} from "src/lib/OrderLib.sol";
-import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/Structs.sol";
-import {RePermit} from "src/RePermit.sol";
+import {CosignedOrder} from "src/Structs.sol";
 
 contract CosignatureLibTest is BaseTest {
     function setUp() public override {
@@ -24,7 +22,7 @@ contract CosignatureLibTest is BaseTest {
         freshness = 300;
         inMax = 2_000;
         outAmount = 500;
-        outMax = 5_000;
+        triggerUpper = 5_000;
         cosignInValue = 100;
         cosignOutValue = 200;
         CosignedOrder memory co = order();
@@ -36,7 +34,7 @@ contract CosignatureLibTest is BaseTest {
         freshness = 300;
         inMax = 2_000;
         outAmount = 500;
-        outMax = 5_000;
+        triggerUpper = 5_000;
         cosignInValue = 100;
         cosignOutValue = 200;
         CosignedOrder memory co = order();
@@ -50,12 +48,12 @@ contract CosignatureLibTest is BaseTest {
         freshness = 300;
         inMax = 2_000;
         outAmount = 500;
-        outMax = 5_000;
+        triggerUpper = 5_000;
         cosignInValue = 100;
         cosignOutValue = 200;
         CosignedOrder memory co = order();
         co = cosign(co);
-        co.cosignatureData.input.token = makeAddr("wrongIn");
+        co.current.input.token = makeAddr("wrongIn");
         vm.expectRevert(CosignatureLib.InvalidCosignatureInputToken.selector);
         this.callValidateCosignature(co, signer);
     }
@@ -64,12 +62,12 @@ contract CosignatureLibTest is BaseTest {
         freshness = 300;
         inMax = 2_000;
         outAmount = 500;
-        outMax = 5_000;
+        triggerUpper = 5_000;
         cosignInValue = 100;
         cosignOutValue = 200;
         CosignedOrder memory co = order();
         co = cosign(co);
-        co.cosignatureData.output.token = makeAddr("wrongOut");
+        co.current.output.token = makeAddr("wrongOut");
         vm.expectRevert(CosignatureLib.InvalidCosignatureOutputToken.selector);
         this.callValidateCosignature(co, signer);
     }
@@ -78,12 +76,12 @@ contract CosignatureLibTest is BaseTest {
         freshness = 300;
         inMax = 2_000;
         outAmount = 500;
-        outMax = 5_000;
+        triggerUpper = 5_000;
         cosignInValue = 100;
         cosignOutValue = 200;
         CosignedOrder memory co = order();
         co = cosign(co);
-        co.cosignatureData.input.value = 0;
+        co.current.input.value = 0;
         vm.expectRevert(CosignatureLib.InvalidCosignatureZeroInputValue.selector);
         this.callValidateCosignature(co, signer);
     }
@@ -92,12 +90,12 @@ contract CosignatureLibTest is BaseTest {
         freshness = 300;
         inMax = 2_000;
         outAmount = 500;
-        outMax = 5_000;
+        triggerUpper = 5_000;
         cosignInValue = 100;
         cosignOutValue = 200;
         CosignedOrder memory co = order();
         co = cosign(co);
-        co.cosignatureData.output.value = 0;
+        co.current.output.value = 0;
         vm.expectRevert(CosignatureLib.InvalidCosignatureZeroOutputValue.selector);
         this.callValidateCosignature(co, signer);
     }
@@ -106,7 +104,7 @@ contract CosignatureLibTest is BaseTest {
         freshness = 300;
         inMax = 2_000;
         outAmount = 500;
-        outMax = 5_000;
+        triggerUpper = 5_000;
         cosignInValue = 100;
         cosignOutValue = 200;
         CosignedOrder memory co = order();
@@ -119,14 +117,14 @@ contract CosignatureLibTest is BaseTest {
         freshness = 300;
         inMax = 2_000;
         outAmount = 500;
-        outMax = 5_000;
+        triggerUpper = 5_000;
         cosignInValue = 100;
         cosignOutValue = 200;
         CosignedOrder memory co = order();
         co = cosign(co);
-        bytes memory sig = co.cosignature;
+        bytes memory sig = co.currentCosignature;
         sig[0] = bytes1(uint8(sig[0]) ^ 0x01); // flip a bit so the signature verification fails
-        co.cosignature = sig;
+        co.currentCosignature = sig;
         vm.expectRevert(CosignatureLib.InvalidCosignature.selector);
         this.callValidateCosignature(co, signer);
     }
@@ -135,12 +133,12 @@ contract CosignatureLibTest is BaseTest {
         freshness = 300;
         inMax = 2_000;
         outAmount = 500;
-        outMax = 5_000;
+        triggerUpper = 5_000;
         cosignInValue = 100;
         cosignOutValue = 200;
         CosignedOrder memory co = order();
         co = cosign(co);
-        co.cosignatureData.reactor = makeAddr("wrongReactor");
+        co.current.reactor = makeAddr("wrongReactor");
         vm.expectRevert(CosignatureLib.InvalidCosignatureReactor.selector);
         this.callValidateCosignature(co, signer);
     }
@@ -150,12 +148,12 @@ contract CosignatureLibTest is BaseTest {
         inAmount = 1_000;
         inMax = 2_000;
         outAmount = 500;
-        outMax = 5_000;
+        triggerUpper = 5_000;
         cosignInValue = 100;
         cosignOutValue = 200;
         CosignedOrder memory co = order();
         co = cosign(co);
-        co.cosignatureData.timestamp = 1 days + 1; // future vs warped base
+        co.current.timestamp = 1 days + 1; // future vs warped base
         vm.expectRevert(CosignatureLib.FutureCosignatureTimestamp.selector);
         this.callValidateCosignature(co, signer);
     }
@@ -164,7 +162,7 @@ contract CosignatureLibTest is BaseTest {
         freshness = 300;
         inMax = 2_000;
         outAmount = 500;
-        outMax = 5_000;
+        triggerUpper = 5_000;
         cosignInValue = 100;
         cosignOutValue = 200;
         CosignedOrder memory co = order();
@@ -178,7 +176,7 @@ contract CosignatureLibTest is BaseTest {
         freshness = 300;
         inMax = 2_000;
         outAmount = 500;
-        outMax = 5_000;
+        triggerUpper = 5_000;
         cosignInValue = 100;
         cosignOutValue = 200;
         CosignedOrder memory co = order();
@@ -193,12 +191,12 @@ contract CosignatureLibTest is BaseTest {
         freshness = 300;
         inMax = 2_000;
         outAmount = 500;
-        outMax = 5_000;
+        triggerUpper = 5_000;
         cosignInValue = 100 ether;
         cosignOutValue = 200 ether;
         CosignedOrder memory co = order();
         co = cosign(co);
-        co.cosignatureData.chainid = 999; // Wrong chainid
+        co.current.chainid = 999; // Wrong chainid
         vm.expectRevert(CosignatureLib.InvalidCosignatureChainid.selector);
         this.callValidateCosignature(co, signer);
     }

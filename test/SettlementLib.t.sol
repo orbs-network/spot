@@ -64,7 +64,7 @@ contract SettlementLibTest is BaseTest {
         BaseTest.inAmount = inAmount;
         BaseTest.inMax = inAmount;
         BaseTest.outAmount = outAmount;
-        BaseTest.outMax = type(uint256).max;
+        BaseTest.triggerUpper = 0;
         recipient = swapper;
         CosignedOrder memory order = order();
 
@@ -99,7 +99,7 @@ contract SettlementLibTest is BaseTest {
         BaseTest.inAmount = inAmount;
         BaseTest.inMax = inAmount;
         BaseTest.outAmount = outAmount;
-        BaseTest.outMax = type(uint256).max;
+        BaseTest.triggerUpper = 0;
         recipient = swapper;
         CosignedOrder memory order = order();
 
@@ -125,7 +125,7 @@ contract SettlementLibTest is BaseTest {
         BaseTest.inAmount = inAmount;
         BaseTest.inMax = inAmount;
         BaseTest.outAmount = outAmount;
-        BaseTest.outMax = type(uint256).max;
+        BaseTest.triggerUpper = 0;
         recipient = swapper;
         CosignedOrder memory order = order();
 
@@ -151,7 +151,7 @@ contract SettlementLibTest is BaseTest {
         BaseTest.inAmount = inAmount;
         BaseTest.inMax = inAmount;
         BaseTest.outAmount = outAmount;
-        BaseTest.outMax = type(uint256).max;
+        BaseTest.triggerUpper = 0;
         recipient = swapper;
         CosignedOrder memory order = order();
 
@@ -179,13 +179,21 @@ contract SettlementLibTest is BaseTest {
         BaseTest.inAmount = inAmount;
         BaseTest.inMax = inAmount;
         BaseTest.outAmount = outAmount;
-        BaseTest.outMax = type(uint256).max;
+        BaseTest.triggerUpper = 0;
         recipient = swapper;
         CosignedOrder memory order = order();
 
         Output[] memory fees = new Output[](2);
-        fees[0] = Output({token: address(token2), limit: ercFee, stop: type(uint256).max, recipient: feeRecipient});
-        fees[1] = Output({token: address(0), limit: ethFee, stop: type(uint256).max, recipient: other});
+        fees[0] = Output({
+            token: address(token2),
+            limit: ercFee,
+            triggerLower: 0,
+            triggerUpper: type(uint256).max,
+            recipient: feeRecipient
+        });
+        fees[1] = Output({
+            token: address(0), limit: ethFee, triggerLower: 0, triggerUpper: type(uint256).max, recipient: other
+        });
 
         Execution memory execution = Execution({minAmountOut: 95 ether, fees: fees, target: address(0), data: hex""});
 
@@ -212,7 +220,7 @@ contract SettlementLibTest is BaseTest {
         BaseTest.inAmount = inAmount;
         BaseTest.inMax = inAmount;
         BaseTest.outAmount = outAmount;
-        BaseTest.outMax = type(uint256).max;
+        BaseTest.triggerUpper = 0;
         recipient = swapper;
         CosignedOrder memory order = order();
 
@@ -238,7 +246,7 @@ contract SettlementLibTest is BaseTest {
         BaseTest.inAmount = inAmount;
         BaseTest.inMax = inAmount;
         BaseTest.outAmount = outAmount;
-        BaseTest.outMax = type(uint256).max;
+        BaseTest.triggerUpper = 0;
         recipient = swapper;
         CosignedOrder memory order = order();
 
@@ -269,7 +277,7 @@ contract SettlementLibTest is BaseTest {
         BaseTest.inMax = inAmount;
         outToken = address(token2);
         BaseTest.outAmount = outAmount;
-        BaseTest.outMax = type(uint256).max;
+        BaseTest.triggerUpper = 0;
         recipient = swapper;
         CosignedOrder memory order = order();
 
@@ -303,7 +311,7 @@ contract SettlementLibTest is BaseTest {
         BaseTest.inMax = inAmount;
         outToken = address(token2);
         BaseTest.outAmount = outAmount;
-        BaseTest.outMax = type(uint256).max;
+        BaseTest.triggerUpper = 0;
         recipient = swapper;
         CosignedOrder memory order = order();
 

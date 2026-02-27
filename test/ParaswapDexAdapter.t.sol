@@ -31,7 +31,7 @@ contract ParaswapDexAdapterTest is BaseTest {
         inAmount = 1000 ether;
         inMax = inAmount;
         outAmount = 600 ether;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
         CosignedOrder memory cosignedOrder = order();
 
         bytes memory data = abi.encodeWithSelector(
@@ -53,7 +53,7 @@ contract ParaswapDexAdapterTest is BaseTest {
         inAmount = 1000 ether;
         inMax = inAmount;
         outAmount = 600 ether;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
         CosignedOrder memory cosignedOrder = order();
 
         bytes memory data = "invalid";
@@ -71,7 +71,7 @@ contract ParaswapDexAdapterTest is BaseTest {
         inAmount = 1000 ether;
         inMax = inAmount;
         outAmount = 600 ether;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
         CosignedOrder memory cosignedOrder = order();
 
         bytes memory data = abi.encodeWithSelector(
@@ -94,7 +94,7 @@ contract ParaswapDexAdapterTest is BaseTest {
         inMax = inAmount;
         outToken = address(token2);
         outAmount = 500 ether;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
         CosignedOrder memory cosignedOrder = order();
 
         hoax(address(adapterUut));
@@ -116,7 +116,7 @@ contract ParaswapDexAdapterTest is BaseTest {
         inAmount = 1000 ether;
         inMax = inAmount;
         outAmount = 600 ether;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
         CosignedOrder memory cosignedOrder = order();
 
         bytes memory data = abi.encodeWithSelector(

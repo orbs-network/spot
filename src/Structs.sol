@@ -15,7 +15,8 @@ struct Input {
 struct Output {
     address token;
     uint256 limit; // minimum acceptable output to recipient
-    uint256 stop; // trigger; max uint256 or 0 = no trigger
+    uint256 triggerLower; // lower trigger boundary (stop-loss style)
+    uint256 triggerUpper; // upper trigger boundary (take-profit style)
     address recipient;
 }
 
@@ -32,6 +33,7 @@ struct Order {
     Exchange exchange;
     address swapper;
     uint256 nonce;
+    uint256 start; // order cannot execute before this timestamp
     uint256 deadline;
     uint256 chainid;
     uint32 exclusivity;
@@ -60,8 +62,10 @@ struct Cosignature {
 struct CosignedOrder {
     Order order;
     bytes signature;
-    Cosignature cosignatureData;
-    bytes cosignature;
+    Cosignature trigger;
+    Cosignature current;
+    bytes triggerCosignature;
+    bytes currentCosignature;
 }
 
 /// @dev Parameters provided by the executor for a fill

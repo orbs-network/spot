@@ -2,22 +2,40 @@
 pragma solidity 0.8.27;
 
 import {RePermitLib} from "src/lib/RePermitLib.sol";
-import {Input, Output, Exchange, Order, CosignedValue, Cosignature, CosignedOrder} from "src/Structs.sol";
+import {Input, Output, Exchange, Order, Cosignature} from "src/Structs.sol";
 
 /// @title Order hashing library
 /// @notice EIP-712 structured data hashing for orders and cosignatures
 library OrderLib {
+    struct OrderHashFields {
+        address reactor;
+        address executor;
+        bytes32 exchangeHash;
+        address swapper;
+        uint256 nonce;
+        uint256 start;
+        uint256 deadline;
+        uint256 chainid;
+        uint32 exclusivity;
+        uint32 epoch;
+        uint32 slippage;
+        uint32 freshness;
+        bytes32 inputHash;
+        bytes32 outputHash;
+    }
+
     string internal constant INPUT_TYPE = "Input(address token,uint256 amount,uint256 maxAmount)";
     bytes32 internal constant INPUT_TYPE_HASH = keccak256(bytes(INPUT_TYPE));
 
-    string internal constant OUTPUT_TYPE = "Output(address token,uint256 limit,uint256 stop,address recipient)";
+    string internal constant OUTPUT_TYPE =
+        "Output(address token,uint256 limit,uint256 triggerLower,uint256 triggerUpper,address recipient)";
     bytes32 internal constant OUTPUT_TYPE_HASH = keccak256(bytes(OUTPUT_TYPE));
 
     string internal constant EXCHANGE_TYPE = "Exchange(address adapter,address ref,uint32 share,bytes data)";
     bytes32 internal constant EXCHANGE_TYPE_HASH = keccak256(bytes(EXCHANGE_TYPE));
 
     string internal constant ORDER_TYPE =
-        "Order(address reactor,address executor,Exchange exchange,address swapper,uint256 nonce,uint256 deadline,uint256 chainid,uint32 exclusivity,uint32 epoch,uint32 slippage,uint32 freshness,Input input,Output output)";
+        "Order(address reactor,address executor,Exchange exchange,address swapper,uint256 nonce,uint256 start,uint256 deadline,uint256 chainid,uint32 exclusivity,uint32 epoch,uint32 slippage,uint32 freshness,Input input,Output output)";
     bytes32 internal constant ORDER_TYPE_HASH =
         keccak256(abi.encodePacked(ORDER_TYPE, EXCHANGE_TYPE, INPUT_TYPE, OUTPUT_TYPE));
 
@@ -36,24 +54,23 @@ library OrderLib {
         keccak256(abi.encodePacked(COSIGNATURE_TYPE, COSIGNED_VALUE_TYPE));
 
     function hash(Order memory order) internal pure returns (bytes32) {
-        return keccak256(
-            abi.encode(
-                ORDER_TYPE_HASH,
-                order.reactor,
-                order.executor,
-                hash(order.exchange),
-                order.swapper,
-                order.nonce,
-                order.deadline,
-                order.chainid,
-                order.exclusivity,
-                order.epoch,
-                order.slippage,
-                order.freshness,
-                hash(order.input),
-                hash(order.output)
-            )
-        );
+        OrderHashFields memory fields = OrderHashFields({
+            reactor: order.reactor,
+            executor: order.executor,
+            exchangeHash: hash(order.exchange),
+            swapper: order.swapper,
+            nonce: order.nonce,
+            start: order.start,
+            deadline: order.deadline,
+            chainid: order.chainid,
+            exclusivity: order.exclusivity,
+            epoch: order.epoch,
+            slippage: order.slippage,
+            freshness: order.freshness,
+            inputHash: hash(order.input),
+            outputHash: hash(order.output)
+        });
+        return keccak256(abi.encode(ORDER_TYPE_HASH, fields));
     }
 
     function hash(Input memory input) internal pure returns (bytes32) {

@@ -12,7 +12,7 @@ import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 
 import {OrderLib} from "src/lib/OrderLib.sol";
 import {SettlementLib} from "src/lib/SettlementLib.sol";
-import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/Structs.sol";
+import {Order, Output, CosignedOrder, Cosignature} from "src/Structs.sol";
 import {USDTMock} from "test/mocks/USDTMock.sol";
 import {MockReactor} from "test/mocks/MockReactor.sol";
 import {SwapAdapterMock} from "test/mocks/SwapAdapter.sol";
@@ -50,7 +50,7 @@ contract ExecutorTest is BaseTest {
         inAmount = 0;
         inMax = 0;
         outToken = address(token);
-        outMax = 0;
+        triggerUpper = 0;
         CosignedOrder memory co = order();
         _mint(co.order.output.token, address(exec), co.order.output.limit);
         Execution memory ex = execution(0, address(0), 0, address(0));
@@ -59,10 +59,21 @@ contract ExecutorTest is BaseTest {
         assertEq(reactorMock.lastSender(), address(exec));
 
         // Get the components of the lastOrder struct
-        (Order memory order, bytes memory signature, Cosignature memory cosignatureData, bytes memory cosignature) =
-            reactorMock.lastOrder();
+        (
+            Order memory order,
+            bytes memory signature,
+            Cosignature memory trigger,
+            Cosignature memory current,
+            bytes memory triggerCosignature,
+            bytes memory currentCosignature
+        ) = reactorMock.lastOrder();
         CosignedOrder memory lastOrder = CosignedOrder({
-            order: order, signature: signature, cosignatureData: cosignatureData, cosignature: cosignature
+            order: order,
+            signature: signature,
+            trigger: trigger,
+            current: current,
+            triggerCosignature: triggerCosignature,
+            currentCosignature: currentCosignature
         });
 
         // Compare the order structures (we can't compare the signature as it might be different)
@@ -83,7 +94,7 @@ contract ExecutorTest is BaseTest {
         inAmount = 0;
         inMax = 0;
         outToken = address(token);
-        outMax = 0;
+        triggerUpper = 0;
         CosignedOrder memory co = order();
         Execution memory ex = execution(0, address(0), 0, address(0));
         vm.expectRevert(abi.encodeWithSelector(WMAllowed.NotAllowed.selector));
@@ -98,7 +109,7 @@ contract ExecutorTest is BaseTest {
         inMax = 0;
         outToken = address(token);
         outAmount = 0;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
         CosignedOrder memory co = order();
         bytes32 orderHash = OrderLib.hash(co.order);
 
@@ -117,7 +128,7 @@ contract ExecutorTest is BaseTest {
         inMax = 0;
         outToken = address(token);
         outAmount = 1234;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
         CosignedOrder memory co = order();
         bytes32 orderHash = OrderLib.hash(co.order);
 
@@ -151,7 +162,7 @@ contract ExecutorTest is BaseTest {
         inMax = 0;
         outToken = address(usdt);
         outAmount = 1234;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
         CosignedOrder memory co = order();
         bytes32 orderHash = OrderLib.hash(co.order);
 
@@ -174,7 +185,7 @@ contract ExecutorTest is BaseTest {
         inMax = 0;
         outToken = address(0);
         outAmount = 987;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
         CosignedOrder memory co = order();
         bytes32 orderHash = OrderLib.hash(co.order);
 
@@ -192,7 +203,7 @@ contract ExecutorTest is BaseTest {
         inMax = 0;
         outToken = address(token);
         outAmount = 100;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
         recipient = other;
         CosignedOrder memory co = order();
         _mint(co.order.output.token, address(exec), co.order.output.limit);
@@ -212,7 +223,7 @@ contract ExecutorTest is BaseTest {
         inMax = 0;
         outToken = address(token);
         outAmount = 100;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
         CosignedOrder memory co = order();
         bytes32 orderHash = OrderLib.hash(co.order);
 
@@ -234,13 +245,17 @@ contract ExecutorTest is BaseTest {
         inMax = 0;
         outToken = address(token);
         outAmount = 100;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
         CosignedOrder memory co = order();
         bytes32 orderHash = OrderLib.hash(co.order);
 
         Output[] memory fees = new Output[](2);
-        fees[0] = Output({token: co.order.output.token, limit: 40, stop: type(uint256).max, recipient: signer});
-        fees[1] = Output({token: co.order.output.token, limit: 60, stop: type(uint256).max, recipient: other});
+        fees[0] = Output({
+            token: co.order.output.token, limit: 40, triggerLower: 0, triggerUpper: type(uint256).max, recipient: signer
+        });
+        fees[1] = Output({
+            token: co.order.output.token, limit: 60, triggerLower: 0, triggerUpper: type(uint256).max, recipient: other
+        });
         Execution memory params = executionWithFees(0, fees);
 
         startHoax(address(reactorMock));
@@ -261,13 +276,17 @@ contract ExecutorTest is BaseTest {
         inMax = 0;
         outToken = address(token);
         outAmount = 100;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
         CosignedOrder memory co = order();
         bytes32 orderHash = OrderLib.hash(co.order);
 
         Output[] memory fees = new Output[](2);
-        fees[0] = Output({token: co.order.output.token, limit: 40, stop: type(uint256).max, recipient: signer});
-        fees[1] = Output({token: co.order.output.token, limit: 60, stop: type(uint256).max, recipient: other});
+        fees[0] = Output({
+            token: co.order.output.token, limit: 40, triggerLower: 0, triggerUpper: type(uint256).max, recipient: signer
+        });
+        fees[1] = Output({
+            token: co.order.output.token, limit: 60, triggerLower: 0, triggerUpper: type(uint256).max, recipient: other
+        });
         Execution memory params = executionWithFees(0, fees);
 
         uint256 funded = co.order.output.limit + fees[0].limit + fees[1].limit;
@@ -297,14 +316,18 @@ contract ExecutorTest is BaseTest {
         inMax = 0;
         outToken = address(token);
         outAmount = 80;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
         recipient = signer;
         CosignedOrder memory co = order();
         bytes32 orderHash = OrderLib.hash(co.order);
 
         Output[] memory fees = new Output[](2);
-        fees[0] = Output({token: co.order.output.token, limit: 30, stop: type(uint256).max, recipient: signer});
-        fees[1] = Output({token: address(token2), limit: 70, stop: type(uint256).max, recipient: other});
+        fees[0] = Output({
+            token: co.order.output.token, limit: 30, triggerLower: 0, triggerUpper: type(uint256).max, recipient: signer
+        });
+        fees[1] = Output({
+            token: address(token2), limit: 70, triggerLower: 0, triggerUpper: type(uint256).max, recipient: other
+        });
         Execution memory params = executionWithFees(0, fees);
 
         _mint(co.order.output.token, address(exec), co.order.output.limit + fees[0].limit);
@@ -358,7 +381,7 @@ contract ExecutorTest is BaseTest {
         inMax = 0;
         outToken = address(token2);
         outAmount = 500;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
         CosignedOrder memory co = order();
         Execution memory execParams = execution(600, address(0), 0, address(0));
         _mint(co.order.output.token, address(exec), execParams.minAmountOut);
@@ -375,7 +398,7 @@ contract ExecutorTest is BaseTest {
         adapter = address(adapter);
         executor = address(exec);
         outAmount = 500;
-        outMax = 500;
+        triggerUpper = 500;
         CosignedOrder memory co = order();
         co.order.exchange.ref = ref;
         co.order.exchange.share = refShare;
@@ -411,7 +434,7 @@ contract ExecutorTest is BaseTest {
         inAmount = 0;
         inMax = 0;
         outToken = address(token);
-        outMax = 0;
+        triggerUpper = 0;
         CosignedOrder memory co = order();
         _mint(feeToken, address(exec), feeAmount + co.order.output.limit);
 

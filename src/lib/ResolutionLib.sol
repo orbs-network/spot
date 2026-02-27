@@ -2,7 +2,7 @@
 pragma solidity 0.8.27;
 
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
-import {CosignedOrder} from "src/Structs.sol";
+import {CosignedOrder, Cosignature} from "src/Structs.sol";
 import {Constants} from "src/Constants.sol";
 
 /// @title Order resolution library
@@ -10,33 +10,44 @@ import {Constants} from "src/Constants.sol";
 library ResolutionLib {
     using Math for uint256;
 
-    error CosignedExceedsStop();
+    error NotTriggered();
 
-    /// @dev Computes the minimum output amount for an order based on cosigned price data
-    /// 1. Calculate expected output from cosigned input/output price ratio, normalizing for differing token decimals
-    /// 2. Check if market price has hit stop-loss trigger or reverts with CosignedExceedsStop
-    /// 3. Apply slippage protection to reduce expected output by slippage BPS
-    /// 4. Return the maximum of slippage-adjusted amount and user's limit price (limit)
+    /// @dev Computes the minimum output amount for an order based on trigger/current cosigned prices
+    /// 1. Trigger check uses the historical trigger cosignature against triggerLower/triggerUpper
+    /// 2. Pricing/min-out calculation uses the current cosignature with slippage applied
+    /// 3. Return the maximum of slippage-adjusted amount and user's limit price (limit)
     function resolve(CosignedOrder memory cosigned) internal pure returns (uint256) {
-        uint256 numerator = cosigned.order.input.amount;
-        uint256 denominator = cosigned.cosignatureData.output.value;
-
-        uint8 inputDecimals = cosigned.cosignatureData.input.decimals;
-        uint8 outputDecimals = cosigned.cosignatureData.output.decimals;
-
-        if (outputDecimals >= inputDecimals) {
-            numerator *= 10 ** uint256(outputDecimals - inputDecimals);
-        } else {
-            denominator *= 10 ** uint256(inputDecimals - outputDecimals);
+        if (!triggered(
+                outputFromCosignature(cosigned.order.input.amount, cosigned.trigger),
+                cosigned.order.output.triggerLower,
+                cosigned.order.output.triggerUpper
+            )) {
+            revert NotTriggered();
         }
 
-        uint256 cosignedOutput = numerator.mulDiv(cosigned.cosignatureData.input.value, denominator);
-
-        // Treat stop=0 as type(uint256).max (no trigger)
-        uint256 effectiveStop = cosigned.order.output.stop == 0 ? type(uint256).max : cosigned.order.output.stop;
-        if (cosignedOutput > effectiveStop) revert CosignedExceedsStop();
-
-        uint256 minOut = cosignedOutput.mulDiv(Constants.BPS - cosigned.order.slippage, Constants.BPS);
+        uint256 minOut = outputFromCosignature(cosigned.order.input.amount, cosigned.current)
+            .mulDiv(Constants.BPS - cosigned.order.slippage, Constants.BPS);
         return minOut.max(cosigned.order.output.limit);
+    }
+
+    function outputFromCosignature(uint256 inputAmount, Cosignature memory cosignature)
+        private
+        pure
+        returns (uint256 outputAmount)
+    {
+        uint256 numerator = inputAmount;
+        uint256 denominator = cosignature.output.value;
+        if (cosignature.output.decimals >= cosignature.input.decimals) {
+            numerator *= 10 ** uint256(cosignature.output.decimals - cosignature.input.decimals);
+        } else {
+            denominator *= 10 ** uint256(cosignature.input.decimals - cosignature.output.decimals);
+        }
+        outputAmount = numerator.mulDiv(cosignature.input.value, denominator);
+    }
+
+    function triggered(uint256 triggerOutput, uint256 triggerLower, uint256 triggerUpper) private pure returns (bool) {
+        if (triggerLower != 0 && triggerOutput <= triggerLower) return true;
+        if (triggerUpper != 0 && triggerOutput >= triggerUpper) return true;
+        return triggerLower == 0 && triggerUpper == 0;
     }
 }

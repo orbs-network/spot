@@ -32,7 +32,7 @@
 
 - 🧠 **OrderReactor** (`src/OrderReactor.sol`): Validates orders, checks epoch constraints, computes minimum output from cosigned prices, and settles via inlined implementation with reentrancy protection. Includes emergency pause functionality controlled by WM allowlist.
 - ✍️ **RePermit** (`src/RePermit.sol`): Permit2-style EIP-712 signatures with witness data that binds spending allowances to exact order hashes, preventing signature reuse
-- 🧾 **Cosigner**: External service that signs current market prices (input/output ratios) with enforced freshness windows and proper token validation
+- 🧾 **Cosigner**: External service that signs both trigger-time and current market prices (input/output ratios) with proper token validation
 - 🛠️ **Executor** (`src/Executor.sol`): Whitelisted fillers that run venue logic via delegatecall to adapters, ensure minimum output requirements, and distribute surplus
 - 🔐 **WM** (`src/WM.sol`): Two-step ownership allowlist manager for executors and admin functions with event emission
 - 🏭 **Refinery** (`src/Refinery.sol`): Operations utility for batching multicalls and sweeping token balances by basis points
@@ -60,6 +60,7 @@ struct Order {
     Exchange exchange;         // Adapter, referrer, and data
     address swapper;           // Order creator/signer
     uint256 nonce;            // Unique identifier
+    uint256 start;        // Earliest execution timestamp
     uint256 deadline;         // Expiration timestamp
     uint256 chainid;          // Chain ID for cross-chain validation
     uint32 exclusivity;       // BPS-bounded exclusive execution
@@ -79,7 +80,8 @@ struct Input {
 struct Output {
     address token;            // Output token address
     uint256 limit;            // Minimum acceptable output (limit)
-    uint256 stop;             // Stop trigger (max uint256 = immediate)
+    uint256 triggerLower;     // Lower trigger boundary (stop-loss style)
+    uint256 triggerUpper;     // Upper trigger boundary (take-profit style)
     address recipient;        // Where to send output tokens
 }
 
@@ -88,9 +90,9 @@ struct Output {
 ## Flow (Plain English)
 
 1. **Order Creation**: User signs one EIP-712 order with chunk size, total amount, limits, slippage tolerance, epoch interval, and deadline
-2. **Price Attestation**: Cosigner provides fresh market price data (input/output token ratios) with timestamp validation
+2. **Price Attestation**: Cosigner signs both trigger and current market price data (input/output token ratios)
 3. **Execution**: Whitelisted executor calls `Executor.execute()` with order and execution parameters
-4. **Validation**: OrderReactor validates signatures, checks epoch windows, applies slippage protection, and enforces limits/stops
+4. **Validation**: OrderReactor validates signatures, checks epoch windows, enforces `start`, checks trigger/current timestamp ordering, and applies slippage protection
 5. **Settlement**: Reactor transfers input tokens, executor runs adapter logic via delegatecall, ensures minimum output, and settles
 6. **Distribution**: Surplus tokens are automatically distributed between swapper and optional referrer based on configured shares
 
@@ -107,7 +109,8 @@ Order memory order = Order({
     }),
     output: Output({
         limit: 950 ether,       // Minimum acceptable output
-        stop: type(uint256).max  // No stop trigger
+        triggerLower: 0,         // No lower trigger gate
+        triggerUpper: 0          // No upper trigger gate
     })
 });
 ```
@@ -123,19 +126,22 @@ Order memory order = Order({
     }),
     output: Output({
         limit: 95 ether,        // Minimum per chunk
-        stop: type(uint256).max
+        triggerLower: 0,
+        triggerUpper: 0
     })
 });
 ```
 
-### Stop-Loss Order
+### Stop-Loss / Take-Profit Order
 ```solidity
 Order memory order = Order({
     // ... standard fields
     epoch: 0,                    // Single execution
+    start: block.timestamp,  // Order becomes active immediately
     output: Output({
-        limit: 900 ether,       // Minimum output
-        stop: 950 ether         // Stop if price drops below this
+        limit: 900 ether,        // Minimum output when executing
+        triggerLower: 950 ether, // Stop-loss boundary
+        triggerUpper: 1200 ether // Take-profit boundary
     })
 });
 ```
@@ -155,7 +161,8 @@ Order memory order = Order({
 - **Signature Verification**: RePermit validates EIP-712 signatures and witness data binding
 - **Epoch Enforcement**: `EpochLib.update()` prevents early/duplicate fills within time windows
 - **Slippage Protection**: Maximum 50% slippage cap enforced in `Constants.MAX_SLIPPAGE`
-- **Freshness Windows**: Cosignatures expire after configurable time periods
+- **Freshness Windows**: Current cosignatures expire after configurable time periods
+- **Trigger Timestamp Rules**: Trigger timestamp must be after `start` and not later than the current timestamp
 
 ### Economic Security
 - **Witness-Bound Spending**: RePermit ties allowances to exact order hashes, preventing signature reuse

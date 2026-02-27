@@ -47,7 +47,7 @@ contract OrderReactorE2ETest is BaseTest {
         inAmount = 1 ether;
         inMax = inAmount;
         outAmount = 500 ether;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
 
         CosignedOrder memory co = order();
 
@@ -79,7 +79,7 @@ contract OrderReactorE2ETest is BaseTest {
         inAmount = 1 ether;
         inMax = inAmount;
         outAmount = 1 ether;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
         adapter = address(new SwapAdapterMock());
         CosignedOrder memory co = order();
 
@@ -106,7 +106,7 @@ contract OrderReactorE2ETest is BaseTest {
         inAmount = 1 ether;
         inMax = inAmount;
         outAmount = 1 ether;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
         adapter = address(new SwapAdapterMock());
         recipient = other;
         CosignedOrder memory co = order();
@@ -146,7 +146,7 @@ contract OrderReactorE2ETest is BaseTest {
         inAmount = 50e6; // 50 USD
         inMax = inAmount;
         outAmount = 0;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
         adapter = address(new SwapAdapterMock());
 
         CosignedOrder memory co = order();
@@ -158,8 +158,8 @@ contract OrderReactorE2ETest is BaseTest {
         co = cosign(co);
         co.signature = permitFor(co, address(reactorUut));
 
-        assertEq(co.cosignatureData.input.decimals, usd.decimals(), "input decimals should match USD token");
-        assertEq(co.cosignatureData.output.decimals, 18, "output decimals should match native token");
+        assertEq(co.current.input.decimals, usd.decimals(), "input decimals should match USD token");
+        assertEq(co.current.output.decimals, 18, "output decimals should match native token");
 
         uint256 expectedOut = 12_500_000_000_000_000; // 0.0125 ether
         uint256 resolvedPreview = ResolutionLib.resolve(co);
@@ -196,7 +196,7 @@ contract OrderReactorE2ETest is BaseTest {
         inAmount = 12_500_000_000_000_000; // 0.0125 ether
         inMax = inAmount;
         outAmount = 50e6;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
         adapter = address(new SwapAdapterMock());
 
         CosignedOrder memory co = order();
@@ -210,8 +210,8 @@ contract OrderReactorE2ETest is BaseTest {
         co = cosign(co);
         co.signature = permitFor(co, address(reactorUut));
 
-        assertEq(co.cosignatureData.input.decimals, 18, "input decimals should match native token");
-        assertEq(co.cosignatureData.output.decimals, usd.decimals(), "output decimals should match USD token");
+        assertEq(co.current.input.decimals, 18, "input decimals should match native token");
+        assertEq(co.current.output.decimals, usd.decimals(), "output decimals should match USD token");
 
         uint256 expectedOut = outAmount;
         uint256 resolvedPreview = ResolutionLib.resolve(co);
@@ -229,7 +229,7 @@ contract OrderReactorE2ETest is BaseTest {
         inAmount = 1 ether;
         inMax = 2 ether;
         outAmount = 500 ether;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
         freshness = 20;
 
         CosignedOrder memory co = order();
@@ -279,7 +279,7 @@ contract OrderReactorE2ETest is BaseTest {
         inAmount = 1 ether;
         inMax = inAmount; // single chunk budget
         outAmount = 500 ether;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
         freshness = 30;
 
         CosignedOrder memory co = order();
@@ -331,7 +331,8 @@ contract OrderReactorE2ETest is BaseTest {
         inAmount = 1 ether;
         inMax = inAmount;
         outAmount = 0.5 ether;
-        outMax = 0.55 ether;
+        triggerLower = 0.55 ether;
+        triggerUpper = type(uint256).max;
 
         CosignedOrder memory co = order();
 
@@ -349,7 +350,7 @@ contract OrderReactorE2ETest is BaseTest {
             abi.encodeWithSelector(MockDexRouter.doSwap.selector, inToken, inAmount, outToken, 0.5 ether, address(exec))
         );
 
-        vm.expectRevert(ResolutionLib.CosignedExceedsStop.selector);
+        vm.expectRevert(ResolutionLib.NotTriggered.selector);
         exec.execute(co, ex);
 
         cosignInValue = 5;
@@ -367,7 +368,7 @@ contract OrderReactorE2ETest is BaseTest {
         inAmount = 1 ether;
         inMax = inAmount;
         outAmount = 500 ether;
-        outMax = 0; // stop=0 should be treated as type(uint256).max
+        triggerUpper = 0; // lower=upper=0 => trigger gate disabled
 
         CosignedOrder memory co = order();
 
@@ -389,7 +390,7 @@ contract OrderReactorE2ETest is BaseTest {
         uint256 before = ERC20Mock(outToken).balanceOf(recipient);
         exec.execute(co, ex);
 
-        // Should successfully execute with stop=0 even though cosigned output is high
+        // Should successfully execute with trigger gate disabled.
         assertEq(ERC20Mock(outToken).balanceOf(recipient), before + 600 ether);
     }
 
@@ -399,7 +400,7 @@ contract OrderReactorE2ETest is BaseTest {
         inAmount = 100;
         inMax = inAmount;
         outAmount = 100;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
         adapter = address(new SwapAdapterMock());
 
         CosignedOrder memory co = order();
@@ -434,7 +435,7 @@ contract OrderReactorE2ETest is BaseTest {
         inAmount = 100;
         inMax = inAmount;
         outAmount = 100;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
         adapter = address(new SwapAdapterMock());
 
         CosignedOrder memory co = order();
@@ -465,7 +466,7 @@ contract OrderReactorE2ETest is BaseTest {
         inAmount = 100;
         inMax = inAmount;
         outAmount = 500;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
 
         CosignedOrder memory co = order();
         co.order.exchange.ref = ref;
@@ -516,7 +517,7 @@ contract OrderReactorE2ETest is BaseTest {
         inAmount = 100;
         inMax = inAmount;
         outAmount = 100;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
 
         CosignedOrder memory co = order();
         cosignInValue = 100;
@@ -554,7 +555,7 @@ contract OrderReactorE2ETest is BaseTest {
         inAmount = 1_000;
         inMax = inAmount;
         outAmount = 0;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
         slippage = 0;
 
         CosignedOrder memory co = order();

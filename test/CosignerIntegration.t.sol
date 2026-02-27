@@ -34,20 +34,23 @@ contract CosignerIntegrationTest is BaseTest {
         view
         returns (CosignedOrder memory)
     {
-        co.cosignatureData.timestamp = block.timestamp;
-        co.cosignatureData.chainid = block.chainid;
-        co.cosignatureData.reactor = co.order.reactor;
-        co.cosignatureData.cosigner = cosignerAddr;
-        co.cosignatureData.input.token = co.order.input.token;
-        co.cosignatureData.input.value = cosignInValue;
-        co.cosignatureData.input.decimals = _tokenDecimals(co.order.input.token);
-        co.cosignatureData.output.token = co.order.output.token;
-        co.cosignatureData.output.value = cosignOutValue;
-        co.cosignatureData.output.decimals = _tokenDecimals(co.order.output.token);
+        co.current.timestamp = block.timestamp;
+        co.current.chainid = block.chainid;
+        co.current.reactor = co.order.reactor;
+        co.current.cosigner = cosignerAddr;
+        co.current.input.token = co.order.input.token;
+        co.current.input.value = cosignInValue;
+        co.current.input.decimals = _tokenDecimals(co.order.input.token);
+        co.current.output.token = co.order.output.token;
+        co.current.output.value = cosignOutValue;
+        co.current.output.decimals = _tokenDecimals(co.order.output.token);
 
-        bytes32 digest = IEIP712(repermit).hashTypedData(OrderLib.hash(co.cosignatureData));
+        bytes32 digest = IEIP712(repermit).hashTypedData(OrderLib.hash(co.current));
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(pk, digest);
-        co.cosignature = bytes.concat(r, s, bytes1(v));
+        bytes memory signature = bytes.concat(r, s, bytes1(v));
+        co.trigger = co.current;
+        co.currentCosignature = signature;
+        co.triggerCosignature = signature;
         return co;
     }
 
@@ -55,7 +58,7 @@ contract CosignerIntegrationTest is BaseTest {
         freshness = 300;
         inMax = 2_000;
         outAmount = 500;
-        outMax = 5_000;
+        triggerUpper = 5_000;
         cosignInValue = 100;
         cosignOutValue = 200;
 
@@ -89,7 +92,7 @@ contract CosignerIntegrationTest is BaseTest {
         freshness = 300;
         inMax = 2_000;
         outAmount = 500;
-        outMax = 5_000;
+        triggerUpper = 5_000;
         cosignInValue = 100;
         cosignOutValue = 200;
 
@@ -134,7 +137,7 @@ contract CosignerIntegrationTest is BaseTest {
         freshness = 300;
         inMax = 2_000;
         outAmount = 500;
-        outMax = 5_000;
+        triggerUpper = 5_000;
         cosignInValue = 100;
         cosignOutValue = 200;
 

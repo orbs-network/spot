@@ -75,7 +75,7 @@ contract OrderReactorPauseTest is BaseTest {
         inAmount = 100;
         inMax = 100;
         outAmount = 50;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
         reactor = address(reactorUut); // Set the reactor to our test reactor
         cosignInValue = 200; // Set valid cosign values
         cosignOutValue = 100;

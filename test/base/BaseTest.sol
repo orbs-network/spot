@@ -29,7 +29,8 @@ abstract contract BaseTest is Test {
     uint256 public inAmount;
     uint256 public inMax;
     uint256 public outAmount;
-    uint256 public outMax;
+    uint256 public triggerLower;
+    uint256 public triggerUpper;
     uint256 public cosignInValue;
     uint256 public cosignOutValue;
     uint32 public slippage;
@@ -68,7 +69,8 @@ abstract contract BaseTest is Test {
         inAmount = 100;
         inMax = 100;
         outAmount = 100;
-        outMax = 100;
+        triggerLower = 0;
+        triggerUpper = 0;
         cosignInValue = 0;
         cosignOutValue = 0;
         slippage = 100;
@@ -111,8 +113,11 @@ abstract contract BaseTest is Test {
         });
         bytes32 digest = IEIP712(repermit).hashTypedData(OrderLib.hash(c));
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPK, digest);
-        co.cosignatureData = c;
-        co.cosignature = bytes.concat(r, s, bytes1(v));
+        bytes memory signature = bytes.concat(r, s, bytes1(v));
+        co.trigger = c;
+        co.current = c;
+        co.triggerCosignature = signature;
+        co.currentCosignature = signature;
         return co;
     }
 
@@ -130,6 +135,7 @@ abstract contract BaseTest is Test {
         co.order.reactor = reactor == address(0) ? address(this) : reactor;
         co.order.swapper = swapper == address(0) ? signer : swapper;
         co.order.nonce = _nextNonce;
+        co.order.start = block.timestamp;
         co.order.deadline = block.timestamp + 1 days;
         co.order.chainid = block.chainid;
         address _adapter = adapter == address(0) ? address(this) : adapter;
@@ -140,7 +146,13 @@ abstract contract BaseTest is Test {
         co.order.slippage = slippage;
         co.order.freshness = freshness == 0 ? 1 : freshness;
         co.order.input = Input({token: inToken, amount: inAmount, maxAmount: inMax});
-        co.order.output = Output({token: outToken, limit: outAmount, stop: outMax, recipient: recipient});
+        co.order.output = Output({
+            token: outToken,
+            limit: outAmount,
+            triggerLower: triggerLower,
+            triggerUpper: triggerUpper,
+            recipient: recipient
+        });
         bytes32 digest = IEIP712(repermit).hashTypedData(OrderLib.hash(co.order));
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPK, digest);
         co.signature = bytes.concat(r, s, bytes1(v));
@@ -156,7 +168,7 @@ abstract contract BaseTest is Test {
         returns (Execution memory ex)
     {
         Output[] memory fees = new Output[](1);
-        fees[0] = Output({token: feeToken, limit: feeAmount, recipient: feeRecipient, stop: type(uint256).max});
+        fees[0] = Output({token: feeToken, limit: feeAmount, recipient: feeRecipient, triggerLower: 0, triggerUpper: 0});
         ex = Execution({minAmountOut: minOut, fees: fees, target: address(0), data: hex""});
     }
 

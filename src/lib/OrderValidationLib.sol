@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.27;
 
-import {OrderLib} from "src/lib/OrderLib.sol";
 import {Order} from "src/Structs.sol";
 import {Constants} from "src/Constants.sol";
 
@@ -16,7 +15,9 @@ library OrderValidationLib {
 
     error InvalidOrderInputAmountZero();
     error InvalidOrderInputAmountGtMax();
-    error InvalidOrderOutputLimitGtStop();
+    error InvalidOrderStartZero();
+    error InvalidOrderStartInFuture();
+    error InvalidOrderTriggerRange();
     error InvalidOrderSlippageTooHigh();
     error InvalidOrderInputTokenZero();
     error InvalidOrderOutputRecipientZero();
@@ -35,19 +36,21 @@ library OrderValidationLib {
     function validate(Order memory order) internal view {
         // Validate non-zero critical addresses
         if (order.reactor == address(0)) revert InvalidOrderReactorZero();
+        if (order.reactor != address(this)) revert InvalidOrderReactorMismatch();
         if (order.executor == address(0)) revert InvalidOrderExecutorZero();
         if (order.exchange.adapter == address(0)) revert InvalidOrderAdapterZero();
         if (order.swapper == address(0)) revert InvalidOrderSwapperZero();
-
-        if (order.deadline <= block.timestamp) revert InvalidOrderDeadlineExpired();
         if (order.chainid != block.chainid) revert InvalidOrderChainid();
 
-        if (order.reactor != address(this)) revert InvalidOrderReactorMismatch();
+        if (order.start == 0) revert InvalidOrderStartZero();
+        if (order.start > block.timestamp) revert InvalidOrderStartInFuture();
+        if (order.deadline <= block.timestamp) revert InvalidOrderDeadlineExpired();
+
         if (order.input.amount == 0) revert InvalidOrderInputAmountZero();
         if (order.input.amount > order.input.maxAmount) revert InvalidOrderInputAmountGtMax();
-        // Treat stop=0 as type(uint256).max (no trigger)
-        uint256 effectiveStop = order.output.stop == 0 ? type(uint256).max : order.output.stop;
-        if (order.output.limit > effectiveStop) revert InvalidOrderOutputLimitGtStop();
+        if (order.output.triggerUpper != 0 && order.output.triggerLower > order.output.triggerUpper) {
+            revert InvalidOrderTriggerRange();
+        }
         if (order.slippage > Constants.MAX_SLIPPAGE) revert InvalidOrderSlippageTooHigh();
         if (order.input.token == address(0)) revert InvalidOrderInputTokenZero();
         if (order.output.recipient == address(0)) revert InvalidOrderOutputRecipientZero();

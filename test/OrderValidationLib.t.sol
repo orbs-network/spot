@@ -4,8 +4,7 @@ pragma solidity 0.8.27;
 import {BaseTest} from "test/base/BaseTest.sol";
 
 import {OrderValidationLib} from "src/lib/OrderValidationLib.sol";
-import {OrderLib} from "src/lib/OrderLib.sol";
-import {Order, Input, Output, Exchange, CosignedOrder, Cosignature, CosignedValue} from "src/Structs.sol";
+import {CosignedOrder} from "src/Structs.sol";
 import {Constants} from "src/Constants.sol";
 
 contract OrderValidationLibTest is BaseTest {
@@ -21,7 +20,7 @@ contract OrderValidationLibTest is BaseTest {
         inAmount = 100;
         inMax = 200;
         outAmount = 50;
-        outMax = 100;
+        triggerUpper = 100;
         this.callValidate(order());
     }
 
@@ -29,7 +28,7 @@ contract OrderValidationLibTest is BaseTest {
         inAmount = 0;
         inMax = 200;
         outAmount = 50;
-        outMax = 100;
+        triggerUpper = 100;
         CosignedOrder memory co = order();
         vm.expectRevert(OrderValidationLib.InvalidOrderInputAmountZero.selector);
         this.callValidate(co);
@@ -39,43 +38,53 @@ contract OrderValidationLibTest is BaseTest {
         inAmount = 201;
         inMax = 200;
         outAmount = 50;
-        outMax = 100;
+        triggerUpper = 100;
         CosignedOrder memory co = order();
         vm.expectRevert(OrderValidationLib.InvalidOrderInputAmountGtMax.selector);
         this.callValidate(co);
     }
 
-    function test_validate_reverts_outputAmountGtMax() public {
+    function test_validate_reverts_triggerLower_gt_triggerUpper() public {
         inAmount = 100;
         inMax = 200;
         outAmount = 101;
-        outMax = 100;
+        triggerLower = 101;
+        triggerUpper = 100;
         CosignedOrder memory co = order();
-        vm.expectRevert(OrderValidationLib.InvalidOrderOutputLimitGtStop.selector);
+        vm.expectRevert(OrderValidationLib.InvalidOrderTriggerRange.selector);
         this.callValidate(co);
     }
 
-    function test_validate_stop_zero_treated_as_max() public {
-        reactor = address(this);
-        executor = address(this);
-        adapter = address(this);
+    function test_validate_allows_lower_only_when_upper_unset() public {
         inAmount = 100;
         inMax = 200;
-        outAmount = 50;
-        outMax = 0; // stop=0 should be treated as type(uint256).max
-        // Should not revert because stop=0 is treated as type(uint256).max
+        outAmount = 101;
+        triggerLower = 500;
+        triggerUpper = 0; // unset upper
         this.callValidate(order());
     }
 
-    function test_validate_stop_zero_allows_any_limit() public {
+    function test_validate_allows_limit_gt_triggerUpper() public {
         reactor = address(this);
         executor = address(this);
         adapter = address(this);
         inAmount = 100;
         inMax = 200;
-        outAmount = type(uint256).max - 1; // Very high limit
-        outMax = 0; // stop=0 should be treated as type(uint256).max
-        // Should not revert because stop=0 is treated as type(uint256).max
+        outAmount = 500;
+        triggerLower = 10;
+        triggerUpper = 100;
+        this.callValidate(order());
+    }
+
+    function test_validate_allows_equal_trigger_bounds() public {
+        reactor = address(this);
+        executor = address(this);
+        adapter = address(this);
+        inAmount = 100;
+        inMax = 200;
+        outAmount = type(uint256).max - 1; // Very high limit remains valid
+        triggerLower = 42;
+        triggerUpper = 42;
         this.callValidate(order());
     }
 
@@ -84,7 +93,7 @@ contract OrderValidationLibTest is BaseTest {
         inAmount = 100;
         inMax = 200;
         outAmount = 50;
-        outMax = 100;
+        triggerUpper = 100;
         CosignedOrder memory co = order();
         vm.expectRevert(OrderValidationLib.InvalidOrderSlippageTooHigh.selector);
         this.callValidate(co);
@@ -95,7 +104,7 @@ contract OrderValidationLibTest is BaseTest {
         inAmount = 100;
         inMax = 200;
         outAmount = 50;
-        outMax = 100;
+        triggerUpper = 100;
         this.callValidate(order());
     }
 
@@ -107,7 +116,7 @@ contract OrderValidationLibTest is BaseTest {
         inAmount = 100;
         inMax = 200;
         outAmount = 50;
-        outMax = 100;
+        triggerUpper = 100;
         CosignedOrder memory co = order();
         vm.expectRevert(OrderValidationLib.InvalidOrderInputTokenZero.selector);
         this.callValidate(co);
@@ -122,7 +131,7 @@ contract OrderValidationLibTest is BaseTest {
         inMax = 200;
         outToken = address(token2);
         outAmount = 50;
-        outMax = 100;
+        triggerUpper = 100;
         recipient = address(0);
         CosignedOrder memory co = order();
         vm.expectRevert(OrderValidationLib.InvalidOrderOutputRecipientZero.selector);
@@ -136,7 +145,7 @@ contract OrderValidationLibTest is BaseTest {
         inAmount = 100;
         inMax = 200;
         outAmount = 50;
-        outMax = 100;
+        triggerUpper = 100;
         CosignedOrder memory co = order();
         co.order.exchange.share = uint32(Constants.BPS + 1);
         vm.expectRevert(OrderValidationLib.InvalidOrderExchangeShareBps.selector);
@@ -150,7 +159,7 @@ contract OrderValidationLibTest is BaseTest {
         inAmount = 100;
         inMax = 200;
         outAmount = 50;
-        outMax = 100;
+        triggerUpper = 100;
         CosignedOrder memory co = order();
         co.order.exclusivity = 100;
         address notExecutor = makeAddr("notExecutor");
@@ -164,7 +173,7 @@ contract OrderValidationLibTest is BaseTest {
         inAmount = 100;
         inMax = 200;
         outAmount = 50;
-        outMax = 100;
+        triggerUpper = 100;
         CosignedOrder memory co = order();
         co.order.reactor = address(0);
         vm.expectRevert(OrderValidationLib.InvalidOrderReactorZero.selector);
@@ -177,7 +186,7 @@ contract OrderValidationLibTest is BaseTest {
         inAmount = 100;
         inMax = 200;
         outAmount = 50;
-        outMax = 100;
+        triggerUpper = 100;
         CosignedOrder memory co = order();
         co.order.executor = address(0);
         vm.expectRevert(OrderValidationLib.InvalidOrderExecutorZero.selector);
@@ -190,7 +199,7 @@ contract OrderValidationLibTest is BaseTest {
         inAmount = 100;
         inMax = 200;
         outAmount = 50;
-        outMax = 100;
+        triggerUpper = 100;
         CosignedOrder memory co = order();
         co.order.exchange.adapter = address(0);
         vm.expectRevert(OrderValidationLib.InvalidOrderAdapterZero.selector);
@@ -206,7 +215,7 @@ contract OrderValidationLibTest is BaseTest {
         inAmount = 100;
         inMax = 200;
         outAmount = 50;
-        outMax = 100;
+        triggerUpper = 100;
         CosignedOrder memory co = order();
         co.order.swapper = address(0);
         vm.expectRevert(OrderValidationLib.InvalidOrderSwapperZero.selector);
@@ -222,7 +231,7 @@ contract OrderValidationLibTest is BaseTest {
         inAmount = 100;
         inMax = 200;
         outAmount = 50;
-        outMax = 100;
+        triggerUpper = 100;
         CosignedOrder memory co = order();
         co.order.deadline = block.timestamp - 1;
         vm.expectRevert(OrderValidationLib.InvalidOrderDeadlineExpired.selector);
@@ -238,10 +247,42 @@ contract OrderValidationLibTest is BaseTest {
         inAmount = 100;
         inMax = 200;
         outAmount = 50;
-        outMax = 100;
+        triggerUpper = 100;
         CosignedOrder memory co = order();
         co.order.deadline = 0;
         vm.expectRevert(OrderValidationLib.InvalidOrderDeadlineExpired.selector);
+        this.callValidate(co);
+    }
+
+    function test_validate_reverts_start_zero() public {
+        reactor = address(this);
+        executor = address(this);
+        adapter = address(this);
+        inToken = address(token);
+        outToken = address(token2);
+        inAmount = 100;
+        inMax = 200;
+        outAmount = 50;
+        triggerUpper = 100;
+        CosignedOrder memory co = order();
+        co.order.start = 0;
+        vm.expectRevert(OrderValidationLib.InvalidOrderStartZero.selector);
+        this.callValidate(co);
+    }
+
+    function test_validate_reverts_start_future() public {
+        reactor = address(this);
+        executor = address(this);
+        adapter = address(this);
+        inToken = address(token);
+        outToken = address(token2);
+        inAmount = 100;
+        inMax = 200;
+        outAmount = 50;
+        triggerUpper = 100;
+        CosignedOrder memory co = order();
+        co.order.start = block.timestamp + 1;
+        vm.expectRevert(OrderValidationLib.InvalidOrderStartInFuture.selector);
         this.callValidate(co);
     }
 
@@ -254,7 +295,7 @@ contract OrderValidationLibTest is BaseTest {
         inAmount = 100;
         inMax = 200;
         outAmount = 50;
-        outMax = 100;
+        triggerUpper = 100;
         CosignedOrder memory co = order();
         co.order.chainid = block.chainid + 1;
         vm.expectRevert(OrderValidationLib.InvalidOrderChainid.selector);
@@ -269,7 +310,7 @@ contract OrderValidationLibTest is BaseTest {
         inAmount = 100;
         inMax = 200;
         outAmount = 50;
-        outMax = 100;
+        triggerUpper = 100;
         reactor = makeAddr("reactorMismatch");
         CosignedOrder memory co = order();
         vm.expectRevert(OrderValidationLib.InvalidOrderReactorMismatch.selector);
@@ -285,7 +326,7 @@ contract OrderValidationLibTest is BaseTest {
         inAmount = 100;
         inMax = 200;
         outAmount = 50;
-        outMax = 100;
+        triggerUpper = 100;
         CosignedOrder memory co = order();
         vm.expectRevert(OrderValidationLib.InvalidOrderSameToken.selector);
         this.callValidate(co);

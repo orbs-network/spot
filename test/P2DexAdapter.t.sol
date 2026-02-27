@@ -33,7 +33,7 @@ contract P2DexAdapterTest is BaseTest {
         inAmount = 1000 ether;
         inMax = inAmount;
         outAmount = 500 ether;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
         CosignedOrder memory cosignedOrder = order();
 
         bytes memory data = abi.encodeWithSelector(
@@ -68,7 +68,7 @@ contract P2DexAdapterTest is BaseTest {
         inAmount = 1000 ether;
         inMax = inAmount;
         outAmount = 500 ether;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
         CosignedOrder memory cosignedOrder = order();
 
         bytes memory data = "invalid_call_data";
@@ -86,7 +86,7 @@ contract P2DexAdapterTest is BaseTest {
         inAmount = 1000 ether;
         inMax = inAmount;
         outAmount = 500 ether;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
         CosignedOrder memory cosignedOrder = order();
 
         bytes memory data = abi.encodeWithSelector(
@@ -109,7 +109,7 @@ contract P2DexAdapterTest is BaseTest {
         inMax = inAmount;
         outToken = address(token2);
         outAmount = 500 ether;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
         CosignedOrder memory cosignedOrder = order();
 
         hoax(address(adapterUut));
@@ -141,7 +141,7 @@ contract P2DexAdapterTest is BaseTest {
         inAmount = 1000 ether;
         inMax = inAmount;
         outAmount = 500 ether;
-        outMax = type(uint256).max;
+        triggerUpper = 0;
         CosignedOrder memory cosignedOrder = order();
 
         bytes memory data = abi.encodeWithSelector(

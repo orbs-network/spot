@@ -83,6 +83,10 @@
                 "type": "uint256"
             },
             {
+                "name": "start",
+                "type": "uint256"
+            },
+            {
                 "name": "deadline",
                 "type": "uint256"
             },
@@ -125,7 +129,11 @@
                 "type": "uint256"
             },
             {
-                "name": "stop",
+                "name": "triggerLower",
+                "type": "uint256"
+            },
+            {
+                "name": "triggerUpper",
                 "type": "uint256"
             },
             {
@@ -163,6 +171,7 @@
             },
             "swapper": "<SWAPPER>",
             "nonce": "<NONCE>",
+            "start": "<START>",
             "deadline": "<DEADLINE>",
             "chainid": "<CHAINID>",
             "exclusivity": "<EXCLUSIVITYBPS>",
@@ -177,7 +186,8 @@
             "output": {
                 "token": "<OUTTOKEN>",
                 "limit": "<OUTAMOUNTMIN>",
-                "stop": "<OUTAMOUNTTRIGGER>",
+                "triggerLower": "<OUTAMOUNTTRIGGERLOWER>",
+                "triggerUpper": "<OUTAMOUNTTRIGGERUPPER>",
                 "recipient": "<RECIPIENT>"
             }
         }
