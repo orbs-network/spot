@@ -4,7 +4,7 @@ pragma solidity 0.8.27;
 import {BaseTest} from "test/base/BaseTest.sol";
 import {Executor} from "src/Executor.sol";
 import {Settler} from "src/adapter/Settler.sol";
-import {IExchangeAdapter} from "src/interface/IExchangeAdapter.sol";
+import {UniversalAdapter} from "src/adapter/UniversalAdapter.sol";
 import {OrderLib} from "src/lib/OrderLib.sol";
 import {Execution, CosignedOrder} from "src/Structs.sol";
 import {RePermit} from "src/RePermit.sol";
@@ -17,6 +17,7 @@ contract SettlerTest is BaseTest {
     Executor public exec;
     MockReactor public reactorMock;
     Settler public settlerUut;
+    UniversalAdapter public universalAdapterUut;
     WrappedNativeMock public wrappedNative;
 
     address public solver;
@@ -28,10 +29,11 @@ contract SettlerTest is BaseTest {
         exec = new Executor(address(reactorMock), wm);
         wrappedNative = new WrappedNativeMock();
         settlerUut = new Settler(repermit, address(wrappedNative));
+        universalAdapterUut = new UniversalAdapter();
 
         reactor = address(reactorMock);
         executor = address(exec);
-        adapter = address(settlerUut);
+        adapter = address(universalAdapterUut);
 
         (solver, solverPk) = makeAddrAndKey("solver");
     }
@@ -47,7 +49,7 @@ contract SettlerTest is BaseTest {
 
         bytes32 hash = OrderLib.hash(co.order);
         uint256 outputAmount = co.order.output.limit;
-        bytes memory solverSig = _solverSignature(co, co.order.output.token, outputAmount);
+        bytes memory solverSig = _solverSignature(co, co.order.output.token, outputAmount, address(settlerUut));
 
         ERC20Mock(outToken).mint(solver, outputAmount);
         hoax(solver);
@@ -55,12 +57,13 @@ contract SettlerTest is BaseTest {
 
         ERC20Mock(inToken).mint(address(exec), inAmount);
 
-        Execution memory x = executionWithTargetData(outputAmount, solver, abi.encode(outputAmount, solverSig));
+        Execution memory x = _executionViaUniversal(hash, outputAmount, co, solver, outputAmount, solverSig);
         vm.prank(address(reactorMock));
         exec.reactorCallback(hash, outputAmount, co, x);
 
         assertEq(ERC20Mock(inToken).balanceOf(solver), inAmount);
         assertEq(ERC20Mock(outToken).balanceOf(address(exec)), outputAmount);
+        assertEq(ERC20Mock(inToken).allowance(address(exec), address(settlerUut)), 0);
         assertEq(ERC20Mock(outToken).allowance(address(exec), address(reactorMock)), outputAmount);
     }
 
@@ -69,7 +72,7 @@ contract SettlerTest is BaseTest {
         bytes32 hash = OrderLib.hash(co.order);
 
         Execution memory x = executionWithTargetData(0, address(0), abi.encode(uint256(0), bytes("")));
-        vm.expectRevert(IExchangeAdapter.InvalidTarget.selector);
+        vm.expectRevert(Settler.InvalidTarget.selector);
         vm.prank(address(reactorMock));
         exec.reactorCallback(hash, 0, co, x);
     }
@@ -94,7 +97,7 @@ contract SettlerTest is BaseTest {
                     co.order.deadline,
                     hash,
                     OrderLib.WITNESS_TYPE_SUFFIX,
-                    address(exec)
+                    address(settlerUut)
                 )
             );
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPK, digest);
@@ -105,7 +108,7 @@ contract SettlerTest is BaseTest {
         ERC20Mock(outToken).approve(repermit, outputAmount);
         ERC20Mock(inToken).mint(address(exec), inAmount);
 
-        Execution memory x = executionWithTargetData(outputAmount, solver, abi.encode(outputAmount, wrongSig));
+        Execution memory x = _executionViaUniversal(hash, outputAmount, co, solver, outputAmount, wrongSig);
 
         vm.expectRevert(RePermit.InvalidSignature.selector);
         vm.prank(address(reactorMock));
@@ -113,9 +116,6 @@ contract SettlerTest is BaseTest {
     }
 
     function test_settler_native_output_with_wrapped_token() public {
-        settlerUut = new Settler(repermit, address(wrappedNative));
-        adapter = address(settlerUut);
-
         inToken = address(token);
         outToken = address(0);
         inAmount = 100 ether;
@@ -126,7 +126,7 @@ contract SettlerTest is BaseTest {
 
         bytes32 hash = OrderLib.hash(co.order);
         uint256 outputAmount = co.order.output.limit;
-        bytes memory solverSig = _solverSignature(co, address(wrappedNative), outputAmount);
+        bytes memory solverSig = _solverSignature(co, address(wrappedNative), outputAmount, address(settlerUut));
 
         vm.deal(solver, outputAmount);
         vm.startPrank(solver);
@@ -137,7 +137,7 @@ contract SettlerTest is BaseTest {
         ERC20Mock(inToken).mint(address(exec), inAmount);
 
         uint256 beforeReactorBalance = address(reactorMock).balance;
-        Execution memory x = executionWithTargetData(outputAmount, solver, abi.encode(outputAmount, solverSig));
+        Execution memory x = _executionViaUniversal(hash, outputAmount, co, solver, outputAmount, solverSig);
 
         vm.prank(address(reactorMock));
         exec.reactorCallback(hash, outputAmount, co, x);
@@ -146,7 +146,22 @@ contract SettlerTest is BaseTest {
         assertEq(ERC20Mock(inToken).balanceOf(solver), inAmount);
     }
 
-    function _solverSignature(CosignedOrder memory co, address permitToken, uint256 amount)
+    function _executionViaUniversal(
+        bytes32 hash,
+        uint256 resolvedAmountOut,
+        CosignedOrder memory co,
+        address solverAddress,
+        uint256 outputAmount,
+        bytes memory solverSig
+    ) internal view returns (Execution memory x) {
+        Execution memory settlerExecution = executionWithTargetData(
+            outputAmount, solverAddress, abi.encode(outputAmount, solverSig)
+        );
+        bytes memory data = abi.encodeWithSelector(Settler.swap.selector, hash, resolvedAmountOut, co, settlerExecution);
+        x = executionWithTargetData(outputAmount, address(settlerUut), data);
+    }
+
+    function _solverSignature(CosignedOrder memory co, address permitToken, uint256 amount, address spender)
         internal
         view
         returns (bytes memory sig)
@@ -160,7 +175,7 @@ contract SettlerTest is BaseTest {
                     co.order.deadline,
                     OrderLib.hash(co.order),
                     OrderLib.WITNESS_TYPE_SUFFIX,
-                    address(exec)
+                    spender
                 )
             );
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(solverPk, digest);
