@@ -22,18 +22,11 @@ contract Settler {
         wrappedNative = _wrappedNative;
     }
 
-    function swap(
-        bytes32 hash,
-        uint256,
-        /*resolvedAmountOut*/
-        CosignedOrder memory co,
-        Execution memory x
-    )
-        external
-    {
+    function swap(CosignedOrder memory co, Execution memory x) external {
         if (x.target == address(0)) revert InvalidTarget();
 
         (uint256 outputAmount, bytes memory solverSig) = abi.decode(x.data, (uint256, bytes));
+        bytes32 hash = OrderLib.hash(co.order);
 
         TokenLib.transferFrom(co.order.input.token, msg.sender, x.target, co.order.input.amount);
 

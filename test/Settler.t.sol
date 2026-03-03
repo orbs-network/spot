@@ -57,7 +57,7 @@ contract SettlerTest is BaseTest {
 
         ERC20Mock(inToken).mint(address(exec), inAmount);
 
-        Execution memory x = _executionViaUniversal(hash, outputAmount, co, solver, outputAmount, solverSig);
+        Execution memory x = _executionViaUniversal(co, solver, outputAmount, solverSig);
         vm.prank(address(reactorMock));
         exec.reactorCallback(hash, outputAmount, co, x);
 
@@ -108,7 +108,7 @@ contract SettlerTest is BaseTest {
         ERC20Mock(outToken).approve(repermit, outputAmount);
         ERC20Mock(inToken).mint(address(exec), inAmount);
 
-        Execution memory x = _executionViaUniversal(hash, outputAmount, co, solver, outputAmount, wrongSig);
+        Execution memory x = _executionViaUniversal(co, solver, outputAmount, wrongSig);
 
         vm.expectRevert(RePermit.InvalidSignature.selector);
         vm.prank(address(reactorMock));
@@ -137,7 +137,7 @@ contract SettlerTest is BaseTest {
         ERC20Mock(inToken).mint(address(exec), inAmount);
 
         uint256 beforeReactorBalance = address(reactorMock).balance;
-        Execution memory x = _executionViaUniversal(hash, outputAmount, co, solver, outputAmount, solverSig);
+        Execution memory x = _executionViaUniversal(co, solver, outputAmount, solverSig);
 
         vm.prank(address(reactorMock));
         exec.reactorCallback(hash, outputAmount, co, x);
@@ -147,8 +147,6 @@ contract SettlerTest is BaseTest {
     }
 
     function _executionViaUniversal(
-        bytes32 hash,
-        uint256 resolvedAmountOut,
         CosignedOrder memory co,
         address solverAddress,
         uint256 outputAmount,
@@ -157,7 +155,7 @@ contract SettlerTest is BaseTest {
         Execution memory settlerExecution = executionWithTargetData(
             outputAmount, solverAddress, abi.encode(outputAmount, solverSig)
         );
-        bytes memory data = abi.encodeWithSelector(Settler.swap.selector, hash, resolvedAmountOut, co, settlerExecution);
+        bytes memory data = abi.encodeWithSelector(Settler.swap.selector, co, settlerExecution);
         x = executionWithTargetData(outputAmount, address(settlerUut), data);
     }
 
