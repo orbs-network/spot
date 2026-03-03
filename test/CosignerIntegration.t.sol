@@ -22,7 +22,7 @@ contract CosignerIntegrationTest is BaseTest {
         vm.warp(1 days);
 
         committee = new MockCommitteeSync();
-        cosignerContract = new Cosigner(address(committee));
+        cosignerContract = new Cosigner(address(committee), address(this));
         (approvedSigner, approvedSignerPK) = makeAddrAndKey("approvedSigner");
 
         uint256 signerExpires = block.timestamp + 365 days;
@@ -131,7 +131,7 @@ contract CosignerIntegrationTest is BaseTest {
     function test_integration_multiple_cosigner_contracts_independent() public {
         MockCommitteeSync committee2 = new MockCommitteeSync();
         (address signer2, uint256 signer2PK) = makeAddrAndKey("signer2");
-        Cosigner cosigner2 = new Cosigner(address(committee2));
+        Cosigner cosigner2 = new Cosigner(address(committee2), address(this));
         committee2.setConfig(cosigner2.KEY(), signer2, abi.encode(block.timestamp + 365 days));
 
         freshness = 300;

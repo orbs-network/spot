@@ -8,9 +8,10 @@ import {Cosigner} from "src/ops/Cosigner.sol";
 contract DeployCosigner is Script {
     function run() public returns (address cosigner) {
         address committee = vm.envAddress("COMMITTEE");
+        address owner = vm.envAddress("OWNER");
         bytes32 salt = vm.envOr("SALT", bytes32(0));
 
-        bytes32 initCodeHash = hashInitCode(type(Cosigner).creationCode, abi.encode(committee));
+        bytes32 initCodeHash = hashInitCode(type(Cosigner).creationCode, abi.encode(committee, owner));
         console.logBytes32(initCodeHash);
 
         address expected = vm.computeCreate2Address(salt, initCodeHash);
@@ -19,7 +20,7 @@ contract DeployCosigner is Script {
             cosigner = expected;
         } else {
             vm.broadcast();
-            cosigner = address(new Cosigner{salt: salt}(committee));
+            cosigner = address(new Cosigner{salt: salt}(committee, owner));
         }
 
         vm.setEnv("COSIGNER", vm.toString(cosigner));

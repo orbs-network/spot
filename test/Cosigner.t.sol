@@ -4,6 +4,7 @@ pragma solidity 0.8.27;
 import "forge-std/Test.sol";
 import {Cosigner} from "src/ops/Cosigner.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {MockCommitteeSync} from "test/mocks/MockCommitteeSync.sol";
 
 contract CosignerTest is Test {
@@ -21,8 +22,8 @@ contract CosignerTest is Test {
 
     function setUp() public {
         committee = new MockCommitteeSync();
-        cosigner = new Cosigner(address(committee));
-        wrapper = new CosignerWrapper(address(committee));
+        cosigner = new Cosigner(address(committee), address(this));
+        wrapper = new CosignerWrapper(address(committee), address(this));
         (signer1, signer1PK) = makeAddrAndKey("signer1");
         (signer2, signer2PK) = makeAddrAndKey("signer2");
     }
@@ -31,9 +32,22 @@ contract CosignerTest is Test {
         assertEq(address(cosigner.committee()), address(committee));
     }
 
+    function test_constructor_sets_owner() public view {
+        assertEq(cosigner.owner(), address(this));
+    }
+
     function test_constructor_reverts_when_committee_is_zero() public {
         vm.expectRevert(Cosigner.InvalidCommittee.selector);
-        new Cosigner(address(0));
+        new Cosigner(address(0), address(this));
+    }
+
+    function test_constructor_reverts_when_owner_is_zero() public {
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableInvalidOwner.selector, address(0)));
+        new Cosigner(address(committee), address(0));
+    }
+
+    function test_isApprovedNow_returns_true_for_owner() public view {
+        assertTrue(cosigner.isApprovedNow(address(this)));
     }
 
     function test_isApprovedNow_returns_false_for_unapproved() public view {
@@ -97,6 +111,32 @@ contract CosignerTest is Test {
 
         vm.expectRevert();
         wrapper.validateSignature(hash, INVALID_SIGNATURE);
+    }
+
+    function test_rawSignatureValidation_accepts_owner_signature_without_committee_approval() public {
+        CosignerWrapper ownerWrapper = new CosignerWrapper(address(committee), signer1);
+
+        bytes32 hash = keccak256("owner signed message");
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signer1PK, hash);
+        bytes memory signature = abi.encodePacked(r, s, v);
+
+        assertTrue(ownerWrapper.isApprovedNow(signer1));
+        assertTrue(ownerWrapper.validateSignature(hash, signature));
+    }
+
+    function test_isApprovedNow_owner_transfer_updates_approval() public {
+        assertTrue(cosigner.isApprovedNow(address(this)));
+        assertFalse(cosigner.isApprovedNow(signer1));
+
+        cosigner.transferOwnership(signer1);
+
+        assertFalse(cosigner.isApprovedNow(address(this)));
+        assertTrue(cosigner.isApprovedNow(signer1));
+    }
+
+    function test_isApprovedNow_renounced_owner_not_approved() public {
+        cosigner.renounceOwnership();
+        assertFalse(cosigner.isApprovedNow(address(0)));
     }
 
     function test_zeroAddressConfig_cannotBypassSignatureValidation() public {
@@ -163,7 +203,7 @@ contract CosignerTest is Test {
 }
 
 contract CosignerWrapper is Cosigner {
-    constructor(address committee) Cosigner(committee) {}
+    constructor(address committee, address owner) Cosigner(committee, owner) {}
 
     function validateSignature(bytes32 hash, bytes calldata signature) external view returns (bool) {
         return _rawSignatureValidation(hash, signature);
