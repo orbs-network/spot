@@ -20,18 +20,13 @@ contract Cosigner is AbstractSigner, IERC1271, Ownable {
     /// @dev Versioned domain-style key for committee config compatibility
     bytes32 public constant KEY = keccak256("spot.cosigner.expires.v1");
 
-    /// @notice CommitteeSync contract for signer configuration
-    ICommitteeSync public immutable committee;
-
     error InvalidCosignature();
-    error InvalidCommittee();
+    error InvalidOwner();
 
-    /// @notice Constructs the Cosigner contract with CommitteeSync address and owner
-    /// @param committee_ CommitteeSync contract used for runtime signer checks
-    /// @param owner_ Owner address that is always considered approved
-    constructor(address committee_, address owner_) Ownable(owner_) {
-        if (committee_ == address(0)) revert InvalidCommittee();
-        committee = ICommitteeSync(committee_);
+    /// @notice Constructs the Cosigner contract with an owner
+    /// @param owner_ Owner address that is always considered approved, or a CommitteeSync contract
+    constructor(address owner_) Ownable(owner_) {
+        if (owner_ == address(0)) revert InvalidOwner();
     }
 
     /// @notice Checks if a signer is currently approved and not expired
@@ -41,10 +36,17 @@ contract Cosigner is AbstractSigner, IERC1271, Ownable {
     function isApprovedNow(address signer) public view returns (bool) {
         if (owner() != address(0) && signer == owner()) return true;
 
-        bytes memory configData = committee.config(KEY, signer);
-        if (configData.length != 32) return false;
-        uint256 signerExpiration = abi.decode(configData, (uint256));
-        return signerExpiration > block.timestamp;
+        if (owner().code.length > 0) {
+            try ICommitteeSync(owner()).config(KEY, signer) returns (bytes memory configData) {
+                if (configData.length == 32) {
+                    uint256 signerExpiration = abi.decode(configData, (uint256));
+                    return signerExpiration > block.timestamp;
+                }
+            } catch {
+                return false;
+            }
+        }
+        return false;
     }
 
     /// @notice Validates that a signature was created by an approved signer

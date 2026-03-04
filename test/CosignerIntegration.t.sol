@@ -22,7 +22,7 @@ contract CosignerIntegrationTest is BaseTest {
         vm.warp(1 days);
 
         committee = new MockCommitteeSync();
-        cosignerContract = new Cosigner(address(committee), address(this));
+        cosignerContract = new Cosigner(address(committee));
         (approvedSigner, approvedSignerPK) = makeAddrAndKey("approvedSigner");
 
         uint256 signerExpires = block.timestamp + 365 days;
@@ -131,7 +131,7 @@ contract CosignerIntegrationTest is BaseTest {
     function test_integration_multiple_cosigner_contracts_independent() public {
         MockCommitteeSync committee2 = new MockCommitteeSync();
         (address signer2, uint256 signer2PK) = makeAddrAndKey("signer2");
-        Cosigner cosigner2 = new Cosigner(address(committee2), address(this));
+        Cosigner cosigner2 = new Cosigner(address(committee2));
         committee2.setConfig(cosigner2.KEY(), signer2, abi.encode(block.timestamp + 365 days));
 
         freshness = 300;
@@ -149,8 +149,8 @@ contract CosignerIntegrationTest is BaseTest {
         co2 = cosignWithContract(co2, address(cosigner2), signer2PK);
         CosignatureLib.validate(co2, address(cosigner2), repermit);
 
-        assertEq(address(cosignerContract.committee()), address(committee));
-        assertEq(address(cosigner2.committee()), address(committee2));
+        assertEq(cosignerContract.owner(), address(committee));
+        assertEq(cosigner2.owner(), address(committee2));
         assertTrue(cosignerContract.isApprovedNow(approvedSigner));
         assertTrue(cosigner2.isApprovedNow(signer2));
     }

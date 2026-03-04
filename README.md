@@ -32,10 +32,10 @@
 
 - 🧠 **OrderReactor** (`src/OrderReactor.sol`): Validates orders, checks epoch constraints, computes minimum output from cosigned prices, and settles via inlined implementation with reentrancy protection. Includes emergency pause functionality controlled by WM allowlist.
 - ✍️ **RePermit** (`src/RePermit.sol`): Permit2-style EIP-712 signatures with witness data that binds spending allowances to exact order hashes, preventing signature reuse
-- 🧾 **Cosigner**: External service that signs both trigger-time and current market prices (input/output ratios) with proper token validation
+- 🧾 **Cosigner** (`src/ops/Cosigner.sol`): Attests to trigger-time and current market prices (input/output ratios) with proper token validation
 - 🛠️ **Executor** (`src/Executor.sol`): Whitelisted fillers that run venue logic via delegatecall to adapters, ensure minimum output requirements, and distribute surplus
-- 🔐 **WM** (`src/WM.sol`): Two-step ownership allowlist manager for executors and admin functions with event emission
-- 🏭 **Refinery** (`src/Refinery.sol`): Operations utility for batching multicalls and sweeping token balances by basis points
+- 🔐 **WM** (`src/ops/WM.sol`): Two-step ownership allowlist manager for executors and admin functions with event emission
+- 🏭 **Refinery** (`src/ops/Refinery.sol`): Operations utility for batching multicalls and sweeping token balances by basis points
 
 ### Key Libraries
 
