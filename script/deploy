@@ -1,14 +1,14 @@
 #!/usr/bin/env zsh
 set -euo pipefail
 
-CONFIG_FILE=script/input/config.json
+CONFIG_FILE=config.json
 components=(
-  wm:WM
-  repermit:RePermit
-  cosigner:Cosigner
-  reactor:OrderReactor
-  executor:Executor
-  refinery:Refinery
+  wm
+  repermit
+  cosigner
+  reactor
+  executor
+  refinery
 )
 
 dex=""
@@ -28,6 +28,11 @@ EOF
 
 while [[ $# -gt 0 ]]; do
   case $1 in
+    --)
+      shift
+      args+=("$@")
+      break
+      ;;
     -d|--dex)
       [[ $# -lt 2 || -z $2 ]] && { printf 'error: missing dex name\n' >&2; exit 1; }
       dex=${2:l}
@@ -47,6 +52,17 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+require_env_var() {
+  local key=$1 value=""
+  if [[ -v $key ]]; then
+    value=${(P)key}
+  fi
+  if [[ -z $value ]]; then
+    printf 'error: %s is required in the environment\n' "$key" >&2
+    exit 1
+  fi
+}
 
 salt_for() {
   local key=$1 chain=${CHAIN_ID:-}
@@ -94,13 +110,28 @@ should_update_config() {
   $broadcast && ! $debug
 }
 
+dex_field_for() {
+  local chain=$1 dex=$2 field=$3
+  jq -r --arg chain "$chain" --arg dex "$dex" --arg field "$field" '
+    .[$chain].dex[$dex][$field] // ""
+  ' "$CONFIG_FILE"
+}
+
 run() {
-  local salt=$1 script=$2 target=${3:-} contract=${4:-} tmp=$(mktemp) raw_tmp=$(mktemp)
+  local salt=$1 script=$2 target=${3:-}
+  shift 3
+
+  local -a env_assignments=("$@")
+  local tmp=$(mktemp) raw_tmp=$(mktemp)
   local load_opts=(-u)
   [[ -n ${CHAIN_ID:-} ]] && load_opts+=(-c "$CHAIN_ID")
   local cmd=(load "${load_opts[@]}" "$CONFIG_FILE" forge script "$script" "${args[@]}" --json)
+
   if [[ -n $salt && $salt != null ]]; then
-    cmd=(env SALT=$salt "${cmd[@]}")
+    env_assignments=("SALT=$salt" "${env_assignments[@]}")
+  fi
+  if (( ${#env_assignments[@]} > 0 )); then
+    cmd=(env "${env_assignments[@]}" "${cmd[@]}")
   fi
 
   if ! "${cmd[@]}" >"$raw_tmp"; then
@@ -145,19 +176,20 @@ deploy_dex() {
     exit 1
   fi
 
-  local script adapter_contract
-  case ${dex_type%%:*} in
+  local adapter_type=${dex_type%%:*}
+  local script
+  case $adapter_type in
     default)
-      script=DeployDefaultExchange
-      adapter_contract=DefaultDexAdapter
+      script=DeployDefaultAdapter
       ;;
     p2)
-      script=DeployP2Exchange
-      adapter_contract=P2DexAdapter
+      script=DeployP2Adapter
       ;;
     paraswap)
-      script=DeployParaswapExchange
-      adapter_contract=ParaswapDexAdapter
+      script=DeployParaswapAdapter
+      ;;
+    universal)
+      script=DeployUniversalAdapter
       ;;
     *) printf 'error: unsupported adapter type %s\n' "$dex_type" >&2; exit 1 ;;
   esac
@@ -169,13 +201,45 @@ deploy_dex() {
   if [[ -n $adapter_address ]]; then
     printf 'Adapter already configured for %s on chain %s (%s); skipping deployment\n' "$dex" "$chain_id" "$adapter_address"
   else
-    run "$dex_salt" "$script" "dex:${chain_id}:${dex}:adapter" "$adapter_contract"
+    local -a adapter_env=()
+    case $adapter_type in
+      default|paraswap)
+        local router
+        router=$(dex_field_for "$chain_id" "$dex" router)
+        if [[ -z $router ]]; then
+          printf 'error: ROUTER is required for dex %s on chain %s (set config.%s.dex.%s.router)\n' \
+            "$dex" "$chain_id" "$chain_id" "$dex" >&2
+          exit 1
+        fi
+        adapter_env=("ROUTER=$router")
+        ;;
+      p2)
+        local router permit2
+        router=$(dex_field_for "$chain_id" "$dex" router)
+        permit2=$(dex_field_for "$chain_id" "$dex" permit2)
+        if [[ -z $router ]]; then
+          printf 'error: ROUTER is required for dex %s on chain %s (set config.%s.dex.%s.router)\n' \
+            "$dex" "$chain_id" "$chain_id" "$dex" >&2
+          exit 1
+        fi
+        if [[ -z $permit2 ]]; then
+          printf 'error: PERMIT2 is required for p2 dex %s on chain %s (set config.%s.dex.%s.permit2)\n' \
+            "$dex" "$chain_id" "$chain_id" "$dex" >&2
+          exit 1
+        fi
+        adapter_env=("ROUTER=$router" "PERMIT2=$permit2")
+        ;;
+      universal)
+        ;;
+    esac
+
+    run "$dex_salt" "$script" "dex:${chain_id}:${dex}:adapter" "${adapter_env[@]}"
   fi
 
   if [[ -n $fee_address ]]; then
     printf 'Fee already configured for %s on chain %s (%s); skipping deployment\n' "$dex" "$chain_id" "$fee_address"
   else
-    run "$dex_salt" DeployRefinery "dex:${chain_id}:${dex}:fee" Refinery
+    run "$dex_salt" DeployRefinery "dex:${chain_id}:${dex}:fee"
   fi
 }
 
@@ -184,9 +248,12 @@ verify_contracts() {
   [[ -n ${CHAIN_ID:-} ]] && load_opts+=(-c "$CHAIN_ID")
 
   typeset -A targets=(
+    [wm]=WM
     [repermit]=RePermit
+    [cosigner]=Cosigner
     [executor]=Executor
     [reactor]=OrderReactor
+    [refinery]=Refinery
   )
 
   for key contract in ${(kv)targets}; do
@@ -206,12 +273,13 @@ if [[ -n $dex ]]; then
   exit 0
 fi
 
-for entry in "${components[@]}"; do
-  IFS=':' read -r key contract <<< "$entry"
+require_env_var OWNER
+
+for key in "${components[@]}"; do
   if [[ $key == wm ]]; then
     script=DeployWM
   else
     script="Deploy${(U)key[1,1]}${key[2,-1]}"
   fi
-  run "$(salt_for "$key")" "$script" "global:$key" "$contract"
+  run "$(salt_for "$key")" "$script" "global:$key"
 done

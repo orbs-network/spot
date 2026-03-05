@@ -5,8 +5,8 @@ import {Script, console} from "forge-std/Script.sol";
 
 import {P2DexAdapter} from "src/adapter/P2DexAdapter.sol";
 
-contract DeployP2Exchange is Script {
-    function run() public returns (address exchange) {
+contract DeployP2Adapter is Script {
+    function run() public returns (address adapter) {
         address router = vm.envAddress("ROUTER");
         address permit2 = vm.envAddress("PERMIT2");
         bytes32 salt = vm.envOr("SALT", bytes32(0));
@@ -17,10 +17,10 @@ contract DeployP2Exchange is Script {
         address expected = vm.computeCreate2Address(salt, initCodeHash);
         if (expected.code.length > 0) {
             console.log("P2DexAdapter already deployed at:", expected);
-            exchange = expected;
+            adapter = expected;
         } else {
             vm.broadcast();
-            exchange = address(new P2DexAdapter{salt: salt}(router, permit2));
+            adapter = address(new P2DexAdapter{salt: salt}(router, permit2));
         }
     }
 }

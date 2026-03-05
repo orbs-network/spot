@@ -5,8 +5,8 @@ import {Script, console} from "forge-std/Script.sol";
 
 import {DefaultDexAdapter} from "src/adapter/DefaultDexAdapter.sol";
 
-contract DeployDefaultExchange is Script {
-    function run() public returns (address exchange) {
+contract DeployDefaultAdapter is Script {
+    function run() public returns (address adapter) {
         address router = vm.envAddress("ROUTER");
         bytes32 salt = vm.envOr("SALT", bytes32(0));
 
@@ -16,10 +16,10 @@ contract DeployDefaultExchange is Script {
         address expected = vm.computeCreate2Address(salt, initCodeHash);
         if (expected.code.length > 0) {
             console.log("DefaultDexAdapter already deployed at:", expected);
-            exchange = expected;
+            adapter = expected;
         } else {
             vm.broadcast();
-            exchange = address(new DefaultDexAdapter{salt: salt}(router));
+            adapter = address(new DefaultDexAdapter{salt: salt}(router));
         }
     }
 }

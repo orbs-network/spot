@@ -19,6 +19,7 @@
         "prepublishOnly": "npm run fmt && npm run build && npm run test"
     },
     "files": [
+        "config.json",
         "script/input/",
         "out/**/*.json",
         "index.js"

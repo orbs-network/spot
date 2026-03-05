@@ -210,7 +210,7 @@ forge snapshot --check  # Validate gas consumption changes
 
 ## Multi-Chain Deployment
 
-The protocol is designed for deployment across EVM-compatible chains with deterministic addresses via CREATE2. Configuration is managed through `script/input/config.json`; populate this file with the parameters required for the target network.
+The protocol is designed for deployment across EVM-compatible chains with deterministic addresses via CREATE2. Configuration is managed through `config.json`; populate this file with the parameters required for the target network.
 
 ## Contributing
 

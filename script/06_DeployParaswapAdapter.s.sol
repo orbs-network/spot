@@ -5,8 +5,8 @@ import {Script, console} from "forge-std/Script.sol";
 
 import {ParaswapDexAdapter} from "src/adapter/ParaswapDexAdapter.sol";
 
-contract DeployParaswapExchange is Script {
-    function run() public returns (address exchange) {
+contract DeployParaswapAdapter is Script {
+    function run() public returns (address adapter) {
         address router = vm.envAddress("ROUTER");
         bytes32 salt = vm.envOr("SALT", bytes32(0));
 
@@ -16,10 +16,10 @@ contract DeployParaswapExchange is Script {
         address expected = vm.computeCreate2Address(salt, initCodeHash);
         if (expected.code.length > 0) {
             console.log("ParaswapDexAdapter already deployed at:", expected);
-            exchange = expected;
+            adapter = expected;
         } else {
             vm.broadcast();
-            exchange = address(new ParaswapDexAdapter{salt: salt}(router));
+            adapter = address(new ParaswapDexAdapter{salt: salt}(router));
         }
     }
 }
