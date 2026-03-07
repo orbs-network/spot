@@ -3,7 +3,7 @@ pragma solidity 0.8.27;
 
 import {BaseTest} from "test/base/BaseTest.sol";
 import {Executor} from "src/Executor.sol";
-import {Settler} from "src/adapter/Settler.sol";
+import {Settler} from "src/ops/Settler.sol";
 import {UniversalAdapter} from "src/adapter/UniversalAdapter.sol";
 import {OrderLib} from "src/lib/OrderLib.sol";
 import {Execution, CosignedOrder} from "src/Structs.sol";
@@ -71,10 +71,32 @@ contract SettlerTest is BaseTest {
         CosignedOrder memory co = order();
         bytes32 hash = OrderLib.hash(co.order);
 
-        Execution memory x = executionWithTargetData(0, address(0), abi.encode(uint256(0), bytes("")));
+        Execution memory settlerExecution = executionWithTargetData(0, address(0), abi.encode(uint256(0), bytes("")));
+        bytes memory data = abi.encodeWithSelector(Settler.swap.selector, co, settlerExecution);
+        Execution memory x = executionWithTargetData(0, address(settlerUut), data);
         vm.expectRevert(Settler.InvalidTarget.selector);
         vm.prank(address(reactorMock));
         exec.reactorCallback(hash, 0, co, x);
+    }
+
+    function test_settler_reverts_when_used_as_adapter() public {
+        inToken = address(token);
+        outToken = address(token2);
+        inAmount = 100 ether;
+        inMax = inAmount;
+        outAmount = 55 ether;
+        triggerUpper = 0;
+        adapter = address(settlerUut);
+        CosignedOrder memory co = order();
+
+        bytes32 hash = OrderLib.hash(co.order);
+        uint256 outputAmount = co.order.output.limit;
+        bytes memory solverSig = _solverSignature(co, co.order.output.token, outputAmount, address(settlerUut));
+        Execution memory x = executionWithTargetData(outputAmount, solver, abi.encode(outputAmount, solverSig));
+
+        vm.expectRevert();
+        vm.prank(address(reactorMock));
+        exec.reactorCallback(hash, outputAmount, co, x);
     }
 
     function test_settler_reverts_invalid_signature() public {

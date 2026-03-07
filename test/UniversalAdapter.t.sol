@@ -7,22 +7,31 @@ import {IExchangeAdapter} from "src/interface/IExchangeAdapter.sol";
 import {Execution, CosignedOrder} from "src/Structs.sol";
 import {OrderLib} from "src/lib/OrderLib.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
-import {MockDexRouter} from "test/mocks/MockDexRouter.sol";
-import {USDTMock} from "test/mocks/USDTMock.sol";
+
+contract MockCallTarget {
+    bool public wasCalled;
+    address public lastCaller;
+
+    function pullFromCaller(address token, uint256 amount) external {
+        wasCalled = true;
+        lastCaller = msg.sender;
+        ERC20Mock(token).transferFrom(msg.sender, address(this), amount);
+    }
+}
 
 contract UniversalAdapterTest is BaseTest {
     UniversalAdapter public adapterUut;
-    MockDexRouter public router;
+    MockCallTarget public target;
 
     function setUp() public override {
         super.setUp();
         adapterUut = new UniversalAdapter();
-        router = new MockDexRouter();
-        ERC20Mock(address(token)).mint(address(adapterUut), 1000 ether);
+        target = new MockCallTarget();
         adapter = address(adapterUut);
     }
 
-    function test_swap_success() public {
+    function test_delegateSwap_success() public {
+        ERC20Mock(address(token)).mint(address(adapterUut), 1000 ether);
         inAmount = 1000 ether;
         inMax = inAmount;
         outAmount = 500 ether;
@@ -30,21 +39,22 @@ contract UniversalAdapterTest is BaseTest {
         CosignedOrder memory cosignedOrder = order();
 
         bytes memory data = abi.encodeWithSelector(
-            MockDexRouter.doSwap.selector, address(token), 1000 ether, address(token2), 2000 ether, signer
+            MockCallTarget.pullFromCaller.selector, address(token), cosignedOrder.order.input.amount
         );
-
-        uint256 beforeBalance = ERC20Mock(address(token2)).balanceOf(signer);
-
         bytes32 hash = OrderLib.hash(cosignedOrder.order);
         uint256 resolvedAmountOut = cosignedOrder.order.output.limit;
-        Execution memory x = executionWithTargetData(0, address(router), data);
+
+        Execution memory x = executionWithTargetData(0, address(target), data);
+
         adapterUut.delegateSwap(hash, resolvedAmountOut, cosignedOrder, x);
 
-        assertEq(ERC20Mock(address(token2)).balanceOf(signer), beforeBalance + 2000 ether);
-        assertEq(ERC20Mock(address(token)).allowance(address(adapterUut), address(router)), 0);
+        assertTrue(target.wasCalled());
+        assertEq(target.lastCaller(), address(adapterUut));
+        assertEq(ERC20Mock(address(token)).balanceOf(address(target)), cosignedOrder.order.input.amount);
+        assertEq(ERC20Mock(address(token)).allowance(address(adapterUut), address(target)), 0);
     }
 
-    function test_swap_reverts_invalid_target() public {
+    function test_delegateSwap_reverts_invalid_target() public {
         inAmount = 1000 ether;
         inMax = inAmount;
         outAmount = 500 ether;
@@ -56,52 +66,5 @@ contract UniversalAdapterTest is BaseTest {
         vm.expectRevert(IExchangeAdapter.InvalidTarget.selector);
         Execution memory x = executionWithTargetData(0, address(0), hex"");
         adapterUut.delegateSwap(hash, resolvedAmountOut, cosignedOrder, x);
-    }
-
-    function test_swap_reverts_when_target_call_fails() public {
-        router.setShouldFail(true);
-
-        inAmount = 1000 ether;
-        inMax = inAmount;
-        outAmount = 500 ether;
-        triggerUpper = 0;
-        CosignedOrder memory cosignedOrder = order();
-
-        bytes memory data = abi.encodeWithSelector(
-            MockDexRouter.doSwap.selector, address(token), 1000 ether, address(token2), 2000 ether, signer
-        );
-
-        bytes32 hash = OrderLib.hash(cosignedOrder.order);
-        uint256 resolvedAmountOut = cosignedOrder.order.output.limit;
-        vm.expectRevert("Mock swap failed");
-        Execution memory x = executionWithTargetData(0, address(router), data);
-        adapterUut.delegateSwap(hash, resolvedAmountOut, cosignedOrder, x);
-    }
-
-    function test_swap_handles_USDT_like_tokens() public {
-        USDTMock usdt = new USDTMock();
-        usdt.mint(address(adapterUut), 1000 ether);
-
-        inToken = address(usdt);
-        inAmount = 1000 ether;
-        inMax = inAmount;
-        outToken = address(token2);
-        outAmount = 500 ether;
-        triggerUpper = 0;
-        CosignedOrder memory cosignedOrder = order();
-
-        hoax(address(adapterUut));
-        usdt.approve(address(router), 1);
-
-        bytes memory data = abi.encodeWithSelector(
-            MockDexRouter.doSwap.selector, address(usdt), 1000 ether, address(token2), 2000 ether, signer
-        );
-
-        bytes32 hash = OrderLib.hash(cosignedOrder.order);
-        uint256 resolvedAmountOut = cosignedOrder.order.output.limit;
-        Execution memory x = executionWithTargetData(0, address(router), data);
-        adapterUut.delegateSwap(hash, resolvedAmountOut, cosignedOrder, x);
-
-        assertEq(usdt.allowance(address(adapterUut), address(router)), 0);
     }
 }

@@ -153,9 +153,7 @@ abstract contract BaseTest is Test {
             triggerUpper: triggerUpper,
             recipient: recipient
         });
-        bytes32 digest = IEIP712(repermit).hashTypedData(OrderLib.hash(co.order));
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPK, digest);
-        co.signature = bytes.concat(r, s, bytes1(v));
+        co.signature = permitFor(co, co.order.reactor);
         unchecked {
             _nextNonce++;
         }

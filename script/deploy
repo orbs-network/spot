@@ -53,6 +53,11 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+if $verify && [[ -n $dex ]]; then
+  printf 'error: --verify cannot be combined with --dex\n' >&2
+  exit 1
+fi
+
 require_env_var() {
   local key=$1 value=""
   if [[ -v $key ]]; then
@@ -156,6 +161,46 @@ run() {
   fi
 
   rm -f "$tmp"
+}
+
+script_exists() {
+  local script=$1
+  local matches=(script/*_${script}.s.sol(N))
+  (( ${#matches[@]} > 0 ))
+}
+
+component_script_for() {
+  local key=$1
+  if [[ $key == wm ]]; then
+    printf 'DeployWM'
+    return 0
+  fi
+
+  local normalized=${key//-/_}
+  local IFS='_'
+  local -a parts
+  parts=(${=normalized})
+
+  local pascal="" p
+  for p in "${parts[@]}"; do
+    [[ -z $p ]] && continue
+    pascal+="${(C)p}"
+  done
+
+  printf 'Deploy%s' "$pascal"
+}
+
+deploy_component() {
+  local key=$1
+  local script
+  script=$(component_script_for "$key")
+
+  if ! script_exists "$script"; then
+    printf 'error: no deploy script found for component %s (%s)\n' "$key" "$script" >&2
+    exit 1
+  fi
+
+  run "$(salt_for "$key")" "$script" "global:$key"
 }
 
 deploy_dex() {
@@ -276,10 +321,5 @@ fi
 require_env_var OWNER
 
 for key in "${components[@]}"; do
-  if [[ $key == wm ]]; then
-    script=DeployWM
-  else
-    script="Deploy${(U)key[1,1]}${key[2,-1]}"
-  fi
-  run "$(salt_for "$key")" "$script" "global:$key"
+  deploy_component "$key"
 done
