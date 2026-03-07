@@ -261,6 +261,51 @@ verify_contracts() {
     local script='addr=${'"${env_var}"':-}; if [[ -z $addr ]]; then printf "warning: env var %s not set; skipping verify for %s\n" '"${env_var}"' '"${contract}"' >&2; exit 0; fi; forge v "$addr" '"${contract}"' "$@"'
     load "${load_opts[@]}" "$CONFIG_FILE" sh -c "$script" _ "${args[@]}"
   done
+
+  verify_adapter_contracts "${load_opts[@]}"
+}
+
+adapter_contract_for() {
+  local adapter_type=$1
+  case $adapter_type in
+    default) printf 'DefaultDexAdapter' ;;
+    p2) printf 'P2DexAdapter' ;;
+    paraswap) printf 'ParaswapDexAdapter' ;;
+    universal) printf 'UniversalAdapter' ;;
+    *) return 1 ;;
+  esac
+}
+
+verify_adapter_contracts() {
+  local -a load_opts=("$@")
+  local chain_id=${CHAIN_ID:-}
+  if [[ -z $chain_id ]]; then
+    printf 'warning: CHAIN_ID not set; skipping adapter verification\n' >&2
+    return 0
+  fi
+
+  local rows
+  rows=$(jq -r --arg chain "$chain_id" '
+    (.[$chain].dex // {})
+    | to_entries[]
+    | select((.value.adapter // "") != "")
+    | [.key, (.value.type // ""), .value.adapter]
+    | @tsv
+  ' "$CONFIG_FILE")
+
+  [[ -z $rows ]] && return 0
+
+  local dex type addr adapter_type contract script
+  while IFS=$'\t' read -r dex type addr; do
+    [[ -z $dex || -z $type || -z $addr ]] && continue
+    adapter_type=${type%%:*}
+    if ! contract=$(adapter_contract_for "$adapter_type"); then
+      printf 'warning: unsupported adapter type %s for dex %s; skipping adapter verify\n' "$type" "$dex" >&2
+      continue
+    fi
+    script='addr=$1; contract=$2; dex=$3; shift 3; printf "Verifying adapter for %s (%s) at %s\n" "$dex" "$contract" "$addr"; forge v "$addr" "$contract" "$@"'
+    load "${load_opts[@]}" "$CONFIG_FILE" sh -c "$script" _ "$addr" "$contract" "$dex" "${args[@]}"
+  done <<< "$rows"
 }
 
 if $verify; then
