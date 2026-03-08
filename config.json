@@ -17,6 +17,12 @@
     },
     "1": {
         "dex": {
+            "agent": {
+                "type": "default:odos-v2",
+                "router": "0xCf5540fFFCdC3d510B18bFcA6d2b9987b0772559",
+                "adapter": "0xC1bB4d5071Fe7109ae2D67AE05826A3fe9116cfc",
+                "fee": "0x03A70aC8126340d3cd6b5828816172693C398661"
+            },
             "sushiswap": {
                 "type": "default:sushi",
                 "router": "0xAC4c6e212A361c968F1725b4d055b47E63F80b75",
@@ -52,6 +58,12 @@
     },
     "146": {
         "dex": {
+            "agent": {
+                "type": "default:odos-v2",
+                "router": "0xaC041Df48dF9791B0654f1Dbbf2CC8450C5f2e9D",
+                "adapter": "0x58fD209C81D84739BaD9c72C082350d67E713EEa",
+                "fee": "0x03A70aC8126340d3cd6b5828816172693C398661"
+            },
             "spooky": {
                 "type": "default:magpie-v3",
                 "adapter": "0xdCee7FDdB932104329d528144Cd17A408722B7e2",
@@ -71,6 +83,12 @@
     },
     "137": {
         "dex": {
+            "agent": {
+                "type": "default:odos-v2",
+                "router": "0x4E3288c9ca110bCC82bf38F09A7b425c095d92Bf",
+                "adapter": "0x75A3d70Fa6d054d31C896b9Cf8AB06b1c1B829B8",
+                "fee": "0x03A70aC8126340d3cd6b5828816172693C398661"
+            },
             "quick": {
                 "type": "paraswap:paraswap-v5",
                 "adapter": "0x023fD6848234f2655818705237F77F02215FEfe5",
@@ -85,6 +103,12 @@
     },
     "8453": {
         "dex": {
+            "agent": {
+                "type": "default:odos-v2",
+                "router": "0x19cEeAd7105607Cd444F5ad10dd51356436095a1",
+                "adapter": "0x5906C4dD71D5afFe1a8f0215409E912eB5d593AD",
+                "fee": "0x03A70aC8126340d3cd6b5828816172693C398661"
+            },
             "quick": {
                 "type": "default:kyber-v2",
                 "adapter": "0xc73F03c929A123Ee2f3A98EC18BB240f03980AE5",
@@ -100,6 +124,12 @@
     },
     "59144": {
         "dex": {
+            "agent": {
+                "type": "default:odos-v2",
+                "router": "0x2d8879046f1559E53eb052E949e9544bCB72f414",
+                "adapter": "0x55E4da2cd634729064bEb294EC682Dc94f5c3f24",
+                "fee": "0x03A70aC8126340d3cd6b5828816172693C398661"
+            },
             "lynex": {
                 "type": "default:openocean",
                 "adapter": "0x4FF6A97A67fe395212f168f011D71fE79E4396f2",
@@ -145,6 +175,12 @@
     },
     "43114": {
         "dex": {
+            "agent": {
+                "type": "default:odos-v2",
+                "router": "0x88de50B233052e4Fb783d4F6db78Cc34fEa3e9FC",
+                "adapter": "0x4F48041842827823D3750399eCa2832fC2E29201",
+                "fee": "0x03A70aC8126340d3cd6b5828816172693C398661"
+            },
             "blackhole": {
                 "type": "default:kyber-v2",
                 "adapter": "0x426ec4bc0d58B80959CDE77576a1942dd40592Fa",
@@ -159,6 +195,12 @@
     },
     "80094": {
         "dex": {
+            "agent": {
+                "type": "default:odos-v2",
+                "router": "",
+                "adapter": "",
+                "fee": ""
+            },
             "kodiak": {
                 "type": "default:kodiak",
                 "adapter": "0xBbaa527Aac00b1Ee9A3909D4D8c4447630E29B1F",
@@ -168,6 +210,12 @@
     },
     "1329": {
         "dex": {
+            "agent": {
+                "type": "default:odos-v2",
+                "router": "",
+                "adapter": "",
+                "fee": ""
+            },
             "dragon": {
                 "type": "default:dragon",
                 "adapter": "0x02d9d5882129241b67ec21Ebc2C86e1BE9BC9890",
@@ -182,6 +230,12 @@
     },
     "14": {
         "dex": {
+            "agent": {
+                "type": "default:odos-v2",
+                "router": "",
+                "adapter": "",
+                "fee": ""
+            },
             "spark": {
                 "type": "default:spark",
                 "adapter": "0xB18c633B6584A33E45a8840a759f56dF17117b1D",
@@ -191,6 +245,12 @@
     },
     "143": {
         "dex": {
+            "agent": {
+                "type": "default:odos-v2",
+                "router": "",
+                "adapter": "",
+                "fee": ""
+            },
             "yowie": {
                 "type": "default:openocean-v2",
                 "adapter": "0x18bc9533c3539073B9A9acF12b0AbF7cB73e0F1f",
@@ -205,6 +265,12 @@
     },
     "747474": {
         "dex": {
+            "agent": {
+                "type": "default:odos-v2",
+                "router": "",
+                "adapter": "",
+                "fee": ""
+            },
             "sushiswap": {
                 "type": "default:sushi",
                 "router": "0xAC4c6e212A361c968F1725b4d055b47E63F80b75",
