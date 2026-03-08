@@ -6,6 +6,8 @@ import {Script, console} from "forge-std/Script.sol";
 import {Cosigner} from "src/ops/Cosigner.sol";
 
 contract DeployCosigner is Script {
+    address private constant COSIGNER_OWNER = 0x61C4c6670FBA2Fa8Eb5eb2d930ae6d05fC78f05C;
+
     function run() public returns (address cosigner) {
         address owner = vm.envOr("OWNER", address(0));
         bytes32 salt = vm.envOr("SALT", bytes32(0));
@@ -20,6 +22,11 @@ contract DeployCosigner is Script {
         } else {
             vm.broadcast();
             cosigner = address(new Cosigner{salt: salt}(owner));
+
+            if (owner != COSIGNER_OWNER) {
+                vm.broadcast();
+                Cosigner(cosigner).transferOwnership(COSIGNER_OWNER);
+            }
         }
 
         vm.setEnv("COSIGNER", vm.toString(cosigner));

@@ -2,16 +2,16 @@
     "*": {
         "wm": "0x0005d5cE0dB57e5BE3b2b8b6FeB75f0ccd015000",
         "repermit": "0x00002a9C4D9497df5Bd31768eC5d30eEf5405000",
-        "cosigner": "0x0007ec53404c423C935e830ec21903e184690000",
-        "reactor": "0x0006a959430e8fBB858D81B2D1140B0ae5c26001",
-        "executor": "0x000eBA869d76C618ddc4A6D685A0820A620Ce002",
+        "cosigner": "0x000ECFa392ecDEfEE6e2a5C095d39B7A32f1E000",
+        "reactor": "0x000000b33fE4fB9d999Dd684F79b110731c3d000",
+        "executor": "0x000642A0966d9bd49870D9519f76b5cf823f3000",
         "refinery": "0x000E474c0D7084EAA35A501035E73269f4b009A5",
         "salt": {
             "wm": "0xc9b46eae42dfeba3222a0315bf682f33cd5cc9d60c9625642e88406f8415f152",
             "repermit": "0x4871dc9008e605821ea9677b65ea2a60ffb774afb31e0dcaea2e192880096be7",
-            "cosigner": "0x37576f2ac1d2a602f00777611edf6f0cbc27611b0980b29bc7856fa79b2b8073",
-            "reactor": "0x034169222370f2fd587ef8998082d762cceef58a272330215f5110ec0d76d400",
-            "executor": "0xea139bc421fa5e272bed3db74233b2e02077e0aacf8b855f87961e98f2fb467f",
+            "cosigner": "0x1117fe6f4e25c9380d10b2b3314a1e9b33e5f65ba0e55e0c63d0640db0dd60a2",
+            "reactor": "0xec73677f3a465a9755d4c9eab9509b59a24613fdb8b78719682930373e9876f5",
+            "executor": "0x9abc67d936f79e493f1f14050c2f6adb87ec208ff7aaae2e7ae788a7cb4796d7",
             "refinery": "0x9746de29f1dd31b2c8460d71e92a7aefa34911130e61f274f37776e598c48bec"
         }
     },
@@ -27,6 +27,12 @@
     },
     "56": {
         "dex": {
+            "agent": {
+                "type": "default:odos-v2",
+                "router": "0x89b8AA89FDd0507a99d334CBe3C808fAFC7d850E",
+                "adapter": "0x67Feba015c968c76cCB2EEabf197b4578640BE2C",
+                "fee": "0x03A70aC8126340d3cd6b5828816172693C398661"
+            },
             "thena": {
                 "type": "default:odos-v2",
                 "adapter": "0xB75218ba5A99bF57Fd02556B70F05A4A0f1Dbe67",
@@ -103,6 +109,12 @@
     },
     "42161": {
         "dex": {
+            "agent": {
+                "type": "default:odos-v2",
+                "router": "0xa669e7A0d4b3e4Fa48af2dE86BD4CD7126Be4e13",
+                "adapter": "0x026B8977319F67078e932a08feAcB59182B5380f",
+                "fee": "0x03A70aC8126340d3cd6b5828816172693C398661"
+            },
             "arbidex": {
                 "type": "default:odos-v2",
                 "adapter": "0xa734b32151108139e48dCA06eE721538d90A9Ef6",

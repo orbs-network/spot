@@ -14,6 +14,7 @@ components=(
 dex=""
 verify=false
 args=()
+typeset -A runtime_env
 
 usage() {
   cat <<'EOF'
@@ -117,22 +118,59 @@ dex_field_for() {
   ' "$CONFIG_FILE"
 }
 
+runtime_env_var_for_target() {
+  local target=$1
+  case $target in
+    global:*)
+      printf '%s' "${(U)${target#global:}}"
+      ;;
+  esac
+}
+
+runtime_env_assignments() {
+  local -a assignments=()
+  local key value
+  for key value in ${(kv)runtime_env}; do
+    [[ -n $value ]] || continue
+    assignments+=("${key}=${value}")
+  done
+  printf '%s\n' "${assignments[@]}"
+}
+
+remember_runtime_address() {
+  local target=$1 address=$2 env_var
+  env_var=$(runtime_env_var_for_target "$target")
+  [[ -n $env_var ]] || return 0
+  runtime_env[$env_var]=$address
+}
+
 run() {
   local salt=$1 script=$2 target=${3:-}
   shift 3
 
   local -a env_assignments=("$@")
+  local -a runtime_assignments=()
   local tmp=$(mktemp) raw_tmp=$(mktemp)
   local load_opts=(-u)
+  local runtime_assignment
   [[ -n ${CHAIN_ID:-} ]] && load_opts+=(-c "$CHAIN_ID")
-  local cmd=(load "${load_opts[@]}" "$CONFIG_FILE" forge script "$script" "${args[@]}" --json)
 
   if [[ -n $salt && $salt != null ]]; then
     env_assignments=("SALT=$salt" "${env_assignments[@]}")
   fi
-  if (( ${#env_assignments[@]} > 0 )); then
-    cmd=(env "${env_assignments[@]}" "${cmd[@]}")
+  while IFS= read -r runtime_assignment; do
+    [[ -n $runtime_assignment ]] || continue
+    runtime_assignments+=("$runtime_assignment")
+  done < <(runtime_env_assignments)
+  if (( ${#runtime_assignments[@]} > 0 )); then
+    env_assignments=("${runtime_assignments[@]}" "${env_assignments[@]}")
   fi
+
+  local cmd=(load "${load_opts[@]}" "$CONFIG_FILE")
+  if (( ${#env_assignments[@]} > 0 )); then
+    cmd+=(env "${env_assignments[@]}")
+  fi
+  cmd+=(forge script "$script" "${args[@]}" --json)
 
   if ! "${cmd[@]}" >"$raw_tmp"; then
     cat "$raw_tmp"
@@ -147,6 +185,7 @@ run() {
   if [[ -n $target ]]; then
     local address=$(jq -r '.returns[]?.value | select(. != null)' "$tmp" | tail -n1)
     if [[ -n $address ]]; then
+      remember_runtime_address "$target" "$address"
       if should_update_config; then
         update_config "$target" "$address"
       else
