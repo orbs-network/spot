@@ -195,12 +195,6 @@
     },
     "80094": {
         "dex": {
-            "agent": {
-                "type": "default:odos-v2",
-                "router": "",
-                "adapter": "",
-                "fee": ""
-            },
             "kodiak": {
                 "type": "default:kodiak",
                 "adapter": "0xBbaa527Aac00b1Ee9A3909D4D8c4447630E29B1F",
@@ -210,12 +204,6 @@
     },
     "1329": {
         "dex": {
-            "agent": {
-                "type": "default:odos-v2",
-                "router": "",
-                "adapter": "",
-                "fee": ""
-            },
             "dragon": {
                 "type": "default:dragon",
                 "adapter": "0x02d9d5882129241b67ec21Ebc2C86e1BE9BC9890",
@@ -230,12 +218,6 @@
     },
     "14": {
         "dex": {
-            "agent": {
-                "type": "default:odos-v2",
-                "router": "",
-                "adapter": "",
-                "fee": ""
-            },
             "spark": {
                 "type": "default:spark",
                 "adapter": "0xB18c633B6584A33E45a8840a759f56dF17117b1D",
@@ -245,12 +227,6 @@
     },
     "143": {
         "dex": {
-            "agent": {
-                "type": "default:odos-v2",
-                "router": "",
-                "adapter": "",
-                "fee": ""
-            },
             "yowie": {
                 "type": "default:openocean-v2",
                 "adapter": "0x18bc9533c3539073B9A9acF12b0AbF7cB73e0F1f",
@@ -265,12 +241,6 @@
     },
     "747474": {
         "dex": {
-            "agent": {
-                "type": "default:odos-v2",
-                "router": "",
-                "adapter": "",
-                "fee": ""
-            },
             "sushiswap": {
                 "type": "default:sushi",
                 "router": "0xAC4c6e212A361c968F1725b4d055b47E63F80b75",
