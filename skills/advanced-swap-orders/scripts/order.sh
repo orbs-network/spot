@@ -68,9 +68,10 @@ Submit
   Supports --prepared <file> or --prepared - for stdin JSON.
   Supports exactly one signature mode:
   - --signature <full 65-byte hex signature>
-  - --signature <JSON with r,s,v>
-  - --signature-file <file|-> containing full signature or r/s/v JSON
+  - --signature <JSON string or JSON with full signature / r,s,v>
+  - --signature-file <file|-> containing full signature, JSON string, or JSON with full signature / r,s,v
   - --r <0x...> --s <0x...> --v <0x..>
+  All signature inputs are normalized to the relay's full 65-byte hex format.
   Use --dry-run to print the exact request without sending it.
 
 Query
@@ -102,13 +103,34 @@ read_json(){
 }
 
 u(){
-  local raw="${1:-}" name="$2" val
+  local raw="${1:-}" name="$2" v dec=0 digit="" i
   [[ -n "$raw" ]] || die "$name is required"
   if [[ "$raw" =~ ^[0-9]+$ ]]; then nd "$raw"; return; fi
   if [[ "$raw" =~ ^0[xX][0-9a-fA-F]+$ ]]; then
-    need cast
-    val="$(cast to-dec "$raw" 2>/dev/null)" || die "$name must be decimal or 0x integer"
-    nd "$val"
+    v="$(low "${raw#0x}")"
+    for ((i=0; i<${#v}; i++)); do
+      case "${v:i:1}" in
+        0) digit=0 ;;
+        1) digit=1 ;;
+        2) digit=2 ;;
+        3) digit=3 ;;
+        4) digit=4 ;;
+        5) digit=5 ;;
+        6) digit=6 ;;
+        7) digit=7 ;;
+        8) digit=8 ;;
+        9) digit=9 ;;
+        a) digit=10 ;;
+        b) digit=11 ;;
+        c) digit=12 ;;
+        d) digit=13 ;;
+        e) digit=14 ;;
+        f) digit=15 ;;
+        *) die "$name must be decimal or 0x integer" ;;
+      esac
+      dec="$(add "$(muls "$dec" 16)" "$digit")"
+    done
+    nd "$dec"
     return
   fi
   die "$name must be decimal or 0x integer"
@@ -179,6 +201,78 @@ u32(){ ge "$U32" "$(nd "$1")" || die "$2 must fit in uint32"; }
 addr(){ [[ "$1" =~ ^0x[0-9a-fA-F]{40}$ ]] || die "$2 must be a 20-byte 0x address"; [[ "$(low "$1")" == "$(low "$ZERO")" && "${3:-0}" != 1 ]] && die "$2 cannot be zero"; printf '%s' "$1"; }
 hex(){ [[ "$1" =~ ^0x([0-9a-fA-F]{2})*$ ]] || die "$2 must be hex"; printf '%s' "$1"; }
 hx(){ local v="$(trim "$1")"; [[ "$v" =~ ^0x[0-9a-fA-F]+$ ]] || [[ "$v" =~ ^[0-9a-fA-F]+$ ]] || die "$2 must be hex"; [[ "$v" =~ ^0x ]] || v="0x$v"; local raw="${v#0x}"; (( ${#raw} == $3 )) || die "$2 must be $3 hex chars"; printf '0x%s' "$raw"; }
+dec_digit_hex(){
+  case "$(nd "${1:-0}")" in
+    0) printf '0' ;;
+    1) printf '1' ;;
+    2) printf '2' ;;
+    3) printf '3' ;;
+    4) printf '4' ;;
+    5) printf '5' ;;
+    6) printf '6' ;;
+    7) printf '7' ;;
+    8) printf '8' ;;
+    9) printf '9' ;;
+    10) printf 'a' ;;
+    11) printf 'b' ;;
+    12) printf 'c' ;;
+    13) printf 'd' ;;
+    14) printf 'e' ;;
+    15) printf 'f' ;;
+    *) die "internal hex digit out of range" ;;
+  esac
+}
+dec_to_hex(){
+  local dec="$(nd "${1:-0}")" out="" parts q rem
+  [[ "$dec" =~ ^[0-9]+$ ]] || die "${2:-value} must be decimal"
+  [[ "$dec" == 0 ]] && { printf '0'; return; }
+  while [[ "$dec" != 0 ]]; do
+    parts="$(divmod "$dec" 16)"; q="${parts%% *}"; rem="${parts##* }"
+    out="$(dec_digit_hex "$rem")${out}"
+    dec="$q"
+  done
+  printf '%s' "$out"
+}
+pad_hex_64(){
+  local raw="$(low "${1#0x}")" out=""
+  [[ "$raw" =~ ^[0-9a-f]+$ ]] || die "${2:-value} must be hex"
+  (( ${#raw} <= 64 )) || die "${2:-value} must fit in uint256"
+  printf -v out '%064s' "$raw"
+  out="${out// /0}"
+  printf '0x%s' "$out"
+}
+approve_calldata(){
+  local spender amount amount_hex spender_hex
+  spender="$(addr "$1" approve.spender)"
+  amount="$(nd "${2:-0}")"
+  [[ "$amount" =~ ^[0-9]+$ ]] || die "approve.amount must be decimal"
+  amount_hex="$(pad_hex_64 "$(dec_to_hex "$amount" approve.amount)" approve.amount)"
+  spender_hex="$(pad_hex_64 "$spender" approve.spender)"
+  printf '0x095ea7b3%s%s' "${spender_hex#0x}" "${amount_hex#0x}"
+}
+sigv(){
+  local raw="$(trim "${1:-}")" name="${2:-signature.v}" dec="" hexv=""
+  [[ -n "$raw" ]] || die "$name is required"
+  if [[ "$raw" =~ ^0[xX][0-9a-fA-F]+$ ]]; then
+    hexv="${raw:2}"
+  elif [[ "$raw" =~ ^[0-9]+$ ]]; then
+    dec="$raw"
+  elif [[ "$raw" =~ ^[0-9a-fA-F]+$ ]]; then
+    hexv="$raw"
+  else
+    die "$name must be 0, 1, 27, 28, or equivalent hex"
+  fi
+  if [[ -n "$hexv" ]]; then
+    dec="$((16#$(low "$hexv")))"
+  fi
+  case "$(nd "$dec")" in
+    0) printf '0x1b' ;;
+    1) printf '0x1c' ;;
+    27) printf '0x1b' ;;
+    28) printf '0x1c' ;;
+    *) die "$name must be 0, 1, 27, 28, or equivalent hex" ;;
+  esac
+}
 adapter(){ case "$1" in 56) say "$ADAPTER_56" ;; 42161) say "$ADAPTER_42161" ;; *) die "unsupported chainId: $1" ;; esac; }
 uri(){ jq -nr --arg v "$1" '$v|@uri'; }
 warnings_json(){ ((${#WARN[@]})) && jq -n '$ARGS.positional' --args "${WARN[@]}" || say '[]'; }
@@ -244,26 +338,51 @@ typed(){
 }
 
 sig_json(){
-  local payload="$(trim "$1")" r s v
+  local payload="$(trim "$1")" r="" s="" v="" full="" kind=""
   [[ -n "$payload" ]] || die "signature input is empty"
   if jq -e . >/dev/null 2>&1 <<<"$payload"; then
-    r="$(jq -r 'if type=="object" and has("signature") then .signature.r // empty else .r // empty end' <<<"$payload")"
-    s="$(jq -r 'if type=="object" and has("signature") then .signature.s // empty else .s // empty end' <<<"$payload")"
-    v="$(jq -r 'if type=="object" and has("signature") then .signature.v // empty else .v // empty end' <<<"$payload")"
-    [[ -n "$r" && -n "$s" && -n "$v" ]] || die "signature JSON must contain r, s, v"
-    jq -n --arg kind rsv --arg r "$(hx "$r" signature.r 64)" --arg s "$(hx "$s" signature.s 64)" --arg v "$(hx "$v" signature.v 2)" '{kind:$kind,signature:{r:$r,s:$s,v:$v}}'
-    return
+    if [[ "$(jq -r 'type' <<<"$payload")" == "string" ]]; then
+      payload="$(jq -r . <<<"$payload")"
+    else
+      full="$(jq -r '
+        if type=="object" and has("signature") and (.signature|type)=="string" then .signature
+        elif type=="object" then .full // empty
+        else empty
+        end
+      ' <<<"$payload")"
+      if [[ -z "$full" ]]; then
+        r="$(jq -r 'if type=="object" and has("signature") and (.signature|type)=="object" then .signature.r // empty else .r // empty end' <<<"$payload")"
+        s="$(jq -r 'if type=="object" and has("signature") and (.signature|type)=="object" then .signature.s // empty else .s // empty end' <<<"$payload")"
+        v="$(jq -r 'if type=="object" and has("signature") and (.signature|type)=="object" then .signature.v // empty else .v // empty end' <<<"$payload")"
+        [[ -n "$r" && -n "$s" && -n "$v" ]] || die "signature JSON must contain a full signature string or r, s, v"
+        kind="rsv"
+      else
+        payload="$full"
+      fi
+    fi
   fi
-  [[ "$payload" =~ ^0x[0-9a-fA-F]{130}$ || "$payload" =~ ^[0-9a-fA-F]{130}$ ]] || die "signature must be full hex or r/s/v JSON"
-  [[ "$payload" =~ ^0x ]] || payload="0x${payload}"
-  jq -n --arg kind full --arg r "0x${payload:2:64}" --arg s "0x${payload:66:64}" --arg v "0x${payload:130:2}" '{kind:$kind,signature:{r:$r,s:$s,v:$v}}'
+  if [[ -n "$r" || -n "$s" || -n "$v" ]]; then
+    r="$(hx "$r" signature.r 64)"
+    s="$(hx "$s" signature.s 64)"
+    v="$(sigv "$v" signature.v)"
+    full="${r}${s#0x}${v#0x}"
+  else
+    [[ "$payload" =~ ^0x[0-9a-fA-F]{130}$ || "$payload" =~ ^[0-9a-fA-F]{130}$ ]] || die "signature must be full hex, a JSON string, or r/s/v JSON"
+    [[ "$payload" =~ ^0x ]] || payload="0x${payload}"
+    full="$payload"
+    r="0x${payload:2:64}"
+    s="0x${payload:66:64}"
+    v="$(sigv "0x${payload:130:2}" signature.v)"
+    [[ -n "$kind" ]] || kind="full"
+  fi
+  jq -n --arg kind "$kind" --arg full "$full" --arg r "$r" --arg s "$s" --arg v "$v" '{kind:$kind,full:$full,signature:{r:$r,s:$s,v:$v}}'
 }
 
 prepare(){
   local params="" out_file="" params_json="" now_ts chain swapper nonce start deadline epoch slippage
   local in_token in_amount in_max requested_in_max out_token out_limit out_low out_up recipient parts chunk_count rem kind
   while (($#)); do case "$1" in --params) params="${2:-}"; shift 2 ;; --out) out_file="${2:-}"; shift 2 ;; *) die "unknown prepare arg: $1" ;; esac; done
-  need jq; need cast
+  need jq
   params_json="$(read_json "$params" params)"
   now_ts="$(now)"
   chain="$(u "$(jget "$params_json" '.chainId // .chainID')" chainId)"; case "$chain" in 56|42161) ;; *) die "unsupported chainId: $chain" ;; esac
@@ -306,7 +425,7 @@ prepare(){
   [[ "$(cmp "$slippage" "$DEF_SLIPPAGE")" == -1 ]] && warn "$WARN_LOW_SLIPPAGE"
   [[ "$(low "$recipient")" != "$(low "$swapper")" ]] && warn "$WARN_RECIPIENT"
   local typed_data typed_compact approval_data prepared
-  approval_data="$(hex "$(cast calldata 'approve(address,uint256)' "$REPERMIT" "$in_max")" approval.tx.data)"
+  approval_data="$(hex "$(approve_calldata "$REPERMIT" "$in_max")" approval.tx.data)"
   typed_data="$(typed "$chain" "$swapper" "$nonce" "$start" "$deadline" "$epoch" "$slippage" "$in_token" "$in_amount" "$in_max" "$out_token" "$out_limit" "$out_low" "$out_up" "$recipient")"
   typed_compact="$(jq -c . <<<"$typed_data")"
   prepared="$(
@@ -348,7 +467,7 @@ prepare(){
           approval:{token:$inToken,spender:$spender,amount:$inMax,tx:{to:$inToken,data:$approval,value:"0x0"}},
           typedData:$typedData,
           signing:{signer:$swapper,note:$signNote},
-          submit:{url:$create,body:{order:$typedData.message,signature:{r:null,s:null,v:null}}},
+          submit:{url:$create,body:{order:$typedData.message,signature:null}},
           query:{url:$query}
         }'
   )"
@@ -384,7 +503,7 @@ submit(){
     normalized="$(sig_json "$sig")"
   else
     [[ -n "$r" && -n "$s" && -n "$v" ]] || die "--r --s --v must be used together"
-    normalized="$(jq -n --arg kind rsv --arg r "$(hx "$r" r 64)" --arg s "$(hx "$s" s 64)" --arg v "$(hx "$v" v 2)" '{kind:$kind,signature:{r:$r,s:$s,v:$v}}')"
+    normalized="$(sig_json "$(jq -n --arg r "$r" --arg s "$s" --arg v "$v" '{r:$r,s:$s,v:$v}')")"
   fi
   request="$(
     jq -n \
@@ -401,7 +520,7 @@ submit(){
               else error("missing order payload")
               end
             ),
-            signature: $sig.signature
+            signature: $sig.full
           },
           signatureInput: $sig.kind
         }'
