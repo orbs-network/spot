@@ -1,0 +1,9 @@
+# Sign And Submit
+
+1. Sign `prepared.typedData` with any EIP-712-capable wallet or library. The signer must equal `swapper`.
+2. `eth_signTypedData_v4` is only one example.
+3. Submit with `--prepared <prepared.json|->` and `--signature <0x...|json>`, `--signature-file <sig.txt|sig.json|->`, or `--r <0x...> --s <0x...> --v <0x1b>`.
+4. Piping works: `cat prepared.json | bash scripts/order.sh submit --prepared - --signature <0x...>`.
+5. Query with `bash scripts/order.sh query --swapper <0x...>` or `--hash <0x...>`.
+6. Cancel trustlessly onchain by calling `RePermit.cancel([digest])` as the swapper for the signed RePermit digest.
+7. Add `--dry-run` to `submit` or `query` to inspect the request without sending it.
