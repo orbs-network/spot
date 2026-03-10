@@ -18,6 +18,7 @@ FRESHNESS="30"
 TTL="300"
 U32="4294967295"
 NOTE_ORACLE="Oracle protection applies to all order types and every chunk."
+NOTE_EPOCH="epoch is the delay between chunks, but it is not exact: one chunk can fill once anywhere inside each epoch window."
 NOTE_SIGN="Sign typedData with any EIP-712 flow. eth_signTypedData_v4 is only an example."
 WARN_LOW_SLIPPAGE="slippage below 5% can reduce fill probability. 5% is the default compromise; higher slippage still uses oracle pricing and offchain executors."
 WARN_RECIPIENT="recipient differs from swapper and is dangerous to change"
@@ -50,13 +51,14 @@ Prepare
   - input.maxAmount = input.amount
   - nonce = now
   - start = now
-  - deadline = start + 300 + chunkCount * epoch
+  - deadline = start + 300 + chunkCount * epoch (conservative helper default)
   - slippage = 500
   - output.limit = 0
   - output.recipient = swapper
   Rules:
   - only chainId 56 and 42161 are supported
   - chunked orders require epoch > 0
+  - epoch is the delay between chunks, but it is not exact: one chunk can fill once anywhere inside each epoch window
   - native input is not supported; wrap to WNATIVE first
   - native output is supported with output.token = 0x0000000000000000000000000000000000000000
   - output.limit and triggers are output-token units per chunk
@@ -259,7 +261,7 @@ sig_json(){
 
 prepare(){
   local params="" out_file="" params_json="" now_ts chain swapper nonce start deadline epoch slippage
-  local in_token in_amount in_max out_token out_limit out_low out_up recipient parts chunk_count rem last_chunk kind
+  local in_token in_amount in_max requested_in_max out_token out_limit out_low out_up recipient parts chunk_count rem kind
   while (($#)); do case "$1" in --params) params="${2:-}"; shift 2 ;; --out) out_file="${2:-}"; shift 2 ;; *) die "unknown prepare arg: $1" ;; esac; done
   need jq; need cast
   params_json="$(read_json "$params" params)"
@@ -286,9 +288,13 @@ prepare(){
   [[ "$(cmp "$out_up" 0)" != 0 && "$(cmp "$out_low" "$out_up")" == 1 ]] && die "output.triggerLower cannot exceed output.triggerUpper"
   gt "$slippage" "$MAX_SLIPPAGE" && die "slippage cannot exceed $MAX_SLIPPAGE"
   [[ "$(cmp "$epoch" 0)" != 0 && "$(cmp "$FRESHNESS" "$epoch")" != -1 ]] && die "freshness must be < epoch when epoch != 0"
-  ! eq "$in_amount" "$in_max" && eq "$epoch" 0 && die "chunked orders require epoch > 0"
+  requested_in_max="$in_max"
   parts="$(divmod "$in_max" "$in_amount")"; chunk_count="${parts%% *}"; rem="${parts##* }"
-  if eq "$rem" 0; then last_chunk="$in_amount"; else chunk_count="$(add "$chunk_count" 1)"; last_chunk="$rem"; fi
+  if ! eq "$rem" 0; then
+    in_max="$(sub "$in_max" "$rem")"
+    warn "input.maxAmount is not divisible by input.amount; rounding down from $requested_in_max to $in_max to keep fixed chunk sizes"
+  fi
+  ! eq "$in_amount" "$in_max" && eq "$epoch" 0 && die "chunked orders require epoch > 0"
   if eq "$in_amount" "$in_max"; then kind=single; else kind=chunked; fi
   if [[ -n "$(jget "$params_json" '.deadline')" ]]; then
     deadline="$(u "$(jget "$params_json" '.deadline')" deadline)"
@@ -307,7 +313,8 @@ prepare(){
     jq -n \
       --arg preparedAt "$(iso)" \
       --arg chunkCount "$chunk_count" \
-      --arg lastChunk "$last_chunk" \
+      --arg chunkInputAmount "$in_amount" \
+      --arg epochNote "$NOTE_EPOCH" \
       --arg kind "$kind" \
       --arg epoch "$epoch" \
       --arg start "$start" \
@@ -329,10 +336,11 @@ prepare(){
             preparedAt:$preparedAt,
             kind:$kind,
             chunkCount:$chunkCount,
-            finalChunkInputAmount:$lastChunk,
+            chunkInputAmount:$chunkInputAmount,
             start:$start,
             deadline:$deadline,
             epoch:$epoch,
+            epochScheduling:$epochNote,
             limit:$limit,
             oracleProtection:$note
           },

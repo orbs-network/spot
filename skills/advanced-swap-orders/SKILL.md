@@ -20,9 +20,9 @@ Use this for any supported gasless swap or advanced order. Supply chain, token a
 1. Supported chains:
    - BNB Chain (`56`)
    - Arbitrum One (`42161`)
-2. `input.amount` is the per-chunk input size. `input.maxAmount` is optional and defaults to `input.amount`.
-3. `epoch` controls chunk cadence. `epoch = 0` means immediate single-fill only. Chunked orders must use `epoch > 0`.
-4. Future `start` delays the first fill. Large `epoch` only spaces later chunks; it does not delay the first fill.
+2. `input.amount` is the fixed per-chunk input size. `input.maxAmount` is optional and defaults to `input.amount`. If `input.maxAmount` is not a whole multiple of `input.amount`, the helper rounds `input.maxAmount` down so every fill keeps the same `input.amount`.
+3. `epoch` is the delay between chunks. It is not exact: each chunk can fill anywhere inside its epoch window, only once. `epoch = 0` means immediate single-fill only. Chunked orders must use `epoch > 0`.
+4. Future `start` delays the first fill. For example, `epoch = 60` means one chunk can fill once anywhere inside each 60-second epoch window.
 5. `output.limit`, `output.triggerLower`, and `output.triggerUpper` are output-token units per chunk.
 6. Best execution and oracle protection apply regardless of `output.limit`.
 7. Native input is not supported; wrap to WNATIVE first. Native output is supported with `output.token = 0x0000000000000000000000000000000000000000`.
