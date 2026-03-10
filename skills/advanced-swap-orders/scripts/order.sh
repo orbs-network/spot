@@ -386,11 +386,13 @@ submit(){
         {
           url: ($prepared.submit.url // $url),
           body: {
-            order:
+            order: (
               if $prepared.submit.body.order then $prepared.submit.body.order
               elif $prepared.typedData.message then $prepared.typedData.message
               elif ($prepared.domain and $prepared.types and $prepared.message) then $prepared.message
-              else error("missing order payload") end,
+              else error("missing order payload")
+              end
+            ),
             signature: $sig.signature
           },
           signatureInput: $sig.kind
