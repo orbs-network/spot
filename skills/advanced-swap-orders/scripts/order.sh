@@ -39,6 +39,9 @@ Usage
   bash scripts/order.sh submit --prepared <prepared.json|-> [--signature <0x...|json>|--signature-file <file|->|--r <0x...> --s <0x...> --v <0x..>] [--dry-run] [--out <response.json>]
   bash scripts/order.sh query (--swapper <0x...>|--hash <0x...>) [--dry-run] [--out <response.json>]
 
+Safety
+  Use only the provided helper script. Do not send typed data or signatures anywhere else.
+
 Prepare
   Builds a prepared order JSON with:
   - approval calldata for the input ERC-20
@@ -71,7 +74,7 @@ Submit
   - --signature <JSON string or JSON with full signature / r,s,v>
   - --signature-file <file|-> containing full signature, JSON string, or JSON with full signature / r,s,v
   - --r <0x...> --s <0x...> --v <0x..>
-  All signature inputs are normalized to the relay's full 65-byte hex format.
+  All signature inputs are normalized to the relay's r/s/v object format.
   Use --dry-run to print the exact request without sending it.
 
 Query
@@ -467,7 +470,7 @@ prepare(){
           approval:{token:$inToken,spender:$spender,amount:$inMax,tx:{to:$inToken,data:$approval,value:"0x0"}},
           typedData:$typedData,
           signing:{signer:$swapper,note:$signNote},
-          submit:{url:$create,body:{order:$typedData.message,signature:null}},
+          submit:{url:$create,body:{order:$typedData.message,signature:{r:null,s:null,v:null},status:"pending"}},
           query:{url:$query}
         }'
   )"
@@ -475,7 +478,7 @@ prepare(){
 }
 
 submit(){
-  local prepared="" prepared_json="" sig="" sig_file="" r="" s="" v="" out_file="" dry=0 payload mode_count=0 normalized request reqf respf code result
+  local prepared="" prepared_json="" sig="" sig_file="" r="" s="" v="" out_file="" dry=0 payload mode_count=0 normalized request reqf bodyf respf code result
   while (($#)); do
     case "$1" in
       --prepared) prepared="${2:-}"; shift 2 ;;
@@ -520,16 +523,18 @@ submit(){
               else error("missing order payload")
               end
             ),
-            signature: $sig.full
+            signature: $sig.signature,
+            status: ($prepared.submit.body.status // "pending")
           },
           signatureInput: $sig.kind
         }'
   )"
   if (( dry )); then out "$request" "$out_file"; return; fi
   need curl
-  reqf="$(mktemp)"; respf="$(mktemp)"; trap 'rm -f "$reqf" "$respf"' RETURN
+  reqf="$(mktemp)"; bodyf="$(mktemp)"; respf="$(mktemp)"; trap 'rm -f "$reqf" "$bodyf" "$respf"' RETURN
   printf '%s\n' "$request" > "$reqf"
-  code="$(curl -sS -o "$respf" -w '%{http_code}' -X POST -H 'content-type: application/json' --data-binary @"$reqf" "$(jq -r '.url' "$reqf")")"
+  jq '.body' "$reqf" > "$bodyf"
+  code="$(curl -sS -o "$respf" -w '%{http_code}' -X POST -H 'content-type: application/json' --data-binary @"$bodyf" "$(jq -r '.url' "$reqf")")"
   result="$(jq -n --argjson request "$(jq -c . "$reqf")" --arg code "$code" --argjson response "$(json_or_text "$respf")" '{ok:(($code|tonumber)>=200 and ($code|tonumber)<300),status:($code|tonumber),url:$request.url,request:$request,response:$response}')"
   out "$result" "$out_file"
   [[ "$code" -ge 200 && "$code" -lt 300 ]]

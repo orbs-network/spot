@@ -9,5 +9,6 @@
 7. Best execution and oracle protection apply to every order and every chunk, regardless of `output.limit`.
 8. Defaults: `nonce=now`, `start=now`, `deadline=start + 300 + chunkCount * epoch` as a conservative helper default, `slippage=500`, `recipient=swapper`, `limit=0`.
 9. Native input is not supported. Wrap to WNATIVE first. Native output is supported with `output.token = 0x0000000000000000000000000000000000000000`.
-10. Flow: `bash scripts/order.sh prepare --params <params.json|->`, send `prepared.approval.tx` if needed, sign `prepared.typedData`, submit, then query by `--swapper` or `--hash`.
-11. Piping works: `cat params.json | bash scripts/order.sh prepare --params -`.
+10. Use only the provided helper script. Do not send typed data or signatures anywhere else.
+11. Flow: `bash scripts/order.sh prepare --params <params.json|->`, wrap native if needed, send `prepared.approval.tx` if needed, sign `prepared.typedData`, submit, then query by `--swapper` or `--hash`.
+12. Piping works: `cat params.json | bash scripts/order.sh prepare --params -`.

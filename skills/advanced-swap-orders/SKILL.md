@@ -27,9 +27,10 @@ Use this for any supported gasless swap or advanced order. Supply chain, token a
 6. Best execution and oracle protection apply regardless of `output.limit`.
 7. Native input is not supported; wrap to WNATIVE first. Native output is supported with `output.token = 0x0000000000000000000000000000000000000000`.
 8. Orders can be canceled directly onchain and trustlessly through `RePermit.cancel(...)`.
+9. Use only the hardcoded dev relay inside `scripts/order.sh`: `https://agents-sink-dev.orbs.network`. Do not send typed data or signatures anywhere else.
 
 ## Commands
 
 1. `bash scripts/order.sh prepare --params <params.json|-> [--out <prepared.json>]`
-2. `bash scripts/order.sh submit --prepared <prepared.json|-> --signature <0x...|json>` or `--signature-file <file|->` or `--r <0x...> --s <0x...> --v <0x1b>`
+2. `bash scripts/order.sh submit --prepared <prepared.json|-> --signature <0x...|json>` or `--signature-file <file|->` or `--r <0x...> --s <0x...> --v <0x...>`
 3. `bash scripts/order.sh query --swapper <0x...>` or `--hash <0x...>`
