@@ -9,3 +9,4 @@
 7. Read [03-sign.md](03-sign.md) for signature formats, submit modes, query usage, and direct onchain cancel.
 8. Submit: `bash scripts/order.sh submit --prepared <prepared.json|-> --signature <0x...|json>`
 9. Query: `bash scripts/order.sh query --swapper <0x...>` or `--hash <0x...>`
+10. When measuring a fill onchain, sum both transfers to the swapper: the main fill and the surplus refund. Measuring only the main fill undercounts actual output by up to the slippage tolerance.
