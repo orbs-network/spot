@@ -7,27 +7,21 @@ description: Prepare, sign, submit, and query non-custodial, decentralized, gasl
 
 Use this for any supported gasless swap or advanced order. Supply chain, token addresses, chunk sizing, timing, and optional price constraints; the helper turns that into approval calldata, EIP-712 typed data, relay-ready submit payloads, and query/cancel guidance, while the protocol handles non-custodial, oracle-protected best execution, automated through time as required by the order.
 
-## Read
+## Workflow
 
-1. [references/01-quickstart.md](references/01-quickstart.md) - minimum flow, defaults, piping, and order behavior.
-2. [references/02-params.md](references/02-params.md) - input fields, units, native asset rules, and validation notes.
-3. [references/03-sign.md](references/03-sign.md) - signing, submit modes, direct onchain cancel, and query usage.
-4. [references/04-patterns.md](references/04-patterns.md) - map user intent into market, limit, stop-loss, take-profit, delayed, or chunked orders.
-5. [references/05-addresses.md](references/05-addresses.md) - common token addressbook by chain.
+1. Start with [references/01-quickstart.md](references/01-quickstart.md) for the minimum end-to-end flow.
+2. Read [references/02-params.md](references/02-params.md) when you need field semantics, defaults, units, or validation rules.
+3. Read [references/03-sign.md](references/03-sign.md) for signing, submit modes, query usage, and direct onchain cancel.
+4. Read [references/04-patterns.md](references/04-patterns.md) to map user intent into market, limit, stop-loss, take-profit, delayed, or chunked orders.
+5. Read [references/05-addresses.md](references/05-addresses.md) only when you need common token addresses by chain.
 
-## Core Rules
+## Guardrails
 
 1. Supported chains:
    - BNB Chain (`56`)
    - Arbitrum One (`42161`)
-2. `input.amount` is the fixed per-chunk input size. `input.maxAmount` is optional and defaults to `input.amount`. If `input.maxAmount` is not a whole multiple of `input.amount`, the helper rounds `input.maxAmount` down so every fill keeps the same `input.amount`.
-3. `epoch` is the delay between chunks. It is not exact: each chunk can fill anywhere inside its epoch window, only once. `epoch = 0` means immediate single-fill only. Chunked orders must use `epoch > 0`.
-4. Future `start` delays the first fill. For example, `epoch = 60` means one chunk can fill once anywhere inside each 60-second epoch window.
-5. `output.limit`, `output.triggerLower`, and `output.triggerUpper` are output-token units per chunk.
-6. Best execution and oracle protection apply regardless of `output.limit`.
-7. Native input is not supported; wrap to WNATIVE first. Native output is supported with `output.token = 0x0000000000000000000000000000000000000000`.
-8. Orders can be canceled directly onchain and trustlessly through `RePermit.cancel(...)`.
-9. Use only the hardcoded dev relay inside `scripts/order.sh`: `https://agents-sink-dev.orbs.network`. Do not send typed data or signatures anywhere else.
+2. Use only the provided `scripts/order.sh`. Do not send typed data or signatures anywhere else.
+3. Detailed order behavior, parameter rules, signing modes, and cancel/query flows live in the reference files above. Do not duplicate that guidance in task output unless the user needs it applied.
 
 ## Commands
 

@@ -1,18 +1,19 @@
 # Params
 
+Use this file for field semantics, defaults, units, and validation. Use [04-patterns.md](04-patterns.md) for intent-to-parameter recipes.
+
 1. Required: `chainId`, `swapper`, `input.token`, `input.amount`, `output.token`.
 2. Optional: `input.maxAmount`, `nonce`, `start`, `deadline`, `epoch`, `slippage`, `output.limit`, `output.triggerLower`, `output.triggerUpper`, `output.recipient`.
 3. `input.amount` is the fixed per-chunk size. `input.maxAmount` is total size and approval amount. If omitted, it defaults to `input.amount`. If it is not divisible by `input.amount`, the helper rounds it down to a whole number of chunks.
 4. `output.limit`, `output.triggerLower`, and `output.triggerUpper` are output-token units per chunk.
 5. Future `start` delays the first fill. `epoch` is the delay between chunks, but it is not exact: each chunk can fill anywhere inside its epoch window, only once. Large `epoch` is not a delayed order by itself.
-6. `epoch = 60` means one chunk can fill once anywhere inside each 60-second epoch window.
-7. Chunked orders should use `epoch > 0`; with `epoch = 0`, only the first chunk can fill.
-8. `output.limit = 0` is market-style.
-9. `slippage = 500` is the default compromise. Higher slippage is still protected by oracle pricing and offchain executors.
-10. `output.recipient` defaults to `swapper` and is dangerous to change.
-11. Native input is not supported. Wrap to WNATIVE first. Native output is supported with `output.token = 0x0000000000000000000000000000000000000000`.
-12. `nonce` defaults to current unix timestamp in seconds. Routing and protocol constants are fixed inside `scripts/order.sh`.
-13. Example:
+6. Chunked orders should use `epoch > 0`; with `epoch = 0`, only the first chunk can fill.
+7. Defaults: `input.maxAmount = input.amount`, `nonce = now`, `start = now`, `deadline = start + 300 + chunkCount * epoch`, `slippage = 500`, `output.limit = 0`, `output.recipient = swapper`.
+8. Higher slippage is still protected by oracle pricing and offchain executors.
+9. `output.recipient` is dangerous to change away from `swapper`.
+10. Native input is not supported. Wrap to WNATIVE first. Native output is supported with `output.token = 0x0000000000000000000000000000000000000000`.
+11. Routing and protocol constants are fixed inside `scripts/order.sh`.
+12. Example:
 
 ```json
 {

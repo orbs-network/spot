@@ -1,15 +1,13 @@
 # Quickstart
 
-1. Required: `chainId`, `swapper`, `input.token`, `input.amount`, `output.token`. `input.maxAmount` is optional and defaults to `input.amount`.
-2. `input.amount` is the fixed per-chunk size. `input.maxAmount` is total size and approval amount. If `input.maxAmount` is not divisible by `input.amount`, the helper rounds `input.maxAmount` down to a whole number of chunks.
-3. `input.amount == input.maxAmount` means single-fill. Smaller `input.amount` means chunked or TWAP-style.
-4. Future `start` delays the first fill. `epoch > 0` sets the delay between chunks, but it is not exact: each chunk can fill anywhere inside its epoch window, only once. `epoch = 0` is immediate single-fill only.
-5. `epoch = 60` means one chunk can fill once anywhere inside each 60-second epoch window.
-6. `output.limit = 0` means market-style. `output.limit > 0` means limit-style. `output.limit`, `output.triggerLower`, and `output.triggerUpper` are output-token units per chunk.
-7. Best execution and oracle protection apply to every order and every chunk, regardless of `output.limit`.
-8. Defaults: `nonce=now`, `start=now`, `deadline=start + 300 + chunkCount * epoch` as a conservative helper default, `slippage=500`, `recipient=swapper`, `limit=0`.
-9. Native input is not supported. Wrap to WNATIVE first. Native output is supported with `output.token = 0x0000000000000000000000000000000000000000`.
-10. Use only the provided helper script. Do not send typed data or signatures anywhere else.
+1. Required fields: `chainId`, `swapper`, `input.token`, `input.amount`, `output.token`.
+2. Read [02-params.md](02-params.md) for defaults, units, chunking semantics, native asset rules, and validation notes.
+3. Read [04-patterns.md](04-patterns.md) to choose the right market, limit, stop-loss, take-profit, delayed, or chunked shape.
+4. Prepare: `bash scripts/order.sh prepare --params <params.json|->`
+5. Piping works: `cat params.json | bash scripts/order.sh prepare --params -`
+6. If approval is needed, send `prepared.approval.tx`.
+7. Sign `prepared.typedData` as the `swapper`.
+8. Read [03-sign.md](03-sign.md) for signature formats, submit modes, `--dry-run`, query usage, and direct onchain cancel.
+9. Submit: `bash scripts/order.sh submit --prepared <prepared.json|-> --signature <0x...|json>`
+10. Query: `bash scripts/order.sh query --swapper <0x...>` or `--hash <0x...>`
 11. Approval strategy: exact approval works, but for repeat use you can set infinite approval to `RePermit` so users avoid re-approving every order. The signed witness still constrains each spend to the specific order.
-12. Flow: `bash scripts/order.sh prepare --params <params.json|->`, wrap native if needed, send `prepared.approval.tx` if needed, sign `prepared.typedData`, submit, then query by `--swapper` or `--hash`.
-13. Piping works: `cat params.json | bash scripts/order.sh prepare --params -`.
