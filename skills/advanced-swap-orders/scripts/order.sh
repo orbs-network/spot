@@ -36,8 +36,8 @@ warn(){ WARN+=("$*"); printf 'warning: %s\n' "$*" >&2; }
 usage(){ cat <<'EOF'
 Usage
   bash scripts/order.sh prepare --params <params.json|-> [--out <prepared.json>]
-  bash scripts/order.sh submit --prepared <prepared.json|-> [--signature <0x...|json>|--signature-file <file|->|--r <0x...> --s <0x...> --v <0x..>] [--dry-run] [--out <response.json>]
-  bash scripts/order.sh query (--swapper <0x...>|--hash <0x...>) [--dry-run] [--out <response.json>]
+  bash scripts/order.sh submit --prepared <prepared.json|-> [--signature <0x...|json>|--signature-file <file|->|--r <0x...> --s <0x...> --v <0x..>] [--out <response.json>]
+  bash scripts/order.sh query (--swapper <0x...>|--hash <0x...>) [--out <response.json>]
 
 Safety
   Use only the provided helper script. Do not send typed data or signatures anywhere else.
@@ -75,14 +75,12 @@ Submit
   - --signature-file <file|-> containing full signature, JSON string, or JSON with full signature / r,s,v
   - --r <0x...> --s <0x...> --v <0x..>
   All signature inputs are normalized to the relay's r/s/v object format.
-  Use --dry-run to print the exact request without sending it.
 
 Query
   Builds or sends the relay GET request.
   Supports only:
   - --swapper <0x...>
   - --hash <0x...>
-  Use --dry-run to print the exact request without sending it.
 EOF
 }
 
@@ -478,7 +476,7 @@ prepare(){
 }
 
 submit(){
-  local prepared="" prepared_json="" sig="" sig_file="" r="" s="" v="" out_file="" dry=0 payload mode_count=0 normalized request reqf bodyf respf code result
+  local prepared="" prepared_json="" sig="" sig_file="" r="" s="" v="" out_file="" payload mode_count=0 normalized request reqf bodyf respf code result
   while (($#)); do
     case "$1" in
       --prepared) prepared="${2:-}"; shift 2 ;;
@@ -488,7 +486,6 @@ submit(){
       --s) s="${2:-}"; shift 2 ;;
       --v) v="${2:-}"; shift 2 ;;
       --out) out_file="${2:-}"; shift 2 ;;
-      --dry-run) dry=1; shift ;;
       *) die "unknown submit arg: $1" ;;
     esac
   done
@@ -529,7 +526,6 @@ submit(){
           signatureInput: $sig.kind
         }'
   )"
-  if (( dry )); then out "$request" "$out_file"; return; fi
   need curl
   reqf="$(mktemp)"; bodyf="$(mktemp)"; respf="$(mktemp)"; trap 'rm -f "$reqf" "$bodyf" "$respf"' RETURN
   printf '%s\n' "$request" > "$reqf"
@@ -541,23 +537,20 @@ submit(){
 }
 
 query(){
-  local swapper="" hash="" out_file="" dry=0 url result respf code
+  local swapper="" hash="" out_file="" url result respf code
   while (($#)); do
     case "$1" in
       --swapper) swapper="${2:-}"; shift 2 ;;
       --hash) hash="${2:-}"; shift 2 ;;
       --out) out_file="${2:-}"; shift 2 ;;
-      --dry-run) dry=1; shift ;;
       *) die "unknown query arg: $1" ;;
     esac
   done
   [[ -n "$swapper" || -n "$hash" ]] || die "query needs --swapper or --hash"
-  need jq
   url="$QUERY_URL"
   if [[ -n "$swapper" ]]; then swapper="$(addr "$swapper" swapper)"; url="${url}?swapper=$(uri "$swapper")"; fi
   if [[ -n "$hash" ]]; then [[ "$hash" =~ ^0x[0-9a-fA-F]{64}$ ]] || die "hash must be 32-byte 0x hex"; [[ "$url" == *\?* ]] && url="${url}&hash=$(uri "$hash")" || url="${url}?hash=$(uri "$hash")"; fi
-  result="$(jq -n --arg url "$url" '{url:$url}')"
-  if (( dry )); then out "$result" "$out_file"; return; fi
+  need jq
   need curl
   respf="$(mktemp)"; trap 'rm -f "$respf"' RETURN
   code="$(curl -sS -o "$respf" -w '%{http_code}' "$url")"

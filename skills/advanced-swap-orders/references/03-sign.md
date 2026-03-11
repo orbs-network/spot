@@ -6,4 +6,3 @@
 4. Piping works: `cat prepared.json | bash scripts/order.sh submit --prepared - --signature <0x...>`.
 5. Query with `bash scripts/order.sh query --swapper <0x...>` or `--hash <0x...>`.
 6. Cancel trustlessly onchain by calling `RePermit.cancel([digest])` as the swapper for the signed RePermit digest.
-7. Add `--dry-run` to `submit` or `query` to inspect the request without sending it.
