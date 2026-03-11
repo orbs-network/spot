@@ -2,15 +2,14 @@
 
 set -euo pipefail
 
-ZERO="0x0000000000000000000000000000000000000000"
-SINK="https://agents-sink-dev.orbs.network"
-CREATE_URL="${SINK}/orders/new"
-QUERY_URL="${SINK}/orders"
-REPERMIT="0x00002a9C4D9497df5Bd31768eC5d30eEf5405000"
-REACTOR="0x000000b33fE4fB9d999Dd684F79b110731c3d000"
-EXECUTOR="0x000642A0966d9bd49870D9519f76b5cf823f3000"
-ADAPTER_56="0x67Feba015c968c76cCB2EEabf197b4578640BE2C"
-ADAPTER_42161="0x026B8977319F67078e932a08feAcB59182B5380f"
+ZERO=""
+SINK=""
+CREATE_URL=""
+QUERY_URL=""
+REPERMIT=""
+REACTOR=""
+EXECUTOR=""
+SUPPORTED_CHAIN_IDS=""
 MAX_SLIPPAGE="5000"
 DEF_SLIPPAGE="500"
 EXCLUSIVITY="0"
@@ -22,8 +21,12 @@ NOTE_EPOCH="epoch is the delay between chunks, but it is not exact: one chunk ca
 NOTE_SIGN="Sign typedData with any EIP-712 flow. eth_signTypedData_v4 is only an example."
 WARN_LOW_SLIPPAGE="slippage below 5% can reduce fill probability. 5% is the default compromise; higher slippage still uses oracle pricing and offchain executors."
 WARN_RECIPIENT="recipient differs from swapper and is dangerous to change"
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 SKELETON="${ROOT}/assets/repermit.skeleton.json"
+SKILL_CONFIG_JSON="${SCRIPT_DIR}/skill.config.json"
+RUNTIME_CONFIG=""
+RUNTIME_LOADED=0
 WARN=()
 
 die(){ printf 'error: %s\n' "$*" >&2; exit 1; }
@@ -33,7 +36,50 @@ out(){ [[ -n "${2:-}" ]] && printf '%s\n' "$1" > "$2" || printf '%s\n' "$1"; }
 low(){ printf '%s' "$1" | tr '[:upper:]' '[:lower:]'; }
 trim(){ local v="${1:-}"; v="${v#"${v%%[![:space:]]*}"}"; v="${v%"${v##*[![:space:]]}"}"; printf '%s' "$v"; }
 warn(){ WARN+=("$*"); printf 'warning: %s\n' "$*" >&2; }
-usage(){ cat <<'EOF'
+load_runtime_config(){
+  local cfg=""
+  (( RUNTIME_LOADED )) && return
+  need jq
+  [[ -f "$SKILL_CONFIG_JSON" ]] || die "skill config not found: $SKILL_CONFIG_JSON"
+  cfg="$(jq -c '
+    .url as $url
+    | .contracts as $contracts
+    | .chains as $chains
+    | select(($url // "") != "")
+    | select(($contracts.zero // "") != "")
+    | select(($contracts.repermit // "") != "")
+    | select(($contracts.reactor // "") != "")
+    | select(($contracts.executor // "") != "")
+    | select(($chains | type) == "object" and ($chains | length) > 0)
+  ' "$SKILL_CONFIG_JSON")" || die "invalid skill config: $SKILL_CONFIG_JSON"
+  RUNTIME_CONFIG="$cfg"
+  ZERO="$(jq -r '.contracts.zero' <<<"$cfg")"
+  SINK="$(jq -r '.url' <<<"$cfg")"
+  CREATE_URL="${SINK}/orders/new"
+  QUERY_URL="${SINK}/orders"
+  REPERMIT="$(jq -r '.contracts.repermit' <<<"$cfg")"
+  REACTOR="$(jq -r '.contracts.reactor' <<<"$cfg")"
+  EXECUTOR="$(jq -r '.contracts.executor' <<<"$cfg")"
+  SUPPORTED_CHAIN_IDS="$(jq -r '[.chains | keys[] | tonumber] | sort | map(tostring) | join(", ")' <<<"$cfg")"
+  addr "$ZERO" runtime.contracts.zero 1 >/dev/null
+  addr "$REPERMIT" runtime.contracts.repermit >/dev/null
+  addr "$REACTOR" runtime.contracts.reactor >/dev/null
+  addr "$EXECUTOR" runtime.contracts.executor >/dev/null
+  [[ "$SINK" == http://* || "$SINK" == https://* ]] || die "config.url must be http(s)"
+  [[ -n "$SUPPORTED_CHAIN_IDS" ]] || die "skill config has no supported chains: $SKILL_CONFIG_JSON"
+  RUNTIME_LOADED=1
+}
+has_supported_chain(){
+  load_runtime_config
+  jq -e --arg chain "$1" '((.chains[$chain].adapter? // "") | length > 0)' <<<"$RUNTIME_CONFIG" >/dev/null 2>&1
+}
+unsupported_chain(){
+  load_runtime_config
+  die "unsupported chainId: $1 (supported: $SUPPORTED_CHAIN_IDS)"
+}
+usage(){
+  load_runtime_config
+  cat <<EOF
 Usage
   bash scripts/order.sh prepare --params <params.json|-> [--out <prepared.json>]
   bash scripts/order.sh submit --prepared <prepared.json|-> [--signature <0x...|json>|--signature-file <file|->|--r <0x...> --s <0x...> --v <0x..>] [--out <response.json>]
@@ -59,7 +105,7 @@ Prepare
   - output.limit = 0
   - output.recipient = swapper
   Rules:
-  - only chainId 56 and 42161 are supported
+  - supported chainIds: ${SUPPORTED_CHAIN_IDS}
   - chunked orders require epoch > 0
   - epoch is the delay between chunks, but it is not exact: one chunk can fill once anywhere inside each epoch window
   - native input is not supported; wrap to WNATIVE first
@@ -274,7 +320,13 @@ sigv(){
     *) die "$name must be 0, 1, 27, 28, or equivalent hex" ;;
   esac
 }
-adapter(){ case "$1" in 56) say "$ADAPTER_56" ;; 42161) say "$ADAPTER_42161" ;; *) die "unsupported chainId: $1" ;; esac; }
+adapter(){
+  local chain="$1" adapt=""
+  load_runtime_config
+  adapt="$(jq -r --arg chain "$chain" '.chains[$chain].adapter // empty' <<<"$RUNTIME_CONFIG")"
+  [[ -n "$adapt" ]] || unsupported_chain "$chain"
+  addr "$adapt" "runtime.chains[$chain].adapter"
+}
 uri(){ jq -nr --arg v "$1" '$v|@uri'; }
 warnings_json(){ ((${#WARN[@]})) && jq -n '$ARGS.positional' --args "${WARN[@]}" || say '[]'; }
 json_or_text(){ jq -e . "$1" >/dev/null 2>&1 && jq . "$1" || jq -Rs . < "$1"; }
@@ -382,11 +434,13 @@ sig_json(){
 prepare(){
   local params="" out_file="" params_json="" now_ts chain swapper nonce start deadline epoch slippage
   local in_token in_amount in_max requested_in_max out_token out_limit out_low out_up recipient parts chunk_count rem kind
+  load_runtime_config
   while (($#)); do case "$1" in --params) params="${2:-}"; shift 2 ;; --out) out_file="${2:-}"; shift 2 ;; *) die "unknown prepare arg: $1" ;; esac; done
   need jq
   params_json="$(read_json "$params" params)"
   now_ts="$(now)"
-  chain="$(u "$(jget "$params_json" '.chainId // .chainID')" chainId)"; case "$chain" in 56|42161) ;; *) die "unsupported chainId: $chain" ;; esac
+  chain="$(u "$(jget "$params_json" '.chainId // .chainID')" chainId)"
+  has_supported_chain "$chain" || unsupported_chain "$chain"
   swapper="$(addr "$(jget "$params_json" '.swapper // .account // .signer')" swapper)"
   nonce="$(u "$(co "$(jget "$params_json" '.nonce')" "$now_ts")" nonce)"
   start="$(u "$(co "$(jget "$params_json" '.start')" "$now_ts")" start)"
@@ -477,6 +531,7 @@ prepare(){
 
 submit(){
   local prepared="" prepared_json="" sig="" sig_file="" r="" s="" v="" out_file="" payload mode_count=0 normalized request reqf bodyf respf code result
+  load_runtime_config
   while (($#)); do
     case "$1" in
       --prepared) prepared="${2:-}"; shift 2 ;;
@@ -527,7 +582,7 @@ submit(){
         }'
   )"
   need curl
-  reqf="$(mktemp)"; bodyf="$(mktemp)"; respf="$(mktemp)"; trap 'rm -f "$reqf" "$bodyf" "$respf"' RETURN
+  reqf="$(mktemp)"; bodyf="$(mktemp)"; respf="$(mktemp)"
   printf '%s\n' "$request" > "$reqf"
   jq '.body' "$reqf" > "$bodyf"
   code="$(curl -sS -o "$respf" -w '%{http_code}' -X POST -H 'content-type: application/json' --data-binary @"$bodyf" "$(jq -r '.url' "$reqf")")"
@@ -538,6 +593,7 @@ submit(){
 
 query(){
   local swapper="" hash="" out_file="" url result respf code
+  load_runtime_config
   while (($#)); do
     case "$1" in
       --swapper) swapper="${2:-}"; shift 2 ;;
@@ -552,7 +608,7 @@ query(){
   if [[ -n "$hash" ]]; then [[ "$hash" =~ ^0x[0-9a-fA-F]{64}$ ]] || die "hash must be 32-byte 0x hex"; [[ "$url" == *\?* ]] && url="${url}&hash=$(uri "$hash")" || url="${url}?hash=$(uri "$hash")"; fi
   need jq
   need curl
-  respf="$(mktemp)"; trap 'rm -f "$respf"' RETURN
+  respf="$(mktemp)"
   code="$(curl -sS -o "$respf" -w '%{http_code}' "$url")"
   result="$(jq -n --arg url "$url" --arg code "$code" --argjson response "$(json_or_text "$respf")" '{ok:(($code|tonumber)>=200 and ($code|tonumber)<300),status:($code|tonumber),url:$url,response:$response}')"
   out "$result" "$out_file"

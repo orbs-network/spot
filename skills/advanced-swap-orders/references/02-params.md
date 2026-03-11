@@ -12,8 +12,7 @@ Use this file for field semantics, defaults, units, and validation. Use [04-patt
 8. Higher slippage is still protected by oracle pricing and offchain executors.
 9. `output.recipient` is dangerous to change away from `swapper`.
 10. Native input is not supported. Wrap to WNATIVE first. Native output is supported with `output.token = 0x0000000000000000000000000000000000000000`.
-11. Routing and protocol constants are fixed inside `scripts/order.sh`.
-12. Example:
+11. Example:
 
 ```json
 {
