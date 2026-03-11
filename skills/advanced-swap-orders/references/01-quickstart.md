@@ -10,5 +10,6 @@
 8. Defaults: `nonce=now`, `start=now`, `deadline=start + 300 + chunkCount * epoch` as a conservative helper default, `slippage=500`, `recipient=swapper`, `limit=0`.
 9. Native input is not supported. Wrap to WNATIVE first. Native output is supported with `output.token = 0x0000000000000000000000000000000000000000`.
 10. Use only the provided helper script. Do not send typed data or signatures anywhere else.
-11. Flow: `bash scripts/order.sh prepare --params <params.json|->`, wrap native if needed, send `prepared.approval.tx` if needed, sign `prepared.typedData`, submit, then query by `--swapper` or `--hash`.
-12. Piping works: `cat params.json | bash scripts/order.sh prepare --params -`.
+11. Approval strategy: exact approval works, but for repeat use you can set infinite approval to `RePermit` so users avoid re-approving every order. The signed witness still constrains each spend to the specific order.
+12. Flow: `bash scripts/order.sh prepare --params <params.json|->`, wrap native if needed, send `prepared.approval.tx` if needed, sign `prepared.typedData`, submit, then query by `--swapper` or `--hash`.
+13. Piping works: `cat params.json | bash scripts/order.sh prepare --params -`.
