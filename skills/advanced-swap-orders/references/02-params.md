@@ -8,7 +8,15 @@ Use this file for field semantics, defaults, units, and validation. Use [04-patt
 4. `output.limit`, `output.triggerLower`, and `output.triggerUpper` are output-token units per chunk.
 5. Future `start` delays the first fill. `epoch` is the delay between chunks, but it is not exact: each chunk can fill anywhere inside its epoch window, only once. Large `epoch` is not a delayed order by itself.
 6. Chunked orders should use `epoch > 0`; with `epoch = 0`, only the first chunk can fill.
-7. Defaults: `input.maxAmount = input.amount`, `nonce = now`, `start = now`, `deadline = start + 300 + chunkCount * epoch`, `slippage = 500`, `output.limit = 0`, `output.recipient = swapper`.
+7. Defaults:
+   - `input.maxAmount = input.amount`
+   - `nonce = now`
+   - `start = now`
+   - `epoch = 0` for single orders, `60` for chunked orders
+   - `deadline = start + 300 + chunkCount * epoch`
+   - `slippage = 500`
+   - `output.limit = 0`
+   - `output.recipient = swapper`
 8. Higher slippage is still protected by oracle pricing and offchain executors.
 9. `output.recipient` is dangerous to change away from `swapper`.
 10. Native input is not supported. Wrap to WNATIVE first. Native output is supported with `output.token = 0x0000000000000000000000000000000000000000`.

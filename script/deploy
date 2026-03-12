@@ -21,7 +21,7 @@ usage() {
 Usage: script/deploy [options] [-- forge script args]
 
 Options:
-  -d, --dex NAME     Deploy and configure a specific dex (requires CHAIN_ID).
+  -d, --dex NAME     Deploy and configure a specific dex (requires CHAIN_ID; auto-deploys core contracts when OWNER is set).
   -v, --verify       Verify configured core contracts.
   -h, --help         Show this help message.
 EOF
@@ -118,6 +118,13 @@ dex_field_for() {
   ' "$CONFIG_FILE"
 }
 
+core_field_for() {
+  local field=$1
+  jq -r --arg field "$field" '
+    ."*"[$field] // ""
+  ' "$CONFIG_FILE"
+}
+
 runtime_env_var_for_target() {
   local target=$1
   case $target in
@@ -142,6 +149,40 @@ remember_runtime_address() {
   env_var=$(runtime_env_var_for_target "$target")
   [[ -n $env_var ]] || return 0
   runtime_env[$env_var]=$address
+}
+
+deploy_core_contracts() {
+  local key script
+  for key in "${components[@]}"; do
+    if [[ $key == wm ]]; then
+      script=DeployWM
+    else
+      script="Deploy${(U)key[1,1]}${key[2,-1]}"
+    fi
+    run "$(salt_for "$key")" "$script" "global:$key"
+  done
+}
+
+ensure_core_contracts_for_dex() {
+  local dex=$1 chain_id=$2
+  local key address
+  local -a missing=()
+
+  for key in "${components[@]}"; do
+    address=$(core_field_for "$key")
+    [[ -n $address ]] || missing+=("$key")
+  done
+
+  if [[ -n ${OWNER:-} ]]; then
+    deploy_core_contracts
+    return 0
+  fi
+
+  if (( ${#missing[@]} > 0 )); then
+    printf 'error: OWNER is required to auto-deploy missing core contracts before deploying dex %s on chain %s; missing config for: %s\n' \
+      "$dex" "$chain_id" "${(j:, :)missing}" >&2
+    exit 1
+  fi
 }
 
 run() {
@@ -203,6 +244,8 @@ deploy_dex() {
     printf 'error: CHAIN_ID is required for -d/--dex\n' >&2
     exit 1
   fi
+
+  ensure_core_contracts_for_dex "$dex" "$chain_id"
 
   local dex_salt
   dex_salt=$(dex_salt_for "$dex")
@@ -359,11 +402,4 @@ fi
 
 require_env_var OWNER
 
-for key in "${components[@]}"; do
-  if [[ $key == wm ]]; then
-    script=DeployWM
-  else
-    script="Deploy${(U)key[1,1]}${key[2,-1]}"
-  fi
-  run "$(salt_for "$key")" "$script" "global:$key"
-done
+deploy_core_contracts

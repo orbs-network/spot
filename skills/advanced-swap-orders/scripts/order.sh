@@ -100,6 +100,7 @@ Prepare
   - input.maxAmount = input.amount
   - nonce = now
   - start = now
+  - epoch = 0 for single orders, 60 for chunked orders
   - deadline = start + 300 + chunkCount * epoch (conservative helper default)
   - slippage = 500
   - output.limit = 0
@@ -444,7 +445,6 @@ prepare(){
   swapper="$(addr "$(jget "$params_json" '.swapper // .account // .signer')" swapper)"
   nonce="$(u "$(co "$(jget "$params_json" '.nonce')" "$now_ts")" nonce)"
   start="$(u "$(co "$(jget "$params_json" '.start')" "$now_ts")" start)"
-  epoch="$(u "$(co "$(jget "$params_json" '.epoch')" 0)" epoch)"
   slippage="$(u "$(co "$(jget "$params_json" '.slippage')" "$DEF_SLIPPAGE")" slippage)"
   in_token="$(addr "$(jget "$params_json" '.input.token // .inputToken')" input.token)"
   in_amount="$(u "$(jget "$params_json" '.input.amount // .inputAmount')" input.amount)"
@@ -454,6 +454,11 @@ prepare(){
   out_low="$(u "$(co "$(jget "$params_json" '.output.triggerLower // .outputTriggerLower')" 0)" output.triggerLower)"
   out_up="$(u "$(co "$(jget "$params_json" '.output.triggerUpper // .outputTriggerUpper')" 0)" output.triggerUpper)"
   recipient="$(addr "$(co "$(jget "$params_json" '.output.recipient // .recipient')" "$swapper")" output.recipient)"
+  if [[ -n "$(jget "$params_json" '.epoch')" ]]; then
+    epoch="$(u "$(jget "$params_json" '.epoch')" epoch)"
+  else
+    if eq "$in_amount" "$in_max"; then epoch=0; else epoch=60; fi
+  fi
   u32 "$epoch" epoch; u32 "$slippage" slippage
   eq "$start" 0 && die "start must be non-zero"
   eq "$in_amount" 0 && die "input.amount must be non-zero"
