@@ -5,8 +5,9 @@
 3. Read [04-patterns.md](04-patterns.md) to choose the right market, limit, stop-loss, take-profit, delayed, or chunked shape.
 4. Prepare: `bash scripts/order.sh prepare --params <params.json|->`
 5. If approval is needed, send `prepared.approval.tx`.
-6. Sign `prepared.typedData` as the `swapper`.
-7. Read [03-sign.md](03-sign.md) for signature formats, submit modes, query usage, and direct onchain cancel.
-8. Submit: `bash scripts/order.sh submit --prepared <prepared.json|-> --signature <0x...|json>`
-9. Query: `bash scripts/order.sh query --swapper <0x...>` or `--hash <0x...>`
-10. When measuring a fill onchain, sum both transfers to the swapper: the main fill and the surplus refund. Measuring only the main fill undercounts actual output by up to the slippage tolerance.
+6. Infinite approval to `RePermit` is acceptable; no approval reset is needed.
+7. Sign `prepared.typedData` as the `swapper`.
+8. Read [03-sign.md](03-sign.md) for signature formats, submit modes, query usage, and direct onchain cancel.
+9. Submit: `bash scripts/order.sh submit --prepared <prepared.json|-> --signature <0x...|json>`
+10. Query: `bash scripts/order.sh query --swapper <0x...>` or `--hash <0x...>`
+11. When measuring a fill onchain, sum both transfers to the swapper: the main fill and the surplus refund. Measuring only the main fill undercounts actual output by up to the slippage tolerance.
