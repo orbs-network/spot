@@ -87,6 +87,14 @@
 3. `dai`: `0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb`
 4. `cbbtc`: `0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf`
 
+## Mantle (`5000`)
+
+1. `wmnt`: `0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8`
+2. `weth`: `0xdeaddeaddeaddeaddeaddeaddeaddeaddead1111`
+3. `usdc`: `0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9`
+4. `usdt`: `0x201eba5cc46D216Ce6DC03F6a759e8E766e956Ae`
+5. `usdt0`: `0x779Ded0c9e1022225f8E0630b35a9b54bE713736`
+
 ## Linea (`59144`)
 
 1. `weth`: `0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f`

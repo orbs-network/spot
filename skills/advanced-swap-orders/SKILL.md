@@ -16,7 +16,7 @@ Use this for any supported gasless swap or advanced order. Supply chain, token a
 5. Optional helper for token lookup: [assets/token-addressbook.md](https://raw.githubusercontent.com/orbs-network/spot/master/skills/advanced-swap-orders/assets/token-addressbook.md).
 6. Use [assets/repermit.skeleton.json](https://raw.githubusercontent.com/orbs-network/spot/master/skills/advanced-swap-orders/assets/repermit.skeleton.json) when you need the raw RePermit witness typed-data skeleton.
 7. Use [assets/web3-sign-and-submit.example.js](https://raw.githubusercontent.com/orbs-network/spot/master/skills/advanced-swap-orders/assets/web3-sign-and-submit.example.js) for a browser or injected-provider signing and submit example.
-8. Inspect [scripts/skill.config.json](https://raw.githubusercontent.com/orbs-network/spot/master/skills/advanced-swap-orders/scripts/skill.config.json) for supported chains, sink URL, and runtime contract addresses.
+8. Inspect [scripts/skill.config.json](https://raw.githubusercontent.com/orbs-network/spot/master/skills/advanced-swap-orders/scripts/skill.config.json) for the live supported-chain matrix, sink URL, and runtime contract addresses.
 9. Use only [scripts/order.sh](https://raw.githubusercontent.com/orbs-network/spot/master/skills/advanced-swap-orders/scripts/order.sh) to prepare, submit, and query orders.
 
 ## Guardrails

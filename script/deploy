@@ -396,6 +396,7 @@ if $verify; then
 fi
 
 if [[ -n $dex ]]; then
+  require_env_var OWNER
   deploy_dex "$dex"
   exit 0
 fi

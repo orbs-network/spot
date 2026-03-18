@@ -31,6 +31,16 @@
             }
         }
     },
+    "10": {
+        "dex": {
+            "agent": {
+                "type": "default:odos-v2",
+                "router": "0xCa423977156BB05b13A2BA3b76Bc5419E2fE9680",
+                "adapter": "0xC5Aea83Fdd94A19fB2ce0B7207939C52825D3D3B",
+                "fee": "0x03A70aC8126340d3cd6b5828816172693C398661"
+            }
+        }
+    },
     "56": {
         "dex": {
             "agent": {
@@ -190,6 +200,16 @@
                 "type": "default:kyber-v2",
                 "adapter": "0xd7D9CAA2910f49F37AC3447f5cAd27153944354A",
                 "fee": "0xde92da99D188Ceb54A11ec711EF52D808A6260B5"
+            }
+        }
+    },
+    "5000": {
+        "dex": {
+            "agent": {
+                "type": "default:odos-v2",
+                "router": "0xD9F4e85489aDCD0bAF0Cd63b4231c6af58c26745",
+                "adapter": "0x9571D46B5A5AAb749E5aCd698D8F20814C7B23D3",
+                "fee": "0x03A70aC8126340d3cd6b5828816172693C398661"
             }
         }
     },

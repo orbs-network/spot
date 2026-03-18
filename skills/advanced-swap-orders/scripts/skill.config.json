@@ -11,6 +11,10 @@
             "name": "Ethereum",
             "adapter": "0xC1bB4d5071Fe7109ae2D67AE05826A3fe9116cfc"
         },
+        "10": {
+            "name": "Optimism",
+            "adapter": "0xC5Aea83Fdd94A19fB2ce0B7207939C52825D3D3B"
+        },
         "56": {
             "name": "BNB Chain",
             "adapter": "0x67Feba015c968c76cCB2EEabf197b4578640BE2C"
@@ -34,6 +38,10 @@
         "43114": {
             "name": "Avalanche",
             "adapter": "0x4F48041842827823D3750399eCa2832fC2E29201"
+        },
+        "5000": {
+            "name": "Mantle",
+            "adapter": "0x9571D46B5A5AAb749E5aCd698D8F20814C7B23D3"
         },
         "59144": {
             "name": "Linea",
