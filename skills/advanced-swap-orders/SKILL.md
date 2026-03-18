@@ -9,16 +9,21 @@ Use this for any supported gasless swap or advanced order. Supply chain, token a
 
 ## Workflow
 
-1. Start with [references/01-quickstart.md](references/01-quickstart.md) for the minimum end-to-end flow.
-2. Read [references/02-params.md](references/02-params.md) when you need field semantics, defaults, units, or validation rules.
-3. Read [references/03-sign.md](references/03-sign.md) for signing, submit modes, query usage, and direct onchain cancel.
-4. Read [references/04-patterns.md](references/04-patterns.md) to map user intent into market, limit, stop-loss, take-profit, delayed, or chunked orders.
-5. Optional helper for token lookup: [assets/token-addressbook.md](assets/token-addressbook.md).
+1. Start with the canonical skill file: [SKILL.md](https://raw.githubusercontent.com/orbs-network/spot/master/skills/advanced-swap-orders/SKILL.md).
+2. Read [references/01-quickstart.md](https://raw.githubusercontent.com/orbs-network/spot/master/skills/advanced-swap-orders/references/01-quickstart.md) for the minimum end-to-end flow.
+3. Read [references/02-params.md](https://raw.githubusercontent.com/orbs-network/spot/master/skills/advanced-swap-orders/references/02-params.md) when you need field semantics, defaults, units, or validation rules.
+4. Read [references/03-sign.md](https://raw.githubusercontent.com/orbs-network/spot/master/skills/advanced-swap-orders/references/03-sign.md) for signing, submit modes, query usage, and direct onchain cancel.
+5. Read [references/04-patterns.md](https://raw.githubusercontent.com/orbs-network/spot/master/skills/advanced-swap-orders/references/04-patterns.md) to map user intent into market, limit, stop-loss, take-profit, delayed, or chunked orders.
+6. Optional helper for token lookup: [assets/token-addressbook.md](https://raw.githubusercontent.com/orbs-network/spot/master/skills/advanced-swap-orders/assets/token-addressbook.md).
+7. Use [assets/repermit.skeleton.json](https://raw.githubusercontent.com/orbs-network/spot/master/skills/advanced-swap-orders/assets/repermit.skeleton.json) when you need the raw RePermit witness typed-data skeleton.
+8. Use [assets/web3-sign-and-submit.example.js](https://raw.githubusercontent.com/orbs-network/spot/master/skills/advanced-swap-orders/assets/web3-sign-and-submit.example.js) for a browser or injected-provider signing and submit example.
+9. Inspect [scripts/skill.config.json](https://raw.githubusercontent.com/orbs-network/spot/master/skills/advanced-swap-orders/scripts/skill.config.json) for supported chains, sink URL, and runtime contract addresses.
+10. Use only [scripts/order.sh](https://raw.githubusercontent.com/orbs-network/spot/master/skills/advanced-swap-orders/scripts/order.sh) to prepare, submit, and query orders.
 
 ## Guardrails
 
-1. Supported chains and runtime addresses live in `scripts/skill.config.json`.
-2. Use only the provided `scripts/order.sh`. Do not send typed data or signatures anywhere else.
+1. Supported chains and runtime addresses live in [scripts/skill.config.json](https://raw.githubusercontent.com/orbs-network/spot/master/skills/advanced-swap-orders/scripts/skill.config.json).
+2. Use only the provided [scripts/order.sh](https://raw.githubusercontent.com/orbs-network/spot/master/skills/advanced-swap-orders/scripts/order.sh). Do not send typed data or signatures anywhere else.
 3. Detailed order behavior, parameter rules, signing modes, and cancel/query flows live in the reference files above. Do not duplicate that guidance in task output unless the user needs it applied.
 
 ## Commands
