@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SKILL.md</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background: #fff;
+      color: #111;
+    }
+
+    pre {
+      box-sizing: border-box;
+      margin: 0;
+      min-height: 100vh;
+      padding: 24px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <pre id="content">Loading SKILL.md...</pre>
+  <script>
+    const content = document.getElementById("content");
+    const source = "https://raw.githubusercontent.com/orbs-network/spot/master/skills/advanced-swap-orders/SKILL.md";
+
+    async function loadSkill() {
+      try {
+        const response = await fetch(source, { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error(`${response.status} ${response.statusText}`);
+        }
+
+        content.textContent = await response.text();
+      } catch (error) {
+        content.textContent = `Failed to load SKILL.md from ${source}\n\n${error.message}`;
+      }
+    }
+
+    loadSkill();
+  </script>
+</body>
+</html>
