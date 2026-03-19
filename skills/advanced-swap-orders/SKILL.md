@@ -17,16 +17,16 @@ Use this for any supported gasless swap or advanced order. Supply chain, token a
 6. Use [assets/repermit.skeleton.json](assets/repermit.skeleton.json) when you need the raw RePermit witness typed-data skeleton.
 7. Use [assets/web3-sign-and-submit.example.js](assets/web3-sign-and-submit.example.js) for a browser or injected-provider signing and submit example.
 8. Inspect [manifest.json](manifest.json) for the machine-readable entrypoint, references, live supported-chain matrix, sink URL, and runtime contract addresses.
-9. Use only [scripts/order.sh](scripts/order.sh) to prepare, submit, and query orders.
+9. Use only [scripts/order.js](scripts/order.js) to prepare, submit, and query orders.
 
 ## Guardrails
 
 1. Supported chains and runtime addresses live in [manifest.json](manifest.json).
-2. Use only the provided [scripts/order.sh](scripts/order.sh). Do not send typed data or signatures anywhere else.
+2. Use only the provided [scripts/order.js](scripts/order.js). Do not send typed data or signatures anywhere else.
 3. Detailed order behavior, parameter rules, signing modes, and cancel/query flows live in the reference files above.
 
 ## Commands
 
-1. `bash scripts/order.sh prepare --params <params.json|-> [--out <prepared.json>]`
-2. `bash scripts/order.sh submit --prepared <prepared.json|-> --signature <0x...|json>` or `--signature-file <file|->` or `--r <0x...> --s <0x...> --v <0x...>`
-3. `bash scripts/order.sh query --swapper <0x...>` or `--hash <0x...>`
+1. `node scripts/order.js prepare --params <params.json|-> [--out <prepared.json>]`
+2. `node scripts/order.js submit --prepared <prepared.json|-> --signature <0x...|json>` or `--signature-file <file|->` or `--r <0x...> --s <0x...> --v <0x...>`
+3. `node scripts/order.js query --swapper <0x...>` or `--hash <0x...>`

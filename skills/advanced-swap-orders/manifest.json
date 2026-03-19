@@ -9,7 +9,7 @@
     "references/04-patterns.md"
   ],
   "scripts": [
-    "scripts/order.sh"
+    "scripts/order.js"
   ],
   "assets": [
     "assets/token-addressbook.md",
