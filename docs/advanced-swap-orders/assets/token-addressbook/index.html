@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Common Token Addressbook | Advanced Swap Orders | Spot</title>
+  <meta name="description" content="Common Token Addressbook">
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f7f1e3;
+      --ink: #1f1a17;
+      --muted: #6a5f57;
+      --line: rgba(31, 26, 23, 0.12);
+      --accent: #9d3c23;
+      --accent-soft: rgba(157, 60, 35, 0.12);
+      font-family: "Avenir Next", "Segoe UI", Helvetica, Arial, sans-serif;
+      background: linear-gradient(180deg, #efe2c0 0%, #f7f1e3 18%, #fcfaf3 100%);
+      color: var(--ink);
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; color: var(--ink); background: transparent; }
+    a { color: var(--accent); text-decoration-thickness: 0.08em; text-underline-offset: 0.18em; }
+    a:hover { text-decoration-thickness: 0.12em; }
+    code, pre { font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace; }
+    .layout { width: min(1180px, calc(100vw - 32px)); margin: 0 auto; padding: 28px 0 40px; display: grid; gap: 20px; grid-template-columns: minmax(0, 290px) minmax(0, 1fr); align-items: start; }
+    .panel { background: rgba(255, 250, 240, 0.92); border: 1px solid var(--line); border-radius: 20px; box-shadow: 0 18px 40px rgba(42, 28, 18, 0.08); }
+    .sidebar { position: sticky; top: 20px; padding: 22px; }
+    .eyebrow { display: inline-block; padding: 6px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .sidebar h1 { margin: 16px 0 10px; font-size: 1.55rem; line-height: 1.1; }
+    .sidebar p { margin: 0 0 16px; color: var(--muted); line-height: 1.5; }
+    .nav-group + .nav-group { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--line); }
+    .nav-group h2 { margin: 0 0 10px; font-size: 0.92rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+    .nav-group ol { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
+    .nav-group a[aria-current="page"] { font-weight: 700; }
+    .content { padding: 28px; }
+    .crumbs { margin: 0 0 12px; color: var(--muted); font-size: 0.92rem; }
+    .content h1:first-child { margin-top: 0; font-size: clamp(2rem, 4vw, 3rem); line-height: 0.95; letter-spacing: -0.02em; }
+    .content h2, .content h3 { margin-top: 1.8em; line-height: 1.15; }
+    .content p, .content li { font-size: 1.03rem; line-height: 1.68; }
+    .content ol, .content ul { padding-left: 1.5rem; }
+    .content pre { overflow-x: auto; padding: 16px; border-radius: 14px; border: 1px solid var(--line); background: #fffdf8; }
+    .content code { padding: 0.12em 0.32em; border-radius: 0.36em; background: rgba(31, 26, 23, 0.08); font-size: 0.92em; }
+    .content pre code { padding: 0; background: transparent; }
+    .source-note { margin-top: 30px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.92rem; word-break: break-word; }
+    @media (max-width: 920px) {
+      .layout { width: min(100vw - 24px, 100%); padding-top: 16px; grid-template-columns: 1fr; }
+      .sidebar { position: static; }
+      .content { padding: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar panel">
+      <span class="eyebrow">GitHub Pages Mirror</span>
+      <h1>Advanced Swap Orders</h1>
+      <div class="nav-group">
+        <h2>Documentation</h2>
+        <ol>
+          <li><a href="../../../index.html">SKILL.md</a></li>
+<li><a href="../../references/01-quickstart/index.html">Quickstart</a></li>
+<li><a href="../../references/02-params/index.html">Params</a></li>
+<li><a href="../../references/03-sign/index.html">Sign</a></li>
+<li><a href="../../references/04-patterns/index.html">Patterns</a></li>
+<li><a href="index.html" aria-current="page">Token Addressbook</a></li>
+        </ol>
+      </div>
+      <div class="nav-group">
+        <h2>Raw Files</h2>
+        <ol>
+          <li><a href="../../scripts/skill.config.json">skill.config.json</a></li>
+<li><a href="../../scripts/order.sh">order.sh</a></li>
+<li><a href="../repermit.skeleton.json">repermit.skeleton.json</a></li>
+<li><a href="../web3-sign-and-submit.example.js">web3-sign-and-submit.example.js</a></li>
+        </ol>
+      </div>
+    </aside>
+    <main class="content panel">
+      <p class="crumbs"><a href="../../../index.html">SKILL.md</a> / Common Token Addressbook</p>
+      <article class="doc">
+        <h1>Common Token Addressbook</h1>
+<h2>Ethereum (<code>1</code>)</h2>
+<ol>
+<li><code>weth</code>: <code>0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2</code></li>
+<li><code>wbtc</code>: <code>0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599</code></li>
+<li><code>usdc</code>: <code>0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48</code></li>
+<li><code>usdt</code>: <code>0xdAC17F958D2ee523a2206206994597C13D831ec7</code></li>
+<li><code>dai</code>: <code>0x6B175474E89094C44Da98b954EedeAC495271d0F</code></li>
+<li><code>lusd</code>: <code>0x5f98805A4E8be255a32880FDeC7F6728C6568bA0</code></li>
+<li><code>orbs</code>: <code>0xff56Cc6b1E6dEd347aA0B7676C85AB0B3D08B0FA</code></li>
+</ol>
+<h2>BNB Chain (<code>56</code>)</h2>
+<ol>
+<li><code>wbnb</code>: <code>0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c</code></li>
+<li><code>btcb</code>: <code>0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c</code></li>
+<li><code>wbtc</code>: <code>0x0555e30da8f98308edb960aa94c0db47230d2b9c</code></li>
+<li><code>usdc</code>: <code>0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d</code></li>
+<li><code>usdt</code>: <code>0x55d398326f99059fF775485246999027B3197955</code></li>
+<li><code>usd1</code>: <code>0x8d0d000ee44948fc98c9b98a4fa4921476f08b0d</code></li>
+<li><code>dai</code>: <code>0x1AF3F329e8BE154074D8769D1FFa4eE058B1DBc3</code></li>
+<li><code>busd</code>: <code>0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56</code></li>
+<li><code>weth</code>: <code>0x2170Ed0880ac9A755fd29B2688956BD959F933F8</code></li>
+<li><code>orbs</code>: <code>0x43a8cab15D06d3a5fE5854D714C37E7E9246F170</code></li>
+</ol>
+<h2>Polygon (<code>137</code>)</h2>
+<ol>
+<li><code>wmatic</code>: <code>0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270</code></li>
+<li><code>wbtc</code>: <code>0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6</code></li>
+<li><code>usdc</code>: <code>0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359</code></li>
+<li><code>usdc.e</code>: <code>0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174</code></li>
+<li><code>usdt</code>: <code>0xc2132D05D31c914a87C6611C10748AEb04B58e8F</code></li>
+<li><code>dai</code>: <code>0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063</code></li>
+<li><code>weth</code>: <code>0x7ceb23fd6bc0add59e62ac25578270cff1b9f619</code></li>
+<li><code>orbs</code>: <code>0x614389EaAE0A6821DC49062D56BDA3d9d45Fa2ff</code></li>
+</ol>
+<h2>Arbitrum One (<code>42161</code>)</h2>
+<ol>
+<li><code>weth</code>: <code>0x82af49447d8a07e3bd95bd0d56f35241523fbab1</code></li>
+<li><code>wbtc</code>: <code>0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f</code></li>
+<li><code>usdc</code>: <code>0xaf88d065e77c8cC2239327C5EDb3A432268e5831</code></li>
+<li><code>usdt</code>: <code>0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9</code></li>
+<li><code>dai</code>: <code>0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1</code></li>
+<li><code>arb</code>: <code>0x912CE59144191C1204E64559FE8253a0e49E6548</code></li>
+<li><code>orbs</code>: <code>0xf3C091ed43de9c270593445163a41A876A0bb3dd</code></li>
+</ol>
+<h2>Optimism (<code>10</code>)</h2>
+<ol>
+<li><code>weth</code>: <code>0x4200000000000000000000000000000000000006</code></li>
+<li><code>wbtc</code>: <code>0x68f180fcCe6836688e9084f035309E29Bf0A2095</code></li>
+<li><code>usdc</code>: <code>0x7F5c764cBc14f9669B88837ca1490cCa17c31607</code></li>
+<li><code>usdt</code>: <code>0x94b008aA00579c1307B0EF2c499aD98a8ce58e58</code></li>
+<li><code>dai</code>: <code>0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1</code></li>
+<li><code>op</code>: <code>0x4200000000000000000000000000000000000042</code></li>
+</ol>
+<h2>Avalanche (<code>43114</code>)</h2>
+<ol>
+<li><code>wavax</code>: <code>0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7</code></li>
+<li><code>wbtc</code>: <code>0x50b7545627a5162F82A992c33b87aDc75187B218</code></li>
+<li><code>usdc</code>: <code>0xA7D7079b0FEaD91F3e65f86E8915Cb59c1a4C664</code></li>
+<li><code>usdt</code>: <code>0xc7198437980c041c805A1EDcbA50c1Ce5db95118</code></li>
+<li><code>dai</code>: <code>0xd586E7F844cEa2F87f50152665BCbc2C279D8d70</code></li>
+<li><code>weth</code>: <code>0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB</code></li>
+<li><code>orbs</code>: <code>0x340fE1D898ECCAad394e2ba0fC1F93d27c7b717A</code></li>
+</ol>
+<h2>Base (<code>8453</code>)</h2>
+<ol>
+<li><code>weth</code>: <code>0x4200000000000000000000000000000000000006</code></li>
+<li><code>usdc</code>: <code>0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913</code></li>
+<li><code>dai</code>: <code>0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb</code></li>
+<li><code>cbbtc</code>: <code>0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf</code></li>
+</ol>
+<h2>Mantle (<code>5000</code>)</h2>
+<ol>
+<li><code>wmnt</code>: <code>0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8</code></li>
+<li><code>weth</code>: <code>0xdeaddeaddeaddeaddeaddeaddeaddeaddead1111</code></li>
+<li><code>usdc</code>: <code>0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9</code></li>
+<li><code>usdt</code>: <code>0x201eba5cc46D216Ce6DC03F6a759e8E766e956Ae</code></li>
+<li><code>usdt0</code>: <code>0x779Ded0c9e1022225f8E0630b35a9b54bE713736</code></li>
+</ol>
+<h2>Linea (<code>59144</code>)</h2>
+<ol>
+<li><code>weth</code>: <code>0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f</code></li>
+<li><code>wbtc</code>: <code>0x3aAB2285ddcDdaD8edf438C1bAB47e1a9D05a9b4</code></li>
+<li><code>usdc</code>: <code>0x176211869cA2b568f2A7D4EE941E073a821EE1ff</code></li>
+<li><code>usdt</code>: <code>0xA219439258ca9da29E9Cc4cE5596924745e12B93</code></li>
+<li><code>dai</code>: <code>0x4AF15ec2A0BD43Db75dd04E62FAA3B8EF36b00d5</code></li>
+</ol>
+<h2>Sonic (<code>146</code>)</h2>
+<ol>
+<li><code>ws</code>: <code>0x039e2fB66102314Ce7b64Ce5Ce3E5183bc94aD38</code></li>
+<li><code>wbtc</code>: <code>0x0555E30da8f98308EdB960aa94C0Db47230d2B9c</code></li>
+<li><code>weth</code>: <code>0x50c42dEAcD8Fc9773493ED674b675bE577f2634b</code></li>
+<li><code>usdc</code>: <code>0x29219dd400f2Bf60E5a23d13Be72B486D4038894</code></li>
+<li><code>usdt</code>: <code>0x6047828dc181963ba44974801FF68e538dA5eaF9</code></li>
+<li><code>sfc</code>: <code>0xFC00FACE00000000000000000000000000000000</code></li>
+</ol>
+
+      </article>
+      <p class="source-note">Source: <a href="https://github.com/orbs-network/spot/blob/master/skills/advanced-swap-orders/assets/token-addressbook.md">https://github.com/orbs-network/spot/blob/master/skills/advanced-swap-orders/assets/token-addressbook.md</a></p>
+    </main>
+  </div>
+</body>
+</html>

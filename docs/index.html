@@ -3,53 +3,113 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SKILL.md</title>
+  <title>Advanced Swap Orders | Spot</title>
+  <meta name="description" content="Prepare, sign, submit, and query non-custodial, decentralized, gasless swap orders and advanced order types on supported chains. Uses ownerless, immutable, audited, battle-tested, and verified contracts. Supports market, limit, stop-loss, take-profit, delayed-start, and chunked/TWAP-style orders with oracle-protected execution on every chunk. Includes automated execution through time as required by the order, EIP-712 signing, approval calldata, and order status lookup.">
   <style>
     :root {
       color-scheme: light;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --paper: #f7f1e3;
+      --ink: #1f1a17;
+      --muted: #6a5f57;
+      --line: rgba(31, 26, 23, 0.12);
+      --accent: #9d3c23;
+      --accent-soft: rgba(157, 60, 35, 0.12);
+      font-family: "Avenir Next", "Segoe UI", Helvetica, Arial, sans-serif;
+      background: linear-gradient(180deg, #efe2c0 0%, #f7f1e3 18%, #fcfaf3 100%);
+      color: var(--ink);
     }
 
-    html,
-    body {
-      margin: 0;
-      min-height: 100%;
-      background: #fff;
-      color: #111;
-    }
-
-    pre {
-      box-sizing: border-box;
-      margin: 0;
-      min-height: 100vh;
-      padding: 24px;
-      white-space: pre-wrap;
-      word-break: break-word;
-      line-height: 1.5;
-      font-size: 14px;
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; color: var(--ink); background: transparent; }
+    a { color: var(--accent); text-decoration-thickness: 0.08em; text-underline-offset: 0.18em; }
+    a:hover { text-decoration-thickness: 0.12em; }
+    code, pre { font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace; }
+    .layout { width: min(1180px, calc(100vw - 32px)); margin: 0 auto; padding: 28px 0 40px; display: grid; gap: 20px; grid-template-columns: minmax(0, 290px) minmax(0, 1fr); align-items: start; }
+    .panel { background: rgba(255, 250, 240, 0.92); border: 1px solid var(--line); border-radius: 20px; box-shadow: 0 18px 40px rgba(42, 28, 18, 0.08); }
+    .sidebar { position: sticky; top: 20px; padding: 22px; }
+    .eyebrow { display: inline-block; padding: 6px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .sidebar h1 { margin: 16px 0 10px; font-size: 1.55rem; line-height: 1.1; }
+    .sidebar p { margin: 0 0 16px; color: var(--muted); line-height: 1.5; }
+    .nav-group + .nav-group { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--line); }
+    .nav-group h2 { margin: 0 0 10px; font-size: 0.92rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+    .nav-group ol { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
+    .nav-group a[aria-current="page"] { font-weight: 700; }
+    .content { padding: 28px; }
+    .crumbs { margin: 0 0 12px; color: var(--muted); font-size: 0.92rem; }
+    .content h1:first-child { margin-top: 0; font-size: clamp(2rem, 4vw, 3rem); line-height: 0.95; letter-spacing: -0.02em; }
+    .content h2, .content h3 { margin-top: 1.8em; line-height: 1.15; }
+    .content p, .content li { font-size: 1.03rem; line-height: 1.68; }
+    .content ol, .content ul { padding-left: 1.5rem; }
+    .content pre { overflow-x: auto; padding: 16px; border-radius: 14px; border: 1px solid var(--line); background: #fffdf8; }
+    .content code { padding: 0.12em 0.32em; border-radius: 0.36em; background: rgba(31, 26, 23, 0.08); font-size: 0.92em; }
+    .content pre code { padding: 0; background: transparent; }
+    .source-note { margin-top: 30px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.92rem; word-break: break-word; }
+    @media (max-width: 920px) {
+      .layout { width: min(100vw - 24px, 100%); padding-top: 16px; grid-template-columns: 1fr; }
+      .sidebar { position: static; }
+      .content { padding: 22px; }
     }
   </style>
 </head>
 <body>
-  <pre id="content">Loading SKILL.md...</pre>
-  <script>
-    const content = document.getElementById("content");
-    const source = "https://raw.githubusercontent.com/orbs-network/spot/master/skills/advanced-swap-orders/SKILL.md";
+  <div class="layout">
+    <aside class="sidebar panel">
+      <span class="eyebrow">GitHub Pages Mirror</span>
+      <h1>Advanced Swap Orders</h1>
+      <div class="nav-group">
+        <h2>Documentation</h2>
+        <ol>
+          <li><a href="index.html" aria-current="page">SKILL.md</a></li>
+<li><a href="advanced-swap-orders/references/01-quickstart/index.html">Quickstart</a></li>
+<li><a href="advanced-swap-orders/references/02-params/index.html">Params</a></li>
+<li><a href="advanced-swap-orders/references/03-sign/index.html">Sign</a></li>
+<li><a href="advanced-swap-orders/references/04-patterns/index.html">Patterns</a></li>
+<li><a href="advanced-swap-orders/assets/token-addressbook/index.html">Token Addressbook</a></li>
+        </ol>
+      </div>
+      <div class="nav-group">
+        <h2>Raw Files</h2>
+        <ol>
+          <li><a href="advanced-swap-orders/scripts/skill.config.json">skill.config.json</a></li>
+<li><a href="advanced-swap-orders/scripts/order.sh">order.sh</a></li>
+<li><a href="advanced-swap-orders/assets/repermit.skeleton.json">repermit.skeleton.json</a></li>
+<li><a href="advanced-swap-orders/assets/web3-sign-and-submit.example.js">web3-sign-and-submit.example.js</a></li>
+        </ol>
+      </div>
+    </aside>
+    <main class="content panel">
+      <p class="crumbs"><a href="index.html">SKILL.md</a> / Advanced Swap Orders</p>
+      <article class="doc">
+        <h1>Advanced Swap Orders</h1>
+<p>Use this for any supported gasless swap or advanced order. Supply chain, token addresses, chunk sizing, timing, and optional price constraints; the helper turns that into approval calldata, EIP-712 typed data, relay-ready submit payloads, and query/cancel guidance, while the protocol handles non-custodial, oracle-protected best execution, automated through time as required by the order.</p>
+<h2>Workflow</h2>
+<ol>
+<li>Read <a href="advanced-swap-orders/references/01-quickstart/index.html">references/01-quickstart.md</a> for the minimum end-to-end flow.</li>
+<li>Read <a href="advanced-swap-orders/references/02-params/index.html">references/02-params.md</a> when you need field semantics, defaults, units, or validation rules.</li>
+<li>Read <a href="advanced-swap-orders/references/03-sign/index.html">references/03-sign.md</a> for signing, submit modes, query usage, and direct onchain cancel.</li>
+<li>Read <a href="advanced-swap-orders/references/04-patterns/index.html">references/04-patterns.md</a> to map user intent into market, limit, stop-loss, take-profit, delayed, or chunked orders.</li>
+<li>Optional helper for token lookup: <a href="advanced-swap-orders/assets/token-addressbook/index.html">assets/token-addressbook.md</a>.</li>
+<li>Use <a href="advanced-swap-orders/assets/repermit.skeleton.json">assets/repermit.skeleton.json</a> when you need the raw RePermit witness typed-data skeleton.</li>
+<li>Use <a href="advanced-swap-orders/assets/web3-sign-and-submit.example.js">assets/web3-sign-and-submit.example.js</a> for a browser or injected-provider signing and submit example.</li>
+<li>Inspect <a href="advanced-swap-orders/scripts/skill.config.json">scripts/skill.config.json</a> for the live supported-chain matrix, sink URL, and runtime contract addresses.</li>
+<li>Use only <a href="advanced-swap-orders/scripts/order.sh">scripts/order.sh</a> to prepare, submit, and query orders.</li>
+</ol>
+<h2>Guardrails</h2>
+<ol>
+<li>Supported chains and runtime addresses live in <a href="advanced-swap-orders/scripts/skill.config.json">scripts/skill.config.json</a>.</li>
+<li>Use only the provided <a href="advanced-swap-orders/scripts/order.sh">scripts/order.sh</a>. Do not send typed data or signatures anywhere else.</li>
+<li>Detailed order behavior, parameter rules, signing modes, and cancel/query flows live in the reference files above.</li>
+</ol>
+<h2>Commands</h2>
+<ol>
+<li><code>bash scripts/order.sh prepare --params &lt;params.json|-&gt; [--out &lt;prepared.json&gt;]</code></li>
+<li><code>bash scripts/order.sh submit --prepared &lt;prepared.json|-&gt; --signature &lt;0x...|json&gt;</code> or <code>--signature-file &lt;file|-&gt;</code> or <code>--r &lt;0x...&gt; --s &lt;0x...&gt; --v &lt;0x...&gt;</code></li>
+<li><code>bash scripts/order.sh query --swapper &lt;0x...&gt;</code> or <code>--hash &lt;0x...&gt;</code></li>
+</ol>
 
-    async function loadSkill() {
-      try {
-        const response = await fetch(source, { cache: "no-store" });
-        if (!response.ok) {
-          throw new Error(`${response.status} ${response.statusText}`);
-        }
-
-        content.textContent = await response.text();
-      } catch (error) {
-        content.textContent = `Failed to load SKILL.md from ${source}\n\n${error.message}`;
-      }
-    }
-
-    loadSkill();
-  </script>
+      </article>
+      <p class="source-note">Source: <a href="https://github.com/orbs-network/spot/blob/master/skills/advanced-swap-orders/SKILL.md">https://github.com/orbs-network/spot/blob/master/skills/advanced-swap-orders/SKILL.md</a></p>
+    </main>
+  </div>
 </body>
 </html>

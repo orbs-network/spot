@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign And Submit | Advanced Swap Orders | Spot</title>
+  <meta name="description" content="Sign And Submit">
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f7f1e3;
+      --ink: #1f1a17;
+      --muted: #6a5f57;
+      --line: rgba(31, 26, 23, 0.12);
+      --accent: #9d3c23;
+      --accent-soft: rgba(157, 60, 35, 0.12);
+      font-family: "Avenir Next", "Segoe UI", Helvetica, Arial, sans-serif;
+      background: linear-gradient(180deg, #efe2c0 0%, #f7f1e3 18%, #fcfaf3 100%);
+      color: var(--ink);
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; color: var(--ink); background: transparent; }
+    a { color: var(--accent); text-decoration-thickness: 0.08em; text-underline-offset: 0.18em; }
+    a:hover { text-decoration-thickness: 0.12em; }
+    code, pre { font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace; }
+    .layout { width: min(1180px, calc(100vw - 32px)); margin: 0 auto; padding: 28px 0 40px; display: grid; gap: 20px; grid-template-columns: minmax(0, 290px) minmax(0, 1fr); align-items: start; }
+    .panel { background: rgba(255, 250, 240, 0.92); border: 1px solid var(--line); border-radius: 20px; box-shadow: 0 18px 40px rgba(42, 28, 18, 0.08); }
+    .sidebar { position: sticky; top: 20px; padding: 22px; }
+    .eyebrow { display: inline-block; padding: 6px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .sidebar h1 { margin: 16px 0 10px; font-size: 1.55rem; line-height: 1.1; }
+    .sidebar p { margin: 0 0 16px; color: var(--muted); line-height: 1.5; }
+    .nav-group + .nav-group { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--line); }
+    .nav-group h2 { margin: 0 0 10px; font-size: 0.92rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+    .nav-group ol { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
+    .nav-group a[aria-current="page"] { font-weight: 700; }
+    .content { padding: 28px; }
+    .crumbs { margin: 0 0 12px; color: var(--muted); font-size: 0.92rem; }
+    .content h1:first-child { margin-top: 0; font-size: clamp(2rem, 4vw, 3rem); line-height: 0.95; letter-spacing: -0.02em; }
+    .content h2, .content h3 { margin-top: 1.8em; line-height: 1.15; }
+    .content p, .content li { font-size: 1.03rem; line-height: 1.68; }
+    .content ol, .content ul { padding-left: 1.5rem; }
+    .content pre { overflow-x: auto; padding: 16px; border-radius: 14px; border: 1px solid var(--line); background: #fffdf8; }
+    .content code { padding: 0.12em 0.32em; border-radius: 0.36em; background: rgba(31, 26, 23, 0.08); font-size: 0.92em; }
+    .content pre code { padding: 0; background: transparent; }
+    .source-note { margin-top: 30px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.92rem; word-break: break-word; }
+    @media (max-width: 920px) {
+      .layout { width: min(100vw - 24px, 100%); padding-top: 16px; grid-template-columns: 1fr; }
+      .sidebar { position: static; }
+      .content { padding: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar panel">
+      <span class="eyebrow">GitHub Pages Mirror</span>
+      <h1>Advanced Swap Orders</h1>
+      <div class="nav-group">
+        <h2>Documentation</h2>
+        <ol>
+          <li><a href="../../../index.html">SKILL.md</a></li>
+<li><a href="../01-quickstart/index.html">Quickstart</a></li>
+<li><a href="../02-params/index.html">Params</a></li>
+<li><a href="index.html" aria-current="page">Sign</a></li>
+<li><a href="../04-patterns/index.html">Patterns</a></li>
+<li><a href="../../assets/token-addressbook/index.html">Token Addressbook</a></li>
+        </ol>
+      </div>
+      <div class="nav-group">
+        <h2>Raw Files</h2>
+        <ol>
+          <li><a href="../../scripts/skill.config.json">skill.config.json</a></li>
+<li><a href="../../scripts/order.sh">order.sh</a></li>
+<li><a href="../../assets/repermit.skeleton.json">repermit.skeleton.json</a></li>
+<li><a href="../../assets/web3-sign-and-submit.example.js">web3-sign-and-submit.example.js</a></li>
+        </ol>
+      </div>
+    </aside>
+    <main class="content panel">
+      <p class="crumbs"><a href="../../../index.html">SKILL.md</a> / Sign And Submit</p>
+      <article class="doc">
+        <h1>Sign And Submit</h1>
+<ol>
+<li>Sign <code>prepared.typedData</code> with any EIP-712-capable wallet or library. The signer must equal <code>swapper</code>. <code>eth_signTypedData_v4</code> is only one example.</li>
+<li>Submit with <code>--prepared &lt;prepared.json|-&gt;</code> and exactly one signature mode: <code>--signature &lt;0x...|json&gt;</code>, <code>--signature-file &lt;sig.txt|sig.json|-&gt;</code>, or <code>--r &lt;0x...&gt; --s &lt;0x...&gt; --v &lt;0x...&gt;</code>.</li>
+<li>The helper accepts a full 65-byte signature, a JSON string, or JSON/object <code>r/s/v</code>.</li>
+<li>Query with <code>bash scripts/order.sh query --swapper &lt;0x...&gt;</code> or <code>--hash &lt;0x...&gt;</code>.</li>
+<li>Cancel trustlessly onchain by calling <code>RePermit.cancel([digest])</code> as the swapper for the signed RePermit digest.</li>
+</ol>
+
+      </article>
+      <p class="source-note">Source: <a href="https://github.com/orbs-network/spot/blob/master/skills/advanced-swap-orders/references/03-sign.md">https://github.com/orbs-network/spot/blob/master/skills/advanced-swap-orders/references/03-sign.md</a></p>
+    </main>
+  </div>
+</body>
+</html>

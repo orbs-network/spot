@@ -23,7 +23,7 @@ Use this for any supported gasless swap or advanced order. Supply chain, token a
 
 1. Supported chains and runtime addresses live in [scripts/skill.config.json](https://raw.githubusercontent.com/orbs-network/spot/master/skills/advanced-swap-orders/scripts/skill.config.json).
 2. Use only the provided [scripts/order.sh](https://raw.githubusercontent.com/orbs-network/spot/master/skills/advanced-swap-orders/scripts/order.sh). Do not send typed data or signatures anywhere else.
-3. Detailed order behavior, parameter rules, signing modes, and cancel/query flows live in the reference files above. Do not duplicate that guidance in task output unless the user needs it applied.
+3. Detailed order behavior, parameter rules, signing modes, and cancel/query flows live in the reference files above.
 
 ## Commands
 
