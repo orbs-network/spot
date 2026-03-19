@@ -27,8 +27,11 @@
     .layout { width: min(1180px, calc(100vw - 32px)); margin: 0 auto; padding: 28px 0 40px; display: grid; gap: 20px; grid-template-columns: minmax(0, 290px) minmax(0, 1fr); align-items: start; }
     .panel { background: rgba(255, 250, 240, 0.92); border: 1px solid var(--line); border-radius: 20px; box-shadow: 0 18px 40px rgba(42, 28, 18, 0.08); }
     .sidebar { position: sticky; top: 20px; padding: 22px; }
-    .eyebrow { display: inline-block; padding: 6px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .eyebrow { display: inline-block; padding: 6px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; text-decoration: none; }
+    .eyebrow:hover { text-decoration: none; }
     .sidebar h1 { margin: 16px 0 10px; font-size: 1.55rem; line-height: 1.1; }
+    .sidebar h1 a { color: inherit; text-decoration: none; }
+    .sidebar h1 a:hover { text-decoration: none; }
     .sidebar p { margin: 0 0 16px; color: var(--muted); line-height: 1.5; }
     .nav-group + .nav-group { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--line); }
     .nav-group h2 { margin: 0 0 10px; font-size: 0.92rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
@@ -43,6 +46,7 @@
     .content pre { overflow-x: auto; padding: 16px; border-radius: 14px; border: 1px solid var(--line); background: #fffdf8; }
     .content code { padding: 0.12em 0.32em; border-radius: 0.36em; background: rgba(31, 26, 23, 0.08); font-size: 0.92em; }
     .content pre code { padding: 0; background: transparent; }
+    .frontmatter { margin: 0 0 20px; white-space: pre-wrap; overflow-wrap: anywhere; }
     .source-note { margin-top: 30px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.92rem; word-break: break-word; }
     @media (max-width: 920px) {
       .layout { width: min(100vw - 24px, 100%); padding-top: 16px; grid-template-columns: 1fr; }
@@ -54,8 +58,8 @@
 <body>
   <div class="layout">
     <aside class="sidebar panel">
-      <span class="eyebrow">GitHub Pages Mirror</span>
-      <h1>Advanced Swap Orders</h1>
+      <a class="eyebrow" href="https://github.com/orbs-network/spot/blob/master/skills/advanced-swap-orders/SKILL.md">GitHub Pages Mirror</a>
+      <h1><a href="index.html">Advanced Swap Orders</a></h1>
       <div class="nav-group">
         <h2>Documentation</h2>
         <ol>
@@ -78,8 +82,12 @@
       </div>
     </aside>
     <main class="content panel">
-      <p class="crumbs"><a href="index.html">SKILL.md</a> / Advanced Swap Orders</p>
+      <p class="crumbs"><a href="index.html">Advanced Swap Orders</a> / SKILL.md</p>
       <article class="doc">
+        <pre class="frontmatter"><code>---
+name: advanced-swap-orders
+description: Prepare, sign, submit, and query non-custodial, decentralized, gasless swap orders and advanced order types on supported chains. Uses ownerless, immutable, audited, battle-tested, and verified contracts. Supports market, limit, stop-loss, take-profit, delayed-start, and chunked/TWAP-style orders with oracle-protected execution on every chunk. Includes automated execution through time as required by the order, EIP-712 signing, approval calldata, and order status lookup.
+---</code></pre>
         <h1>Advanced Swap Orders</h1>
 <p>Use this for any supported gasless swap or advanced order. Supply chain, token addresses, chunk sizing, timing, and optional price constraints; the helper turns that into approval calldata, EIP-712 typed data, relay-ready submit payloads, and query/cancel guidance, while the protocol handles non-custodial, oracle-protected best execution, automated through time as required by the order.</p>
 <h2>Workflow</h2>

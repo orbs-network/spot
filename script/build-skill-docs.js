@@ -5,6 +5,7 @@ const repoRoot = path.resolve(__dirname, "..");
 const docsRoot = path.join(repoRoot, "docs");
 const skillRoot = path.join(repoRoot, "skills", "advanced-swap-orders");
 const mirrorRoot = path.join(docsRoot, "advanced-swap-orders");
+const skillsDirUrl = "https://github.com/orbs-network/spot/blob/master/skills/advanced-swap-orders/SKILL.md";
 const repoBlobBase = "https://github.com/orbs-network/spot/blob/master/skills/advanced-swap-orders/";
 const rootSourceRel = "SKILL.md";
 const rootPageLabel = "SKILL.md";
@@ -55,6 +56,7 @@ async function main() {
       currentSourceRel: page.sourceRel,
       pageTitle: page.sourceRel === rootSourceRel ? `${heading} | Spot` : `${heading} | Advanced Swap Orders | Spot`,
       pageDescription: frontMatter.description || firstParagraph(body) || heading,
+      frontMatter,
       heading,
       bodyHtml: html,
       docsPages,
@@ -164,13 +166,15 @@ function firstParagraph(markdown) {
   return "";
 }
 
-function renderPage({ currentSourceRel, pageTitle, pageDescription, heading, bodyHtml, docsPages, rawAssets, sourceUrl }) {
+function renderPage({ currentSourceRel, pageTitle, pageDescription, frontMatter, heading, bodyHtml, docsPages, rawAssets, sourceUrl }) {
   const currentPagePath = pagePathFor(currentSourceRel);
+  const rootPageHref = escapeHtmlAttr(relativeHref(currentPagePath, pagePathFor(rootSourceRel)));
   const docsLinks = docsPages.map((page) => {
     const current = page.sourceRel === currentSourceRel ? ' aria-current="page"' : "";
     return `<li><a href="${escapeHtmlAttr(relativeHref(currentPagePath, page.filePath))}"${current}>${escapeHtml(page.title)}</a></li>`;
   }).join("\n");
   const assetLinks = rawAssets.map((asset) => `<li><a href="${escapeHtmlAttr(relativeHref(currentPagePath, asset.filePath))}">${escapeHtml(asset.title)}</a></li>`).join("\n");
+  const frontMatterBlock = renderFrontMatter(currentSourceRel, frontMatter);
 
   return `<!doctype html>
 <html lang="en">
@@ -201,8 +205,11 @@ function renderPage({ currentSourceRel, pageTitle, pageDescription, heading, bod
     .layout { width: min(1180px, calc(100vw - 32px)); margin: 0 auto; padding: 28px 0 40px; display: grid; gap: 20px; grid-template-columns: minmax(0, 290px) minmax(0, 1fr); align-items: start; }
     .panel { background: rgba(255, 250, 240, 0.92); border: 1px solid var(--line); border-radius: 20px; box-shadow: 0 18px 40px rgba(42, 28, 18, 0.08); }
     .sidebar { position: sticky; top: 20px; padding: 22px; }
-    .eyebrow { display: inline-block; padding: 6px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .eyebrow { display: inline-block; padding: 6px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; text-decoration: none; }
+    .eyebrow:hover { text-decoration: none; }
     .sidebar h1 { margin: 16px 0 10px; font-size: 1.55rem; line-height: 1.1; }
+    .sidebar h1 a { color: inherit; text-decoration: none; }
+    .sidebar h1 a:hover { text-decoration: none; }
     .sidebar p { margin: 0 0 16px; color: var(--muted); line-height: 1.5; }
     .nav-group + .nav-group { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--line); }
     .nav-group h2 { margin: 0 0 10px; font-size: 0.92rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
@@ -217,6 +224,7 @@ function renderPage({ currentSourceRel, pageTitle, pageDescription, heading, bod
     .content pre { overflow-x: auto; padding: 16px; border-radius: 14px; border: 1px solid var(--line); background: #fffdf8; }
     .content code { padding: 0.12em 0.32em; border-radius: 0.36em; background: rgba(31, 26, 23, 0.08); font-size: 0.92em; }
     .content pre code { padding: 0; background: transparent; }
+    .frontmatter { margin: 0 0 20px; white-space: pre-wrap; overflow-wrap: anywhere; }
     .source-note { margin-top: 30px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.92rem; word-break: break-word; }
     @media (max-width: 920px) {
       .layout { width: min(100vw - 24px, 100%); padding-top: 16px; grid-template-columns: 1fr; }
@@ -228,8 +236,8 @@ function renderPage({ currentSourceRel, pageTitle, pageDescription, heading, bod
 <body>
   <div class="layout">
     <aside class="sidebar panel">
-      <span class="eyebrow">GitHub Pages Mirror</span>
-      <h1>Advanced Swap Orders</h1>
+      <a class="eyebrow" href="${escapeHtmlAttr(skillsDirUrl)}">GitHub Pages Mirror</a>
+      <h1><a href="${rootPageHref}">Advanced Swap Orders</a></h1>
       <div class="nav-group">
         <h2>Documentation</h2>
         <ol>
@@ -244,8 +252,9 @@ function renderPage({ currentSourceRel, pageTitle, pageDescription, heading, bod
       </div>
     </aside>
     <main class="content panel">
-      <p class="crumbs"><a href="${escapeHtmlAttr(relativeHref(currentPagePath, pagePathFor(rootSourceRel)))}">${escapeHtml(rootPageLabel)}</a> / ${escapeHtml(heading)}</p>
+      <p class="crumbs"><a href="${rootPageHref}">Advanced Swap Orders</a> / ${escapeHtml(breadcrumbLabel(currentSourceRel))}</p>
       <article class="doc">
+        ${frontMatterBlock}
         ${bodyHtml}
       </article>
       <p class="source-note">Source: <a href="${escapeHtmlAttr(sourceUrl)}">${escapeHtml(sourceUrl)}</a></p>
@@ -265,6 +274,29 @@ function pageLabel(sourceRel) {
     .replace(/^\d+-/, "")
     .replace(/[-_]+/g, " ")
     .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function breadcrumbLabel(sourceRel) {
+  return sourceRel === rootSourceRel ? rootPageLabel : `${pageLabel(sourceRel)}.md`;
+}
+
+function renderFrontMatter(sourceRel, frontMatter) {
+  if (sourceRel !== rootSourceRel) {
+    return "";
+  }
+
+  const lines = [];
+  if (frontMatter.name) {
+    lines.push(`name: ${frontMatter.name}`);
+  }
+  if (frontMatter.description) {
+    lines.push(`description: ${frontMatter.description}`);
+  }
+  if (lines.length === 0) {
+    return "";
+  }
+
+  return `<pre class="frontmatter"><code>${escapeHtml(`---\n${lines.join("\n")}\n---`)}</code></pre>`;
 }
 
 function pageRank(sourceRel) {
