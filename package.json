@@ -14,8 +14,7 @@
     "author": "danielz@orbs.com",
     "scripts": {
         "fmt": "forge fmt",
-        "docs:build": "node script/build-skill-docs.js",
-        "build": "forge build --extra-output-files abi && npm run docs:build",
+        "build": "forge build --extra-output-files abi",
         "test": "forge test",
         "prepublishOnly": "npm run fmt && npm run build && npm run test"
     },
@@ -25,8 +24,5 @@
         "out/**/*.json",
         "index.js"
     ],
-    "main": "index.js",
-    "devDependencies": {
-        "marked": "^17.0.4"
-    }
+    "main": "index.js"
 }
