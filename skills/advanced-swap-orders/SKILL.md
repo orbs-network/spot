@@ -16,12 +16,12 @@ Use this for any supported gasless swap or advanced order. Supply chain, token a
 5. Optional helper for token lookup: [assets/token-addressbook.md](assets/token-addressbook.md).
 6. Use [assets/repermit.skeleton.json](assets/repermit.skeleton.json) when you need the raw RePermit witness typed-data skeleton.
 7. Use [assets/web3-sign-and-submit.example.js](assets/web3-sign-and-submit.example.js) for a browser or injected-provider signing and submit example.
-8. Inspect [scripts/skill.config.json](scripts/skill.config.json) for the live supported-chain matrix, sink URL, and runtime contract addresses.
+8. Inspect [manifest.json](manifest.json) for the machine-readable entrypoint, references, live supported-chain matrix, sink URL, and runtime contract addresses.
 9. Use only [scripts/order.sh](scripts/order.sh) to prepare, submit, and query orders.
 
 ## Guardrails
 
-1. Supported chains and runtime addresses live in [scripts/skill.config.json](scripts/skill.config.json).
+1. Supported chains and runtime addresses live in [manifest.json](manifest.json).
 2. Use only the provided [scripts/order.sh](scripts/order.sh). Do not send typed data or signatures anywhere else.
 3. Detailed order behavior, parameter rules, signing modes, and cancel/query flows live in the reference files above.
 

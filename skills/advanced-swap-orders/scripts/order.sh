@@ -24,7 +24,7 @@ WARN_RECIPIENT="recipient differs from swapper and is dangerous to change"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 SKELETON="${ROOT}/assets/repermit.skeleton.json"
-SKILL_CONFIG_JSON="${SCRIPT_DIR}/skill.config.json"
+MANIFEST_JSON="${ROOT}/manifest.json"
 RUNTIME_CONFIG=""
 RUNTIME_LOADED=0
 WARN=()
@@ -40,18 +40,20 @@ load_runtime_config(){
   local cfg=""
   (( RUNTIME_LOADED )) && return
   need jq
-  [[ -f "$SKILL_CONFIG_JSON" ]] || die "skill config not found: $SKILL_CONFIG_JSON"
+  [[ -f "$MANIFEST_JSON" ]] || die "skill manifest not found: $MANIFEST_JSON"
   cfg="$(jq -c '
-    .url as $url
-    | .contracts as $contracts
-    | .chains as $chains
+    .runtime as $runtime
+    | $runtime.url as $url
+    | $runtime.contracts as $contracts
+    | $runtime.chains as $chains
     | select(($url // "") != "")
     | select(($contracts.zero // "") != "")
     | select(($contracts.repermit // "") != "")
     | select(($contracts.reactor // "") != "")
     | select(($contracts.executor // "") != "")
     | select(($chains | type) == "object" and ($chains | length) > 0)
-  ' "$SKILL_CONFIG_JSON")" || die "invalid skill config: $SKILL_CONFIG_JSON"
+    | $runtime
+  ' "$MANIFEST_JSON")" || die "invalid skill manifest runtime config: $MANIFEST_JSON"
   RUNTIME_CONFIG="$cfg"
   ZERO="$(jq -r '.contracts.zero' <<<"$cfg")"
   SINK="$(jq -r '.url' <<<"$cfg")"
@@ -65,8 +67,8 @@ load_runtime_config(){
   addr "$REPERMIT" runtime.contracts.repermit >/dev/null
   addr "$REACTOR" runtime.contracts.reactor >/dev/null
   addr "$EXECUTOR" runtime.contracts.executor >/dev/null
-  [[ "$SINK" == http://* || "$SINK" == https://* ]] || die "config.url must be http(s)"
-  [[ -n "$SUPPORTED_CHAIN_IDS" ]] || die "skill config has no supported chains: $SKILL_CONFIG_JSON"
+  [[ "$SINK" == http://* || "$SINK" == https://* ]] || die "runtime.url must be http(s)"
+  [[ -n "$SUPPORTED_CHAIN_IDS" ]] || die "skill manifest runtime has no supported chains: $MANIFEST_JSON"
   RUNTIME_LOADED=1
 }
 has_supported_chain(){
