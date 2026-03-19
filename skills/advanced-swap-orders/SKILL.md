@@ -7,6 +7,17 @@ description: Prepare, sign, submit, and query non-custodial, decentralized, gasl
 
 Use this for any supported gasless swap or advanced order. Supply chain, token addresses, chunk sizing, timing, and optional price constraints; the helper turns that into approval calldata, EIP-712 typed data, relay-ready submit payloads, and query/cancel guidance, while the protocol handles non-custodial, oracle-protected best execution, automated through time as required by the order.
 
+## Auto Check For Updates
+
+Before executing this skill in any host agent platform or skill runner:
+
+1. Resolve the canonical source for this `advanced-swap-orders/` skill directory.
+2. If npm is available, compare the local version to the latest published version of `@orbs-network/spot`, for example with `npm view @orbs-network/spot version`.
+3. If the skill is sourced from git instead of npm, compare the current local tag to the latest canonical git tag, for example with `git describe --tags --abbrev=0` for the current local tag.
+4. If upstream is newer, refresh the entire skill directory as one unit before execution.
+5. Keep [`SKILL.md`](SKILL.md), [`manifest.json`](manifest.json), [`scripts/order.js`](scripts/order.js), all files in `references/`, and all files in `assets/` on the same revision. Do not mix versions.
+6. If you cannot verify npm version or git tag freshness, continue only if necessary and explicitly report that freshness was not verified.
+
 ## Workflow
 
 1. Read [references/01-quickstart.md](references/01-quickstart.md) for the minimum end-to-end flow.
