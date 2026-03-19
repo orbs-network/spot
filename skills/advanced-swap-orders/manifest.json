@@ -29,10 +29,6 @@
         "name": "Ethereum",
         "adapter": "0xC1bB4d5071Fe7109ae2D67AE05826A3fe9116cfc"
       },
-      "10": {
-        "name": "Optimism",
-        "adapter": "0xC5Aea83Fdd94A19fB2ce0B7207939C52825D3D3B"
-      },
       "56": {
         "name": "BNB Chain",
         "adapter": "0x67Feba015c968c76cCB2EEabf197b4578640BE2C"
@@ -48,10 +44,6 @@
       "8453": {
         "name": "Base",
         "adapter": "0x5906C4dD71D5afFe1a8f0215409E912eB5d593AD"
-      },
-      "5000": {
-        "name": "Mantle",
-        "adapter": "0x9571D46B5A5AAb749E5aCd698D8F20814C7B23D3"
       },
       "42161": {
         "name": "Arbitrum One",
