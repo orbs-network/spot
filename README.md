@@ -1,30 +1,37 @@
-# Spot — Limit, TWAP, Stop-Loss DeFi Protocol
+# Spot — Limit, TWAP, Stop-Loss, Take-Profit Non-Custodial DeFi Protocol
 
-**A DeFi protocol for noncustodial advanced order types on EVM chains.**
+**Agent-Ready DeFi protocol for noncustodial advanced order types on EVM chains.**
 
 **🔒 [Security Audit Report](./Audit-AstraSec.pdf)** - Smart contracts professionally audited by AstraSec
 
-## Who It's For
+## Agent Entry
 
-- 🧭 **Product**: Ship price-target, time-sliced, and protective orders with professional-grade execution
-- 🤝 **Business Development**: Onboard MMs/venues with transparent rev-share and attribution mechanisms
-- 🧩 **Integrators**: Drop-in EIP-712 orders, cosigned prices, and modular executor architecture
-- 🔧 **Developers**: Clean, well-tested Solidity codebase with comprehensive tooling
+Start with these files:
 
-## What It Does
+1. [`skills/advanced-swap-orders/SKILL.md`](./skills/advanced-swap-orders/SKILL.md) for the execution workflow
+2. [`skills/advanced-swap-orders/manifest.json`](./skills/advanced-swap-orders/manifest.json) for machine-readable discovery
+3. [`skills/advanced-swap-orders/scripts/order.js`](./skills/advanced-swap-orders/scripts/order.js) for prepare, submit, and query operations
 
-- 🎯 **Limit Orders**: Execute at or above a target output amount with oracle price protection
-- ⏱️ **TWAP Orders**: Slice total size into fixed "chunks" per configurable epoch intervals
-- 🛡️ **Stop-Loss/Take-Profit**: Execute only when cosigned price breaches trigger boundaries
-- 🔄 **Composable Execution**: Mix and match the above order types with custom exchange adapters
+The same skill bundle can be consumed through three aligned surfaces:
 
-## Why It Wins
+1. Repo-local files under `skills/advanced-swap-orders/`
+2. Hosted raw files from [`https://orbs-network.github.io/spot/`](https://orbs-network.github.io/spot/), with the same relative paths
+3. The npm package `@orbs-network/spot`
+
+## Agent Capabilities
+
+- 🎯 **Intent Mapping**: Translate user intent into market, limit, TWAP, stop-loss, take-profit, and delayed-start orders
+- ✍️ **Signing Prep**: Produce approval calldata, EIP-712 typed data, and relay-ready payloads
+- 🔎 **Machine Discovery**: Read supported chains, runtime addresses, references, and assets from `manifest.json`
+- 🧰 **Direct Execution Tooling**: Use `scripts/order.js` for prepare, submit, and query flows
+- 📦 **Raw File Access**: Consume the same bundle from repo-local files, the hosted raw-file mirror, or from npm
+
+## Protocol Guarantees
 
 - ✅ **Non-custodial**: Per-order allowances via RePermit with witness-bound spending authorization
-- 🔒 **Battle-tested Security**: Cosigned prices, slippage caps (max 50%), deadlines, and epoch gating
-- ⚙️ **Modular Architecture**: Inlined reactor settlement + pluggable executor strategies
-- 📈 **Built-in Revenue**: Configurable referral shares and automatic surplus distribution
-- 🏗️ **Production Ready**: 1M optimization runs, comprehensive test coverage, multi-chain deployments
+- 🔒 **Oracle-Protected**: Trigger checks, slippage caps, freshness windows, and deadline enforcement
+- 🛡️ **Battle-Tested**: Audited contracts, verified runtime components, and comprehensive test coverage
+- 🏗️ **Production Ready**: Multi-chain deployments plus repo-shipped skill files, helper scripts, config, and ABIs
 
 ## Architecture
 
@@ -139,9 +146,9 @@ Order memory order = Order({
     epoch: 0,                    // Single execution
     start: block.timestamp,  // Order becomes active immediately
     output: Output({
-        limit: 900 ether,        // Minimum output when executing
-        triggerLower: 950 ether, // Stop-loss boundary
-        triggerUpper: 1200 ether // Take-profit boundary
+        limit: 900 ether,        // Minimum per chunk output when executing
+        triggerLower: 950 ether, // Stop-loss boundary per chunk
+        triggerUpper: 1200 ether // Take-profit boundary per chunk
     })
 });
 ```
@@ -201,11 +208,6 @@ forge test --gas-report  # Include gas usage analysis
 ### Formatting
 ```bash
 forge fmt    # Auto-format all Solidity files
-```
-
-### Gas Analysis
-```bash
-forge snapshot --check  # Validate gas consumption changes
 ```
 
 ## Multi-Chain Deployment

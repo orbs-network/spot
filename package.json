@@ -20,6 +20,9 @@
     },
     "files": [
         "config.json",
+        "index.css",
+        "index.html",
+        "skills/",
         "script/input/",
         "out/**/*.json",
         "index.js"
