@@ -225,6 +225,15 @@ const toolHandlers = {
 
 // ── JSON-RPC / MCP Message Handling ────────────────────────────────────────
 async function handleMessage(msg) {
+  // Type guard: msg must be a non-null object
+  if (typeof msg !== 'object' || msg === null) {
+    return {
+      jsonrpc: '2.0',
+      id: null,
+      error: { code: -32600, message: 'Invalid Request: expected a JSON object' },
+    };
+  }
+
   const { jsonrpc, id, method, params } = msg;
 
   // Notifications (no id field) — acknowledge silently per JSON-RPC 2.0 spec
@@ -305,9 +314,35 @@ async function handleMessage(msg) {
 // ── stdio Transport ────────────────────────────────────────────────────────
 function startStdioTransport() {
   let buffer = '';
+  const messageQueue = [];
+  let processing = false;
+
+  async function processQueue() {
+    if (processing) return;
+    processing = true;
+    while (messageQueue.length > 0) {
+      const msg = messageQueue.shift();
+      try {
+        const response = await handleMessage(msg);
+        if (response) {
+          process.stdout.write(JSON.stringify(response) + '\n');
+        }
+      } catch (err) {
+        // Unexpected error in handleMessage — emit JSON-RPC internal error
+        const errorId = (typeof msg === 'object' && msg !== null) ? msg.id ?? null : null;
+        const errResp = {
+          jsonrpc: '2.0',
+          id: errorId,
+          error: { code: -32603, message: `Internal error: ${err.message}` },
+        };
+        process.stdout.write(JSON.stringify(errResp) + '\n');
+      }
+    }
+    processing = false;
+  }
 
   process.stdin.setEncoding('utf8');
-  process.stdin.on('data', async (chunk) => {
+  process.stdin.on('data', (chunk) => {
     buffer += chunk;
 
     // MCP uses newline-delimited JSON
@@ -331,20 +366,26 @@ function startStdioTransport() {
         continue;
       }
 
-      const response = await handleMessage(msg);
-      if (response) {
-        process.stdout.write(JSON.stringify(response) + '\n');
-      }
+      messageQueue.push(msg);
     }
+
+    processQueue();
   });
 
   process.stdin.on('end', () => {
     process.exit(0);
   });
 
-  // Prevent unhandled errors from crashing
+  // Prevent unhandled errors from crashing — log and exit
   process.on('uncaughtException', (err) => {
-    process.stderr.write(`MCP server error: ${err.message}\n`);
+    process.stderr.write(`MCP server uncaught exception: ${err.message}\n`);
+    process.exit(1);
+  });
+
+  process.on('unhandledRejection', (reason) => {
+    const msg = reason instanceof Error ? reason.message : String(reason);
+    process.stderr.write(`MCP server unhandled rejection: ${msg}\n`);
+    process.exit(1);
   });
 }
 
