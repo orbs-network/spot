@@ -43,7 +43,7 @@ const SERVER_INFO = {
   version: '1.0.0',
 };
 const SERVER_CAPABILITIES = {
-  tools: {},
+  tools: { listChanged: false },
 };
 
 // ── Tool Definitions (dynamically built from manifest) ─────────────────────
@@ -164,7 +164,7 @@ const TOOLS = [
 
 // ── Helper: run node scripts/order.js ──────────────────────────────────────
 function runOrderJs(args, stdinData) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const child = execFile('node', [ORDER_JS, ...args], {
       cwd: SKILL_DIR,
       timeout: 30000,
@@ -172,7 +172,7 @@ function runOrderJs(args, stdinData) {
     }, (error, stdout, stderr) => {
       if (error) {
         const msg = stderr?.trim() || stdout?.trim() || error.message || 'Unknown error';
-        resolve(JSON.stringify({ error: msg, exitCode: error.code }));
+        reject(new Error(msg));
       } else {
         resolve(stdout.trim());
       }
@@ -205,7 +205,7 @@ const toolHandlers = {
 
   async query_orders({ swapper, order_hash }) {
     if (!swapper && !order_hash) {
-      return [{ type: 'text', text: JSON.stringify({ error: 'Provide either swapper address or order_hash' }) }];
+      throw new Error('Provide either swapper address or order_hash');
     }
     const args = ['query'];
     if (swapper) args.push('--swapper', swapper);
@@ -227,8 +227,9 @@ const toolHandlers = {
 async function handleMessage(msg) {
   const { jsonrpc, id, method, params } = msg;
 
-  // Notifications (no id) — acknowledge silently
-  if (id === undefined || id === null) {
+  // Notifications (no id field) — acknowledge silently per JSON-RPC 2.0 spec
+  // Note: id === null is a valid request id; only missing id (undefined) is a notification
+  if (id === undefined) {
     return null; // no response for notifications
   }
 

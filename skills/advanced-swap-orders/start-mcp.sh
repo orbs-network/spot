@@ -5,6 +5,6 @@
 #   node mcp-server.js          # direct invocation
 
 set -euo pipefail
-cd "$(dirname "$0")"
+cd -- "$(dirname -- "${BASH_SOURCE[0]}")"
 
 exec node mcp-server.js
