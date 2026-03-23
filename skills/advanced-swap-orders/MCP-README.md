@@ -1,6 +1,8 @@
 # MCP Server — Orbs Advanced Swap Orders
 
-Model Context Protocol (MCP) server exposing gasless, oracle-protected swap orders across 10 EVM chains.
+Model Context Protocol (MCP) server exposing gasless, oracle-protected swap orders across multiple EVM chains.
+
+**Zero external dependencies** — implements the MCP stdio protocol (JSON-RPC 2.0 over stdin/stdout) directly in Node.js. All configuration is read dynamically from `manifest.json` and `assets/`.
 
 ## Quick Start
 
@@ -8,8 +10,8 @@ Model Context Protocol (MCP) server exposing gasless, oracle-protected swap orde
 # stdio transport (for MCP clients like Claude Desktop, Cursor, etc.)
 ./start-mcp.sh
 
-# HTTP transport (for web-based MCP clients)
-./start-mcp.sh http 8000
+# or directly
+node mcp-server.js
 ```
 
 ## Tools
@@ -19,7 +21,7 @@ Model Context Protocol (MCP) server exposing gasless, oracle-protected swap orde
 | `prepare_order` | Prepare a gasless swap order (market, limit, stop-loss, take-profit, TWAP, delayed-start). Returns EIP-712 typed data for signing. |
 | `submit_order` | Submit a signed order to the Orbs relay network for oracle-protected execution. |
 | `query_orders` | Query order status by swapper address or order hash. |
-| `get_supported_chains` | List all supported chains with IDs, names, and adapter addresses. |
+| `get_supported_chains` | List all supported chains with IDs, names, and adapter addresses (from manifest.json). |
 | `get_token_addressbook` | Common token addresses (WETH, USDC, USDT, etc.) for every supported chain. |
 
 ## Workflow
@@ -38,30 +40,42 @@ Model Context Protocol (MCP) server exposing gasless, oracle-protected swap orde
 {
   "mcpServers": {
     "orbs-swap": {
-      "command": "/path/to/skills/advanced-swap-orders/start-mcp.sh"
+      "command": "node",
+      "args": ["/path/to/skills/advanced-swap-orders/mcp-server.js"]
     }
   }
 }
 ```
 
-### HTTP Mode (for remote clients)
+### Via npx (if published)
 
 ```json
 {
   "mcpServers": {
     "orbs-swap": {
-      "url": "http://localhost:8000/mcp"
+      "command": "npx",
+      "args": ["@orbs-network/spot", "mcp"]
     }
   }
 }
 ```
 
+## Architecture
+
+- **Single file**: `mcp-server.js` — no build step, no transpilation
+- **Zero dependencies**: implements JSON-RPC 2.0 / MCP protocol inline
+- **Config from manifest**: chains, contracts, and metadata read from `manifest.json` at startup
+- **Token data from assets**: `assets/token-addressbook.md` loaded and served directly
+- **Tool execution**: each tool calls `node scripts/order.js` via `child_process`
+- **Transport**: stdio (newline-delimited JSON-RPC 2.0)
+
 ## Supported Chains
 
-Ethereum (1), BNB Chain (56), Polygon (137), Sonic (146), Base (8453), Arbitrum One (42161), Avalanche (43114), Linea (59144) — plus Optimism (10) and Mantle (5000) via runtime config.
+Dynamically loaded from `manifest.json`. Currently:
+
+Ethereum (1), BNB Chain (56), Polygon (137), Sonic (146), Base (8453), Arbitrum One (42161), Avalanche (43114), Linea (59144).
 
 ## Requirements
 
-- Python 3.10+
-- `fastmcp` (`pip install fastmcp`)
-- Node.js (for `scripts/order.js`)
+- Node.js 18+ (uses `node:fs`, `node:path`, `node:child_process`)
+- No additional npm packages required
