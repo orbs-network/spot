@@ -1,6 +1,9 @@
 {
   "name": "advanced-swap-orders",
+  "version": "2.1.2",
+  "license": "MIT",
   "description": "Prepare, sign, submit, and query non-custodial, decentralized, gasless swap orders and advanced order types on supported chains. Uses ownerless, immutable, audited, battle-tested, and verified contracts. Supports market, limit, stop-loss, take-profit, delayed-start, and chunked/TWAP-style orders with oracle-protected execution on every chunk. Includes automated execution through time as required by the order, EIP-712 signing, approval calldata, and order status lookup.",
+  "keywords": ["defi", "swap", "twap", "limit-order", "stop-loss", "take-profit", "evm", "gasless", "non-custodial", "oracle-protected"],
   "entrypoint": "SKILL.md",
   "references": [
     "references/01-quickstart.md",

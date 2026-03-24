@@ -41,6 +41,20 @@ Before executing this skill in any host agent platform or skill runner:
 8. Inspect [manifest.json](manifest.json) for the machine-readable entrypoint, references, live supported-chain matrix, sink URL, and runtime contract addresses.
 9. Use only [scripts/order.js](scripts/order.js) to prepare, submit, and query orders.
 
+## Supported Chains
+
+Ethereum · BNB Chain · Polygon · Sonic · Base · Arbitrum One · Avalanche · Linea
+
+## Security
+
+Smart contracts professionally audited by AstraSec — [full report](../../Audit-AstraSec.pdf).
+
+## Links
+
+- Landing page: [orbs.com/ai/skills/advanced-swap-orders](https://orbs-website.netlify.app/ai/skills/advanced-swap-orders/)
+- npm: [@orbs-network/spot](https://www.npmjs.com/package/@orbs-network/spot)
+- GitHub: [orbs-network/spot](https://github.com/orbs-network/spot)
+
 ## Guardrails
 
 1. Supported chains and runtime addresses live in [manifest.json](manifest.json).
