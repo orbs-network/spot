@@ -1,22 +1,25 @@
 ---
 name: advanced-swap-orders
-description: Prepare, sign, submit, and query non-custodial, decentralized, gasless swap orders and advanced order types on supported chains. Uses ownerless, immutable, audited, battle-tested, and verified contracts. Supports market, limit, stop-loss, take-profit, delayed-start, and chunked/TWAP-style orders with oracle-protected execution on every chunk. Includes automated execution through time as required by the order, EIP-712 signing, approval calldata, and order status lookup.
+description: Create and manage gasless, decentralized, non-custodial, oracle-protected market, limit, TWAP, stop-loss, take-profit, and delayed-start swap orders on supported EVM chains with immutable, audited, battle-tested contracts.
 ---
 
-# Advanced Swap Orders
+# Spot Advanced Swap Orders
 
-Use this for any supported gasless swap or advanced order. Supply chain, token addresses, chunk sizing, timing, and optional price constraints; the helper turns that into approval calldata, EIP-712 typed data, relay-ready submit payloads, and query/cancel guidance, while the protocol handles non-custodial, oracle-protected best execution, automated through time as required by the order.
+Use this for any supported gasless swap or advanced order on supported EVM chains. Supply chain, token addresses, chunk sizing, timing, and optional price constraints; the helper turns that into approval calldata, EIP-712 typed data, relay-ready submit payloads, and query/cancel guidance, while the protocol handles non-custodial, oracle-protected execution for market, limit, TWAP, stop-loss, take-profit, and delayed-start orders.
 
 ## Distribution
 
-This skill is distributed as one versioned bundle across three aligned AI-agent distribution surfaces from the canonical repository [`orbs-network/spot`](https://github.com/orbs-network/spot):
+This skill is distributed as one versioned bundle across four aligned AI-agent distribution surfaces from the canonical repository [`orbs-network/spot`](https://github.com/orbs-network/spot):
 
 1. Repo-local files under `skills/advanced-swap-orders/` in a checked-out repository.
 2. Hosted raw files under [`https://orbs-network.github.io/spot/`](https://orbs-network.github.io/spot/), with the same relative `skills/advanced-swap-orders/` paths.
 3. The npm package `@orbs-network/spot`, where the same relative tree is installed under `node_modules/@orbs-network/spot/skills/advanced-swap-orders/`.
+4. The npm package also exposes a stdio MCP adapter as `spot-mcp`, which wraps this same skill bundle without changing the canonical execution surface.
+
+The checked-in `server.json` registry metadata is derived from this skill manifest plus package metadata, so MCP publishing stays aligned with the bundle.
+The canonical MCP server name is `io.github.orbs-network/spot`.
 
 Outside tools should treat [`SKILL.md`](SKILL.md) as the entrypoint and [`manifest.json`](manifest.json) as the machine-readable companion file.
-The repository [`README.md`](https://github.com/orbs-network/spot/blob/main/README.md) mirrors the repo-local entrypoints first for top-level AI-agent discovery.
 
 ## Auto Check For Updates
 

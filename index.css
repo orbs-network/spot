@@ -65,6 +65,12 @@ section {
   border-top: 1px solid rgba(163, 194, 255, 0.14);
 }
 
+footer {
+  margin-top: 32px;
+  padding-top: 22px;
+  border-top: 1px solid rgba(163, 194, 255, 0.14);
+}
+
 h2 {
   margin-bottom: 10px;
   font-size: 0.86rem;
@@ -75,6 +81,10 @@ h2 {
 
 ol {
   padding-left: 20px;
+}
+
+.distribution-list {
+  margin-top: 14px;
 }
 
 li + li {

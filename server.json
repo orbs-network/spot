@@ -1,0 +1,21 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.orbs-network/spot",
+  "title": "Spot Advanced Swap Orders",
+  "description": "Create and manage gasless, decentralized, non-custodial, oracle-protected market, limit, TWAP, stop-loss, take-profit, and delayed-start swap orders on supported EVM chains with immutable, audited, battle-tested contracts.",
+  "repository": {
+    "url": "https://github.com/orbs-network/spot",
+    "source": "github"
+  },
+  "version": "2.1.3",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@orbs-network/spot",
+      "version": "2.1.3",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}

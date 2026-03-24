@@ -1,6 +1,7 @@
 {
   "name": "advanced-swap-orders",
-  "description": "Prepare, sign, submit, and query non-custodial, decentralized, gasless swap orders and advanced order types on supported chains. Uses ownerless, immutable, audited, battle-tested, and verified contracts. Supports market, limit, stop-loss, take-profit, delayed-start, and chunked/TWAP-style orders with oracle-protected execution on every chunk. Includes automated execution through time as required by the order, EIP-712 signing, approval calldata, and order status lookup.",
+  "title": "Spot Advanced Swap Orders",
+  "description": "Create and manage gasless, decentralized, non-custodial, oracle-protected market, limit, TWAP, stop-loss, take-profit, and delayed-start swap orders on supported EVM chains with immutable, audited, battle-tested contracts.",
   "entrypoint": "SKILL.md",
   "references": [
     "references/01-quickstart.md",

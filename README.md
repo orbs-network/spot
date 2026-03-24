@@ -1,6 +1,6 @@
-# Spot — Limit, TWAP, Stop-Loss, Take-Profit Non-Custodial DeFi Protocol
+# Spot — Limit, TWAP, Stop-Loss, Take-Profit Non-Custodial Decentralized DeFi Protocol
 
-**Agent-Ready DeFi protocol for noncustodial advanced order types on EVM chains.**
+**Agent-ready decentralized DeFi protocol for non-custodial advanced order types on EVM chains.**
 
 **🔒 [Security Audit Report](./Audit-AstraSec.pdf)** - Smart contracts professionally audited by AstraSec
 
@@ -12,11 +12,19 @@ Start with these files:
 2. [`skills/advanced-swap-orders/manifest.json`](./skills/advanced-swap-orders/manifest.json) for machine-readable discovery
 3. [`skills/advanced-swap-orders/scripts/order.js`](./skills/advanced-swap-orders/scripts/order.js) for prepare, submit, and query operations
 
-The same skill bundle can be consumed through three aligned surfaces:
+The same skill bundle can be consumed through these aligned surfaces:
 
 1. Repo-local files under `skills/advanced-swap-orders/`
 2. Hosted raw files from [`https://orbs-network.github.io/spot/`](https://orbs-network.github.io/spot/), with the same relative paths
 3. The npm package `@orbs-network/spot`
+4. MCP clients through the package bin `spot-mcp`, with `server.json` derived from package metadata plus the skill manifest
+
+Canonical names:
+
+1. Skill slug: `advanced-swap-orders`
+2. npm package: `@orbs-network/spot`
+3. npm bin: `spot-mcp`
+4. MCP server name: `io.github.orbs-network/spot`
 
 ## Agent Capabilities
 
