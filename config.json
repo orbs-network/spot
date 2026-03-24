@@ -26,7 +26,7 @@
             "sushiswap": {
                 "type": "default:sushi",
                 "router": "0xAC4c6e212A361c968F1725b4d055b47E63F80b75",
-                "adapter": "0x3Ee50D79e6D0205f325928AAFb041b63E1767Bc5",
+                "adapter": "0x2e43A28FAf083717CcD9B246d97C61E1Bc9914Df",
                 "fee": "0x28F6C9dBE21fFc146Af8d5D15c49Cf48F61140Dc"
             }
         }
@@ -127,7 +127,7 @@
             "sushiswap": {
                 "type": "default:sushi",
                 "router": "0xAC4c6e212A361c968F1725b4d055b47E63F80b75",
-                "adapter": "0x3Ee50D79e6D0205f325928AAFb041b63E1767Bc5",
+                "adapter": "0x2e43A28FAf083717CcD9B246d97C61E1Bc9914Df",
                 "fee": "0x28F6C9dBE21fFc146Af8d5D15c49Cf48F61140Dc"
             }
         }
@@ -178,7 +178,7 @@
             "sushiswap": {
                 "type": "default:sushi",
                 "router": "0xAC4c6e212A361c968F1725b4d055b47E63F80b75",
-                "adapter": "0x3Ee50D79e6D0205f325928AAFb041b63E1767Bc5",
+                "adapter": "0x2e43A28FAf083717CcD9B246d97C61E1Bc9914Df",
                 "fee": "0x28F6C9dBE21fFc146Af8d5D15c49Cf48F61140Dc"
             }
         }
@@ -264,7 +264,7 @@
             "sushiswap": {
                 "type": "default:sushi",
                 "router": "0xAC4c6e212A361c968F1725b4d055b47E63F80b75",
-                "adapter": "0x3Ee50D79e6D0205f325928AAFb041b63E1767Bc5",
+                "adapter": "0x2e43A28FAf083717CcD9B246d97C61E1Bc9914Df",
                 "fee": "0x28F6C9dBE21fFc146Af8d5D15c49Cf48F61140Dc"
             }
         }
