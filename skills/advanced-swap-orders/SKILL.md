@@ -9,15 +9,14 @@ Use this for any supported gasless swap or advanced order on supported EVM chain
 
 ## Distribution
 
-This skill is distributed as one versioned bundle across four aligned AI-agent distribution surfaces from the canonical repository [`orbs-network/spot`](https://github.com/orbs-network/spot):
+This skill ships from the canonical repository [`orbs-network/spot`](https://github.com/orbs-network/spot) across four AI-agent distribution surfaces:
 
 1. Repo-local files under `skills/advanced-swap-orders/` in a checked-out repository.
-2. Hosted raw files under [`https://orbs-network.github.io/spot/`](https://orbs-network.github.io/spot/), with the same relative `skills/advanced-swap-orders/` paths.
-3. The npm package `@orbs-network/spot`, where the same relative tree is installed under `node_modules/@orbs-network/spot/skills/advanced-swap-orders/`.
-4. The npm package also exposes a stdio MCP adapter as `spot-mcp`, which wraps this same skill bundle without changing the canonical execution surface.
+2. Hosted raw files under [`https://orbs-network.github.io/spot/`](https://orbs-network.github.io/spot/), under the same `skills/advanced-swap-orders/` paths.
+3. The npm package `@orbs-network/spot`, which installs the bundle under `node_modules/@orbs-network/spot/skills/advanced-swap-orders/`.
+4. The stdio MCP adapter `spot-mcp`, published in `server.json` as `io.github.orbs-network/spot`.
 
-The checked-in `server.json` registry metadata is derived from this skill manifest plus package metadata, so MCP publishing stays aligned with the bundle.
-The canonical MCP server name is `io.github.orbs-network/spot`.
+The checked-in `server.json` registry metadata is derived from this skill manifest plus package metadata, so MCP publishing stays aligned.
 
 Outside tools should treat [`SKILL.md`](SKILL.md) as the entrypoint and [`manifest.json`](manifest.json) as the machine-readable companion file.
 

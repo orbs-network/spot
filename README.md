@@ -12,19 +12,12 @@ Start with these files:
 2. [`skills/advanced-swap-orders/manifest.json`](./skills/advanced-swap-orders/manifest.json) for machine-readable discovery
 3. [`skills/advanced-swap-orders/scripts/order.js`](./skills/advanced-swap-orders/scripts/order.js) for prepare, submit, and query operations
 
-The same skill bundle can be consumed through these aligned surfaces:
+The skill bundle is available through these surfaces:
 
 1. Repo-local files under `skills/advanced-swap-orders/`
-2. Hosted raw files from [`https://orbs-network.github.io/spot/`](https://orbs-network.github.io/spot/), with the same relative paths
+2. Hosted raw files from [`https://orbs-network.github.io/spot/`](https://orbs-network.github.io/spot/), under the same `skills/advanced-swap-orders/` paths
 3. The npm package `@orbs-network/spot`
-4. MCP clients through the package bin `spot-mcp`, with `server.json` derived from package metadata plus the skill manifest
-
-Canonical names:
-
-1. Skill slug: `advanced-swap-orders`
-2. npm package: `@orbs-network/spot`
-3. npm bin: `spot-mcp`
-4. MCP server name: `io.github.orbs-network/spot`
+4. MCP clients through the package bin `spot-mcp`, published in `server.json` as `io.github.orbs-network/spot`
 
 ## Agent Capabilities
 
@@ -32,7 +25,6 @@ Canonical names:
 - ✍️ **Signing Prep**: Produce approval calldata, EIP-712 typed data, and relay-ready payloads
 - 🔎 **Machine Discovery**: Read supported chains, runtime addresses, references, and assets from `manifest.json`
 - 🧰 **Direct Execution Tooling**: Use `scripts/order.js` for prepare, submit, and query flows
-- 📦 **Raw File Access**: Consume the same bundle from repo-local files, the hosted raw-file mirror, or from npm
 
 ## Protocol Guarantees
 
