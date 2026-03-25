@@ -62,20 +62,16 @@ otherwise run on all supported chains in parallel.
 
 The intended flow is:
 
-1. Open one 2-chunk stop-loss order with a very high trigger so it is effectively immediate.
-2. Use that order to swap from native exposure into USDC for about `$10` per chain.
-3. Then open a second 2-chunk take-profit order with a very low trigger so it is effectively immediate after its delay elapses.
-4. Use that second order to swap back from USDC into native exposure with a 5 minute delay before it can start.
+1. Open one 2-chunk stop-loss order that should fill immediately (very high trigger).
+2. Use it to swap about `$10` from native exposure into USDC.
+3. Open one 2-chunk take-profit order (very low trigger) that swaps back into native exposure after a 5 minute delay.
 
 1. Start at `skills/advanced-swap-orders/SKILL.md` and follow the bundle references progressively.
-2. Use only the skill bundle, `cast`, `jq`, and env unless the bundle is insufficient.
-3. Keep the intent description above at the user level; exact parameter names, token handling, wrapping steps, chunk sizing, and trigger encoding should come from the skill bundle.
-4. If you must rely on repo surfaces outside the skill bundle, explicitly report that as a skill gap.
-5. Execute the full round trip implied by the user request and poll every 5 seconds until each order reaches a final state.
-6. In the result, report the choices made.
-7. In the result, report which skill files justified those choices.
-8. In the result, report whether the skill bundle alone was sufficient.
-9. In the result, report any ambiguity, missing guidance, or misleading guidance encountered.
+2. Use only the skill bundle, `cast`, `jq`, env, and `$chain` unless the bundle is insufficient.
+3. Keep the intent at the user level; derive exact params from the skill bundle.
+4. If you need repo surfaces outside the skill bundle, report that as a skill gap.
+5. Execute the full round trip and poll every 5 seconds until each order reaches a final state.
+6. In the result, report the choices made, the skill files that justified them, whether the bundle was sufficient, and any ambiguity or misleading guidance encountered.
 
 A `qa` run passes only if:
 
