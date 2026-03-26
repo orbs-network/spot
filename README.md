@@ -86,9 +86,9 @@ struct Input {
 
 struct Output {
     address token;            // Output token address
-    uint256 limit;            // Minimum acceptable output (limit)
-    uint256 triggerLower;     // Lower trigger boundary (stop-loss style)
-    uint256 triggerUpper;     // Upper trigger boundary (take-profit style)
+    uint256 limit;            // Minimum acceptable output (limit), in output-token decimals, per chunks
+    uint256 triggerLower;     // Lower trigger boundary (stop-loss style), in output-token decimals, per chunk
+    uint256 triggerUpper;     // Upper trigger boundary (take-profit style), in output-token decimals, per chunk
     address recipient;        // Where to send output tokens
 }
 
@@ -98,10 +98,11 @@ struct Output {
 
 1. **Order Creation**: User signs one EIP-712 order with chunk size, total amount, limits, slippage tolerance, epoch interval, and deadline
 2. **Price Attestation**: Cosigner signs both trigger and current market price data (input/output token ratios)
-3. **Execution**: Whitelisted executor calls `Executor.execute()` with order and execution parameters
-4. **Validation**: OrderReactor validates signatures, checks epoch windows, enforces `start`, checks trigger/current timestamp ordering, and applies slippage protection
-5. **Settlement**: Reactor transfers input tokens, executor runs adapter logic via delegatecall, ensures minimum output, and settles
-6. **Distribution**: Surplus tokens are automatically distributed between swapper and optional referrer based on configured shares
+3. **Trigger Units**: `output.limit`, `triggerLower`, and `triggerUpper` are per-chunk output-token amounts encoded in the output token's decimals
+4. **Execution**: Whitelisted executor calls `Executor.execute()` with order and execution parameters
+5. **Validation**: OrderReactor validates signatures, checks epoch windows, enforces `start`, checks trigger/current timestamp ordering, and applies slippage protection
+6. **Settlement**: Reactor transfers input tokens, executor runs adapter logic via delegatecall, ensures minimum output, and settles
+7. **Distribution**: Surplus tokens are automatically distributed between swapper and optional referrer based on configured shares
 
 ## Order Types & Examples
 

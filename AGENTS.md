@@ -54,8 +54,8 @@ Treat that build as the normal sync boundary for derived MCP metadata.
 
 ## QA Workflow
 
-When the user asks for `qa`,
-use root `SKILL.md`, root `manifest.json`, and `skill/` as the primary and preferred source of truth for planning and execution.
+When the user asks for `qa`, use [`SKILL.md`](./SKILL.md).
+Use $chain skill and env as needed.
 
 Honor user scope modifiers such as `just ethereum`;
 otherwise run on all supported chains in parallel.
@@ -65,11 +65,9 @@ The intended flow is:
 1. Open one 2-chunk stop-loss order that should fill immediately (very high trigger).
 2. Use it to swap about `$10` from native exposure into USDC.
 3. Open one 2-chunk take-profit order (very low trigger) that swaps back into native exposure after a 5 minute delay.
-4. Start at root `SKILL.md` and follow the bundle references progressively.
-5. If you need repo surfaces outside the skill bundle, report that as a skill gap.
-6. Execute the full round trip and poll every 5 seconds until each order reaches a final state.
-7. In the result, report the choices made, the skill files that justified them, whether the bundle was sufficient, and any ambiguity or misleading guidance encountered.
-8. Use $chain.
+4. If you need repo surfaces outside the skill bundle, report that as a skill gap.
+5. Execute the full round trip and poll every 5 seconds until each order reaches a final state.
+6. In the result, report the choices made, the skill files that justified them, whether the bundle was sufficient, and any ambiguity or misleading guidance encountered.
 
 A `qa` run passes only if:
 

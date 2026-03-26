@@ -51,7 +51,8 @@ Before executing this skill in any host agent platform or skill runner:
 
 1. Supported chains and runtime addresses live in [manifest.json](manifest.json).
 2. Use only the provided [skill/scripts/order.js](skill/scripts/order.js). Do not send typed data or signatures anywhere else.
-3. Detailed order behavior, parameter rules, signing modes, and cancel/query flows live in the reference files above.
+3. Use [skill/references/02-params.md](skill/references/02-params.md) as the authoritative source for native-asset rules and for `output.limit` / trigger units.
+4. Detailed order behavior, parameter rules, signing modes, and cancel/query flows live in the reference files above.
 
 ## Commands
 
