@@ -8,14 +8,14 @@
 
 Start with these files:
 
-1. [`skills/advanced-swap-orders/SKILL.md`](./skills/advanced-swap-orders/SKILL.md) for the execution workflow
-2. [`skills/advanced-swap-orders/manifest.json`](./skills/advanced-swap-orders/manifest.json) for machine-readable discovery
-3. [`skills/advanced-swap-orders/scripts/order.js`](./skills/advanced-swap-orders/scripts/order.js) for prepare, submit, and query operations
+1. [`SKILL.md`](./SKILL.md) for the execution workflow
+2. [`manifest.json`](./manifest.json) for machine-readable discovery
+3. [`skill/scripts/order.js`](./skill/scripts/order.js) for prepare, submit, and query operations
 
 The skill bundle is available through these surfaces:
 
-1. Repo-local files under `skills/advanced-swap-orders/`
-2. Hosted raw files from [`https://orbs-network.github.io/spot/`](https://orbs-network.github.io/spot/), under the same `skills/advanced-swap-orders/` paths
+1. Repo-local root `SKILL.md`, `manifest.json`, and the `skill/` support directory
+2. Hosted raw files from [`https://orbs-network.github.io/spot/`](https://orbs-network.github.io/spot/), with root entrypoints plus `skill/` support paths
 3. The npm package `@orbs-network/spot`
 4. MCP clients through the package bin `spot-mcp`, published in `server.json` as `io.github.orbs-network/spot`
 
@@ -24,7 +24,7 @@ The skill bundle is available through these surfaces:
 - 🎯 **Intent Mapping**: Translate user intent into market, limit, TWAP, stop-loss, take-profit, and delayed-start orders
 - ✍️ **Signing Prep**: Produce approval calldata, EIP-712 typed data, and relay-ready payloads
 - 🔎 **Machine Discovery**: Read supported chains, runtime addresses, references, and assets from `manifest.json`
-- 🧰 **Direct Execution Tooling**: Use `scripts/order.js` for prepare, submit, and query flows
+- 🧰 **Direct Execution Tooling**: Use `skill/scripts/order.js` for prepare, submit, and query flows
 
 ## Protocol Guarantees
 

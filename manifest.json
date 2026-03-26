@@ -1,21 +1,21 @@
 {
-  "name": "advanced-swap-orders",
+  "name": "spot-advanced-swap-orders",
   "title": "Spot Advanced Swap Orders",
   "description": "Create and manage gasless, decentralized, non-custodial, oracle-protected market, limit, TWAP, stop-loss, take-profit, and delayed-start swap orders on supported EVM chains with immutable, audited, battle-tested contracts.",
   "entrypoint": "SKILL.md",
   "references": [
-    "references/01-quickstart.md",
-    "references/02-params.md",
-    "references/03-sign.md",
-    "references/04-patterns.md"
+    "skill/references/01-quickstart.md",
+    "skill/references/02-params.md",
+    "skill/references/03-sign.md",
+    "skill/references/04-patterns.md"
   ],
   "scripts": [
-    "scripts/order.js"
+    "skill/scripts/order.js"
   ],
   "assets": [
-    "assets/token-addressbook.md",
-    "assets/repermit.skeleton.json",
-    "assets/web3-sign-and-submit.example.js"
+    "skill/assets/token-addressbook.md",
+    "skill/assets/repermit.skeleton.json",
+    "skill/assets/web3-sign-and-submit.example.js"
   ],
   "runtime": {
     "url": "https://agents-sink.orbs.network",

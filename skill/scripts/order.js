@@ -19,9 +19,10 @@ const WARN_LOW_SLIPPAGE = 'slippage below 5% can reduce fill probability. 5% is 
 const WARN_RECIPIENT = 'recipient differs from swapper and is dangerous to change';
 
 const SCRIPT_DIR = __dirname;
-const ROOT = path.resolve(SCRIPT_DIR, '..');
-const SKELETON = path.join(ROOT, 'assets', 'repermit.skeleton.json');
-const MANIFEST_JSON = path.join(ROOT, 'manifest.json');
+const SKILL_DIR = path.resolve(SCRIPT_DIR, '..');
+const REPO_ROOT = path.resolve(SKILL_DIR, '..');
+const SKELETON = path.join(SKILL_DIR, 'assets', 'repermit.skeleton.json');
+const MANIFEST_JSON = path.join(REPO_ROOT, 'manifest.json');
 
 let runtimeConfig = null;
 let skeletonCache = null;
@@ -407,9 +408,9 @@ function usage() {
   loadRuntimeConfig();
   const lines = [
     'Usage',
-    '  node scripts/order.js prepare --params <params.json|-> [--out <prepared.json>]',
-    '  node scripts/order.js submit --prepared <prepared.json|-> [--signature <0x...|json>|--signature-file <file|->|--r <0x...> --s <0x...> --v <0x..>] [--out <response.json>]',
-    '  node scripts/order.js query (--swapper <0x...>|--hash <0x...>) [--out <response.json>]',
+    '  node skill/scripts/order.js prepare --params <params.json|-> [--out <prepared.json>]',
+    '  node skill/scripts/order.js submit --prepared <prepared.json|-> [--signature <0x...|json>|--signature-file <file|->|--r <0x...> --s <0x...> --v <0x..>] [--out <response.json>]',
+    '  node skill/scripts/order.js query (--swapper <0x...>|--hash <0x...>) [--out <response.json>]',
     '',
     'Safety',
     '  Use only the provided helper script. Do not send typed data or signatures anywhere else.',

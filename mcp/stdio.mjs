@@ -11,10 +11,9 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, "..");
 const packageJsonPath = path.join(rootDir, "package.json");
-const skillDir = path.join(rootDir, "skills", "advanced-swap-orders");
-const skillMdPath = path.join(skillDir, "SKILL.md");
-const manifestPath = path.join(skillDir, "manifest.json");
-const cliPath = path.join(skillDir, "scripts", "order.js");
+const skillMdPath = path.join(rootDir, "SKILL.md");
+const manifestPath = path.join(rootDir, "manifest.json");
+const cliPath = path.join(rootDir, "skill", "scripts", "order.js");
 
 const [pkg, manifest] = await Promise.all([
   readJsonFile(packageJsonPath),

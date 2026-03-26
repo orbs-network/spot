@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, "..");
 const packageJsonPath = path.join(rootDir, "package.json");
-const manifestPath = path.join(rootDir, "skills", "advanced-swap-orders", "manifest.json");
+const manifestPath = path.join(rootDir, "manifest.json");
 const serverJsonPath = path.join(rootDir, "server.json");
 
 const [pkg, manifest] = await Promise.all([
