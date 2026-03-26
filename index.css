@@ -30,7 +30,8 @@ body {
 }
 
 main {
-  max-width: 760px;
+  width: fit-content;
+  max-width: 100%;
   margin: 0 auto;
   padding: 28px 24px;
   border: 1px solid var(--panel-border);
@@ -48,9 +49,10 @@ ol {
 }
 
 h1 {
-  font-size: clamp(2.2rem, 6vw, 3.6rem);
+  font-size: clamp(1rem, 4.8vw, 3rem);
   line-height: 0.95;
   letter-spacing: -0.04em;
+  white-space: nowrap;
 }
 
 p {
