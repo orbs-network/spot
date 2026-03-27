@@ -55,7 +55,8 @@ Treat that build as the normal sync boundary for derived MCP metadata.
 ## QA Workflow
 
 When the user asks for `qa`, use [`SKILL.md`](./SKILL.md).
-Use $chain skill and env as needed.
+Use chain skill and env.
+Do not query, reference, or use any orders from before this run as examples for any purpose.
 
 Honor user scope modifiers such as `just ethereum`;
 otherwise run on all supported chains in parallel.
