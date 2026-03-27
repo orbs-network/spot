@@ -61,6 +61,9 @@ Do not query, reference, or use any orders from before this run as examples for 
 Honor user scope modifiers such as `just ethereum`;
 otherwise run on all supported chains in parallel.
 
+Do not use zsh arithmetic for wei or token-amount sizing in `qa`.
+Use a safer exact tool such as `bc` or `cast` for amount math.
+
 The intended flow is:
 
 1. Open one 2-chunk stop-loss order that should fill immediately (very high trigger).
