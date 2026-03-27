@@ -1,6 +1,6 @@
 # Params
 
-Use this file for field semantics, defaults, units, and validation. Use [04-patterns.md](04-patterns.md) for intent-to-parameter recipes.
+Use this file for field semantics, defaults, units, and validation.
 
 1. Required: `chainId`, `swapper`, `input.token`, `input.amount`, `output.token`.
 2. Optional: `input.maxAmount`, `nonce`, `start`, `deadline`, `epoch`, `slippage`, `output.limit`, `output.triggerLower`, `output.triggerUpper`, `output.recipient`.

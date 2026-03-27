@@ -10,7 +10,7 @@ Start with these files:
 
 1. [`SKILL.md`](./SKILL.md) for the execution workflow
 2. [`manifest.json`](./manifest.json) for machine-readable discovery
-3. [`skill/scripts/order.js`](./skill/scripts/order.js) for prepare, submit, and query operations
+3. [`skill/scripts/order.js`](./skill/scripts/order.js) as the canonical skill helper entrypoint
 
 The skill bundle is available through these surfaces:
 
@@ -24,7 +24,7 @@ The skill bundle is available through these surfaces:
 - 🎯 **Intent Mapping**: Translate user intent into market, limit, TWAP, stop-loss, take-profit, and delayed-start orders
 - ✍️ **Signing Prep**: Produce approval calldata, EIP-712 typed data, and relay-ready payloads
 - 🔎 **Machine Discovery**: Read supported chains, runtime addresses, references, and assets from `manifest.json`
-- 🧰 **Direct Execution Tooling**: Use `skill/scripts/order.js` for prepare, submit, and query flows
+- 🧰 **Direct Execution Tooling**: Use `skill/scripts/order.js` as the canonical skill helper
 
 ## Protocol Guarantees
 

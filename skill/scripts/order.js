@@ -12,6 +12,9 @@ const REF_SHARE = 0;
 const FRESHNESS = 30;
 const TTL = 300n;
 const U32_MAX = 4294967295n;
+const DEF_WATCH_INTERVAL = 5;
+const DEF_WATCH_TIMEOUT = 0;
+const TERMINAL_ORDER_STATUSES = new Set(['filled', 'completed', 'cancelled', 'canceled', 'expired', 'failed', 'rejected']);
 const NOTE_ORACLE = 'Oracle protection applies to all order types and every chunk.';
 const NOTE_EPOCH = 'epoch is the delay between chunks, but it is not exact: one chunk can fill once anywhere inside each epoch window.';
 const NOTE_SIGN = 'Sign typedData with any EIP-712 flow. eth_signTypedData_v4 is only an example.';
@@ -53,6 +56,10 @@ function trim(value) {
 function warn(message) {
   warnings.push(message);
   process.stderr.write(`warning: ${message}\n`);
+}
+
+function note(message) {
+  process.stderr.write(`info: ${message}\n`);
 }
 
 function firstDefined(...values) {
@@ -177,6 +184,22 @@ function requireHex(value, name) {
     die(`${name} must be hex`);
   }
   return `0x${raw}`;
+}
+
+function formatError(error) {
+  if (!error) {
+    return 'unknown error';
+  }
+  const parts = [];
+  if (error.message) {
+    parts.push(error.message);
+  }
+  if (error.cause && error.cause.message) {
+    parts.push(error.cause.message);
+  } else if (error.cause && error.cause.code) {
+    parts.push(String(error.cause.code));
+  }
+  return parts.filter(Boolean).join(': ') || 'unknown error';
 }
 
 function normalizeSizedHex(value, name, size) {
@@ -384,6 +407,10 @@ function loadRuntimeConfig() {
   return runtimeConfig;
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function hasSupportedChain(chainId) {
   const config = loadRuntimeConfig();
   const chain = config.chains[String(chainId)];
@@ -411,6 +438,7 @@ function usage() {
     '  node skill/scripts/order.js prepare --params <params.json|-> [--out <prepared.json>]',
     '  node skill/scripts/order.js submit --prepared <prepared.json|-> [--signature <0x...|json>|--signature-file <file|->|--r <0x...> --s <0x...> --v <0x..>] [--out <response.json>]',
     '  node skill/scripts/order.js query (--swapper <0x...>|--hash <0x...>) [--out <response.json>]',
+    '  node skill/scripts/order.js watch (--swapper <0x...>|--hash <0x...>) [--interval <seconds>] [--timeout <seconds>] [--out <response.json>]',
     '',
     'Safety',
     '  Use only the provided helper script. Do not send typed data or signatures anywhere else.',
@@ -455,6 +483,16 @@ function usage() {
     '  Supports only:',
     '  - --swapper <0x...>',
     '  - --hash <0x...>',
+    '',
+    'Watch',
+    '  Polls the relay query endpoint until the order reaches a terminal status.',
+    '  Retries transient network errors automatically.',
+    '  Defaults:',
+    `  - interval = ${String(DEF_WATCH_INTERVAL)} seconds`,
+    `  - timeout = ${String(DEF_WATCH_TIMEOUT)} seconds (0 = no timeout)`,
+    '  Supports only:',
+    '  - --swapper <0x...> when exactly one order matches',
+    '  - --hash <0x...> (recommended)',
   ];
   process.stdout.write(`${lines.join('\n')}\n`);
 }
@@ -789,12 +827,106 @@ function selectOrderPayload(prepared) {
 }
 
 async function requestJson(url, options) {
-  const response = await fetch(url, options);
+  let response;
+  try {
+    response = await fetch(url, options);
+  } catch (error) {
+    die(`request failed: ${formatError(error)}`);
+  }
   const text = await response.text();
   return {
     ok: response.ok,
     status: response.status,
     response: jsonOrText(text),
+  };
+}
+
+function secondsOption(value, name, fallback) {
+  const selected = trim(value) ? value : fallback;
+  const parsed = decimalString(selected, name);
+  ensureU32(parsed, name);
+  return Number(parsed);
+}
+
+function buildQueryUrl(rawSwapper, rawHash) {
+  let swapper = trim(rawSwapper);
+  let hash = trim(rawHash);
+
+  if (!swapper && !hash) {
+    die('query needs --swapper or --hash');
+  }
+
+  let url = QUERY_URL;
+  if (swapper) {
+    swapper = parseAddress(swapper, 'swapper');
+    url = `${url}?swapper=${encodeURIComponent(swapper)}`;
+  }
+  if (hash) {
+    if (!/^0x[0-9a-fA-F]{64}$/.test(hash)) {
+      die('hash must be 32-byte 0x hex');
+    }
+    url = url.includes('?') ? `${url}&hash=${encodeURIComponent(hash)}` : `${url}?hash=${encodeURIComponent(hash)}`;
+  }
+
+  return { swapper, hash, url };
+}
+
+function responseOrders(response) {
+  return isPlainObject(response) && Array.isArray(response.orders) ? response.orders : [];
+}
+
+function watchSnapshot(response, { hash }) {
+  const orders = responseOrders(response);
+  if (!hash && orders.length > 1) {
+    die('watch with --swapper requires exactly one matching order; use --hash to disambiguate');
+  }
+
+  const order = isPlainObject(orders[0]) ? orders[0] : null;
+  const metadata = objectOrEmpty(order && order.metadata);
+  const status = trim(firstDefined(metadata.status, order && order.status));
+  const chunkStatuses = Array.isArray(metadata.chunks)
+    ? metadata.chunks.map((chunk) => trim(chunk && chunk.status)).filter(Boolean)
+    : [];
+
+  return {
+    count: orders.length,
+    status,
+    chunkStatuses,
+  };
+}
+
+function watchOutput(result, url, watchMeta) {
+  return {
+    ok: result.ok,
+    status: result.status,
+    url,
+    response: result.response,
+    watch: watchMeta,
+  };
+}
+
+function buildWatchMeta({
+  polls,
+  queryErrors,
+  intervalSeconds,
+  timeoutSeconds,
+  startedAt,
+  finalStatus,
+  chunkStatuses,
+  timedOut,
+  lastError,
+}) {
+  return {
+    command: 'watch',
+    polls,
+    queryErrors,
+    intervalSeconds,
+    timeoutSeconds,
+    elapsedSeconds: Math.floor((Date.now() - startedAt) / 1000),
+    finalStatus,
+    chunkStatuses,
+    timedOut,
+    lastError,
   };
 }
 
@@ -869,27 +1001,12 @@ async function submit(args) {
 async function query(args) {
   loadRuntimeConfig();
 
-  let { swapper, hash, outFile } = parseOptions(
+  const { swapper: rawSwapper, hash: rawHash, outFile } = parseOptions(
     args,
     { '--swapper': 'swapper', '--hash': 'hash', '--out': 'outFile' },
     'query',
   );
-
-  if (!swapper && !hash) {
-    die('query needs --swapper or --hash');
-  }
-
-  let url = QUERY_URL;
-  if (swapper) {
-    swapper = parseAddress(swapper, 'swapper');
-    url = `${url}?swapper=${encodeURIComponent(swapper)}`;
-  }
-  if (hash) {
-    if (!/^0x[0-9a-fA-F]{64}$/.test(hash)) {
-      die('hash must be 32-byte 0x hex');
-    }
-    url = url.includes('?') ? `${url}&hash=${encodeURIComponent(hash)}` : `${url}?hash=${encodeURIComponent(hash)}`;
-  }
+  const { url } = buildQueryUrl(rawSwapper, rawHash);
 
   const result = await requestJson(url, { method: 'GET' });
   writeOutput(
@@ -903,6 +1020,111 @@ async function query(args) {
   );
 
   return result.ok ? 0 : 1;
+}
+
+async function watchOrder(args) {
+  loadRuntimeConfig();
+  const watchCommand = 'watch';
+
+  const { swapper: rawSwapper, hash: rawHash, interval, timeout, outFile } = parseOptions(
+    args,
+    {
+      '--swapper': 'swapper',
+      '--hash': 'hash',
+      '--interval': 'interval',
+      '--timeout': 'timeout',
+      '--out': 'outFile',
+    },
+    watchCommand,
+  );
+
+  const intervalSeconds = secondsOption(interval, 'interval', String(DEF_WATCH_INTERVAL));
+  const timeoutSeconds = secondsOption(timeout, 'timeout', String(DEF_WATCH_TIMEOUT));
+  const { hash, url } = buildQueryUrl(rawSwapper, rawHash);
+  const startedAt = Date.now();
+  let polls = 0;
+  let queryErrors = 0;
+  let lastResult = {
+    ok: false,
+    status: 0,
+    response: null,
+  };
+  let lastError = '';
+
+  while (true) {
+    polls += 1;
+    try {
+      lastResult = await requestJson(url, { method: 'GET' });
+      lastError = '';
+    } catch (error) {
+      queryErrors += 1;
+      lastError = formatError(error);
+      note(`${watchCommand} retry ${String(queryErrors)} after ${lastError}`);
+      if (timeoutSeconds !== 0 && Date.now() - startedAt >= timeoutSeconds * 1000) {
+        const waitMeta = buildWatchMeta({
+          polls,
+          queryErrors,
+          intervalSeconds,
+          timeoutSeconds,
+          startedAt,
+          finalStatus: '',
+          chunkStatuses: [],
+          timedOut: true,
+          lastError,
+        });
+        writeOutput(watchOutput(lastResult, url, waitMeta), outFile);
+        return 1;
+      }
+      await sleep(intervalSeconds * 1000);
+      continue;
+    }
+
+    if (!lastResult.ok) {
+      queryErrors += 1;
+      lastError = `query returned HTTP ${String(lastResult.status)}`;
+      note(`${watchCommand} retry ${String(queryErrors)} after ${lastError}`);
+    } else {
+      const snapshot = watchSnapshot(lastResult.response, { hash });
+      const finalStatus = snapshot.status || '';
+      const chunkStatuses = snapshot.chunkStatuses;
+      note(`watch status=${finalStatus || 'pending'} chunks=${chunkStatuses.join(',') || '-'}`);
+
+      if (TERMINAL_ORDER_STATUSES.has(lower(finalStatus))) {
+        const waitMeta = buildWatchMeta({
+          polls,
+          queryErrors,
+          intervalSeconds,
+          timeoutSeconds,
+          startedAt,
+          finalStatus,
+          chunkStatuses,
+          timedOut: false,
+          lastError,
+        });
+        writeOutput(watchOutput(lastResult, url, waitMeta), outFile);
+        return 0;
+      }
+    }
+
+    if (timeoutSeconds !== 0 && Date.now() - startedAt >= timeoutSeconds * 1000) {
+      const snapshot = lastResult.ok ? watchSnapshot(lastResult.response, { hash }) : { status: '', chunkStatuses: [] };
+      const waitMeta = buildWatchMeta({
+        polls,
+        queryErrors,
+        intervalSeconds,
+        timeoutSeconds,
+        startedAt,
+        finalStatus: snapshot.status,
+        chunkStatuses: snapshot.chunkStatuses,
+        timedOut: true,
+        lastError,
+      });
+      writeOutput(watchOutput(lastResult, url, waitMeta), outFile);
+      return 1;
+    }
+
+    await sleep(intervalSeconds * 1000);
+  }
 }
 
 async function run() {
@@ -921,6 +1143,8 @@ async function run() {
       return submit(args.slice(1));
     case 'query':
       return query(args.slice(1));
+    case 'watch':
+      return watchOrder(args.slice(1));
     default:
       usage();
       return 1;
