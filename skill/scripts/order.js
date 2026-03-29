@@ -12,6 +12,8 @@ const REF_SHARE = 0;
 const FRESHNESS = 30;
 const TTL = 300n;
 const U32_MAX = 4294967295n;
+const MIN_NON_ZERO_EPOCH = 31n;
+const MAX_APPROVAL = (1n << 256n) - 1n;
 const DEF_WATCH_INTERVAL = 5;
 const DEF_WATCH_TIMEOUT = 0;
 const TERMINAL_ORDER_STATUSES = new Set(['filled', 'completed', 'cancelled', 'canceled', 'expired', 'failed', 'rejected']);
@@ -445,7 +447,7 @@ function usage() {
     '',
     'Prepare',
     '  Builds a prepared order JSON with:',
-    '  - approval calldata for the input ERC-20',
+    '  - infinite approval calldata for the input ERC-20',
     '  - populated EIP-712 typed data',
     '  - submit payload template',
     '  - query URL',
@@ -698,6 +700,9 @@ function prepare(args) {
   if (gt(slippage, MAX_SLIPPAGE.toString(10))) {
     die(`slippage cannot exceed ${MAX_SLIPPAGE.toString(10)}`);
   }
+  if (!eq(epoch, '0') && compare(epoch, MIN_NON_ZERO_EPOCH.toString()) === -1) {
+    die(`non-zero epoch must be >= ${MIN_NON_ZERO_EPOCH.toString()} because helper freshness is ${String(FRESHNESS)}`);
+  }
   if (!eq(epoch, '0') && compare(String(FRESHNESS), epoch) !== -1) {
     die('freshness must be < epoch when epoch != 0');
   }
@@ -715,7 +720,7 @@ function prepare(args) {
   }
 
   if (!eq(inputAmount, inputMaxAmount) && eq(epoch, '0')) {
-    die('chunked orders require epoch > 0');
+    die(`chunked orders require epoch >= ${MIN_NON_ZERO_EPOCH.toString()}`);
   }
 
   const kind = eq(inputAmount, inputMaxAmount) ? 'single' : 'chunked';
@@ -744,7 +749,8 @@ function prepare(args) {
     warn(WARN_RECIPIENT);
   }
 
-  const approvalData = requireHex(approveCalldata(REPERMIT, inputMaxAmount), 'approval.tx.data');
+  const approvalAmount = MAX_APPROVAL.toString(10);
+  const approvalData = requireHex(approveCalldata(REPERMIT, approvalAmount), 'approval.tx.data');
   const typedData = buildTypedData(
     chainId,
     swapper,
@@ -780,7 +786,7 @@ function prepare(args) {
     approval: {
       token: inputToken,
       spender: REPERMIT,
-      amount: inputMaxAmount,
+      amount: approvalAmount,
       tx: {
         to: inputToken,
         data: approvalData,
@@ -873,6 +879,46 @@ function buildQueryUrl(rawSwapper, rawHash) {
 
 function responseOrders(response) {
   return isPlainObject(response) && Array.isArray(response.orders) ? response.orders : [];
+}
+
+function responseOrderHash(response) {
+  if (!isPlainObject(response)) {
+    return '';
+  }
+
+  const direct = trim(response.orderHash);
+  if (/^0x[0-9a-fA-F]{64}$/.test(direct)) {
+    return direct;
+  }
+
+  const signedOrder = objectOrEmpty(response.signedOrder);
+  const nested = trim(signedOrder.hash);
+  if (/^0x[0-9a-fA-F]{64}$/.test(nested)) {
+    return nested;
+  }
+
+  return '';
+}
+
+function submitOutput(result, request) {
+  const orderHash = result.ok ? responseOrderHash(result.response) : '';
+  const watch = orderHash
+    ? {
+        hash: orderHash,
+        command: `node skill/scripts/order.js watch --hash ${orderHash}`,
+        url: `${QUERY_URL}?hash=${encodeURIComponent(orderHash)}`,
+      }
+    : null;
+
+  return {
+    ok: result.ok,
+    status: result.status,
+    url: request.url,
+    request,
+    response: result.response,
+    orderHash,
+    watch,
+  };
 }
 
 function watchSnapshot(response, { hash }) {
@@ -984,16 +1030,7 @@ async function submit(args) {
     body: JSON.stringify(request.body),
   });
 
-  writeOutput(
-    {
-      ok: result.ok,
-      status: result.status,
-      url: request.url,
-      request,
-      response: result.response,
-    },
-    outFile,
-  );
+  writeOutput(submitOutput(result, request), outFile);
 
   return result.ok ? 0 : 1;
 }

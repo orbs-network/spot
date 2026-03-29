@@ -4,7 +4,7 @@
 2. Choose the intended order shape before preparing: market, limit, stop-loss, take-profit, delayed-start, or chunked/TWAP.
 3. Prepare the order with the helper.
 4. If approval is needed, send `prepared.approval.tx`.
-5. Prefer infinite approval to `RePermit` to save future approval gas costs; no approval reset is needed.
+5. The helper always emits infinite approval to `RePermit`, no approval reset is needed.
 6. Sign `prepared.typedData` as the `swapper`.
 7. Submit the signed order.
 8. Query the order by `swapper` or `hash`.

@@ -60,6 +60,7 @@ Do not query, reference, or use any orders from before this run as examples for 
 
 Honor user scope modifiers such as `just ethereum`;
 otherwise run on all supported chains in parallel.
+Do not probe a chain first; run the supported-chain set in parallel once.
 
 Do not use zsh arithmetic for wei or token-amount sizing in `qa`.
 Use a safer exact tool such as `bc` or `cast` for amount math.
@@ -71,7 +72,8 @@ The intended flow is:
 3. Open one 2-chunk take-profit order (very low trigger) that swaps back into native exposure after a 5 minute delay.
 4. If you need repo surfaces outside the skill bundle, report that as a skill gap.
 5. Execute the full round trip and poll every 5 seconds until each order reaches a final state.
-6. In the result, report the choices made, the skill files that justified them, whether the bundle was sufficient, and any ambiguity or misleading guidance encountered.
+6. In the result, output a table that summarizes the run, including each chain, chosen tokens and amounts, order hashes and statuses, ending balances and deltas, per-chain costs.
+7. In the result, report the choices made, the skill files that justified them, whether the bundle was sufficient, and any ambiguity or misleading guidance encountered.
 
 A `qa` run passes only if:
 
