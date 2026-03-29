@@ -3,8 +3,8 @@
 1. Required fields: `chainId`, `swapper`, `input.token`, `input.amount`, `output.token`.
 2. Choose the intended order shape before preparing: market, limit, stop-loss, take-profit, delayed-start, or chunked/TWAP.
 3. Prepare the order with the helper.
-4. If approval is needed, send `prepared.approval.tx`.
-5. The helper always emits infinite approval to `RePermit`, no approval reset is needed.
+4. If approval is needed, send `prepared.approval.tx` to approve `RePermit`.
+5. The skill helper does not read allowance onchain. The calling agent or app should use its own RPC or provider access to compare the current ERC-20 allowance against `prepared.approval.amount`, send that infinite approval only when allowance is lower, and then leave the infinite approval in place with no reset.
 6. Sign `prepared.typedData` as the `swapper`.
 7. Submit the signed order.
 8. Query the order by `swapper` or `hash`.

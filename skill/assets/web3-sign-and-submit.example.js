@@ -4,6 +4,18 @@
 import Web3 from "web3";
 
 const DEPOSIT_DATA = "0xd0e30db0";
+const ERC20_ABI = [
+  {
+    constant: true,
+    inputs: [
+      { name: "owner", type: "address" },
+      { name: "spender", type: "address" },
+    ],
+    name: "allowance",
+    outputs: [{ name: "", type: "uint256" }],
+    type: "function",
+  },
+];
 
 export async function approveSignAndSubmitOrder({
   prepared,
@@ -11,7 +23,7 @@ export async function approveSignAndSubmitOrder({
   provider = window.ethereum,
   wrappedNative,
   nativeInputAmount,
-  sendApproval = false,
+  sendApproval = true,
 }) {
   const web3 = new Web3(provider);
   const normalizedAccount = account.toLowerCase();
@@ -43,16 +55,24 @@ export async function approveSignAndSubmitOrder({
     });
   }
 
-  // Approval is optional.
-  // Only send this transaction when the current ERC-20 allowance is lower than
-  // prepared.approval.amount, or when you know approval is still needed.
-  if (sendApproval) {
-    await web3.eth.sendTransaction({
-      from: account,
-      to: prepared.approval.tx.to,
-      data: prepared.approval.tx.data,
-      value: prepared.approval.tx.value,
-    });
+  if (prepared.approval && sendApproval) {
+    // The skill helper is RPC-agnostic, so the caller should use its own
+    // provider access to avoid resending the same infinite approval.
+    const token = new web3.eth.Contract(ERC20_ABI, prepared.approval.tx.to);
+    const allowance = BigInt(
+      await token.methods
+        .allowance(account, prepared.approval.spender)
+        .call()
+    );
+
+    if (allowance < BigInt(prepared.approval.amount)) {
+      await web3.eth.sendTransaction({
+        from: account,
+        to: prepared.approval.tx.to,
+        data: prepared.approval.tx.data,
+        value: prepared.approval.tx.value,
+      });
+    }
   }
 
   // This example uses eth_signTypedData_v4, but any equivalent EIP-712 signer works.
