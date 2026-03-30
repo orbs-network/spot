@@ -128,6 +128,13 @@
                 "adapter": "0x5906C4dD71D5afFe1a8f0215409E912eB5d593AD",
                 "fee": "0x03A70aC8126340d3cd6b5828816172693C398661"
             },
+            "pancake": {
+                "type": "p2:pancakeswap-v2",
+                "router": "0xd9C500DfF816a1Da21A48A732d3498Bf09dc9AEB",
+                "permit2": "0x31c2F6fcFf4F8759b3Bd5Bf0e1084A055615c768",
+                "adapter": "0x52Ed96B1AEd25818B6A284b063b055488E012b73",
+                "fee": "0x37A957f10F458e0d7fDECBE2917971b57F15c927"
+            },
             "quick": {
                 "type": "default:kyber-v2",
                 "router": "0x6131B5fae19EA4f9D964eAc0408E4408b66337b5",
@@ -149,6 +156,13 @@
                 "router": "0x2d8879046f1559E53eb052E949e9544bCB72f414",
                 "adapter": "0x55E4da2cd634729064bEb294EC682Dc94f5c3f24",
                 "fee": "0x03A70aC8126340d3cd6b5828816172693C398661"
+            },
+            "pancake": {
+                "type": "p2:pancakeswap-v2",
+                "router": "0xFE6508f0015C778Bdcc1fB5465bA5ebE224C9912",
+                "permit2": "0x31c2F6fcFf4F8759b3Bd5Bf0e1084A055615c768",
+                "adapter": "0xA7CcB11F1D20D1F915FC220F5Cb1646E4523bB75",
+                "fee": "0x37A957f10F458e0d7fDECBE2917971b57F15c927"
             },
             "lynex": {
                 "type": "default:openocean",
@@ -189,6 +203,13 @@
                 "router": "0x19cEeAd7105607Cd444F5ad10dd51356436095a1",
                 "adapter": "0x6a6b8975d1b131EFd0a9b536766EE7E5d4a16CF2",
                 "fee": "0x5729af83240EFecAa18eafaAE82961c2DD045Dbe"
+            },
+            "pancake": {
+                "type": "p2:pancakeswap-v2",
+                "router": "0xFE6508f0015C778Bdcc1fB5465bA5ebE224C9912",
+                "permit2": "0x31c2F6fcFf4F8759b3Bd5Bf0e1084A055615c768",
+                "adapter": "0xA7CcB11F1D20D1F915FC220F5Cb1646E4523bB75",
+                "fee": "0x37A957f10F458e0d7fDECBE2917971b57F15c927"
             },
             "sushiswap": {
                 "type": "default:sushi",
