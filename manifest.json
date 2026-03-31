@@ -1,7 +1,7 @@
 {
   "name": "spot-advanced-swap-orders",
   "title": "Spot Advanced Swap Orders",
-  "description": "Create and manage gasless, decentralized, non-custodial, oracle-protected market, limit, TWAP, stop-loss, take-profit, and delayed-start swap orders on supported EVM chains with immutable, audited, battle-tested contracts.",
+  "description": "Use for gasless non-custodial EVM market, limit, TWAP, stop-loss, take-profit, delayed-start orders.",
   "entrypoint": "SKILL.md",
   "references": [
     "skill/references/01-quickstart.md",
