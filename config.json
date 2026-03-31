@@ -141,6 +141,12 @@
                 "adapter": "0x0438644898F69bfF1018Cb01a81877D14d3e6493",
                 "fee": "0xd207DC6a6dA88f27c8DB78201F974161b1d84b1f"
             },
+            "trebleswap": {
+                "type": "default:trebleswap",
+                "router": "0x347539D82A14C0A3a89769f1024774A545a151ac",
+                "adapter": "0x6f4938535879c668A797F2a6e9B912c54f9D43Cf",
+                "fee": "0x15fc883d7DF4e681Ddb9E43e7B1D8c61d4fC162C"
+            },
             "sushiswap": {
                 "type": "default:sushi",
                 "router": "0xAC4c6e212A361c968F1725b4d055b47E63F80b75",
