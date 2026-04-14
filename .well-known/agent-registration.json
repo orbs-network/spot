@@ -1,0 +1,36 @@
+{
+  "type": "https://eips.ethereum.org/EIPS/eip-8004#registration-v1",
+  "name": "Spot Advanced Swap Orders",
+  "description": "Use for gasless non-custodial EVM market, limit, TWAP, stop-loss, take-profit, delayed-start orders.",
+  "image": "https://orbs-network.github.io/spot/arch.png",
+  "services": [
+    {
+      "name": "web",
+      "endpoint": "https://orbs-network.github.io/spot/"
+    },
+    {
+      "name": "MCP",
+      "endpoint": "https://orbs-network.github.io/spot/server.json",
+      "version": "2.3.4"
+    },
+    {
+      "name": "skill",
+      "endpoint": "https://orbs-network.github.io/spot/SKILL.md",
+      "version": "2.3.4"
+    },
+    {
+      "name": "npm",
+      "endpoint": "https://www.npmjs.com/package/@orbs-network/spot",
+      "version": "2.3.4"
+    },
+    {
+      "name": "GitHub",
+      "endpoint": "https://github.com/orbs-network/spot",
+      "version": "2.3.4"
+    }
+  ],
+  "x402Support": false,
+  "active": true,
+  "registrations": [],
+  "supportedTrust": []
+}

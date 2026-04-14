@@ -2,6 +2,14 @@
   "name": "spot-advanced-swap-orders",
   "title": "Spot Advanced Swap Orders",
   "description": "Use for gasless non-custodial EVM market, limit, TWAP, stop-loss, take-profit, delayed-start orders.",
+  "hostedBaseUrl": "https://orbs-network.github.io/spot",
+  "image": "arch.png",
+  "erc8004": {
+    "x402Support": false,
+    "active": true,
+    "registrations": [],
+    "supportedTrust": []
+  },
   "entrypoint": "SKILL.md",
   "references": [
     "skill/references/01-quickstart.md",

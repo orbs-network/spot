@@ -18,6 +18,9 @@ The skill bundle is available through these surfaces:
 2. Hosted raw files from [`https://orbs-network.github.io/spot/`](https://orbs-network.github.io/spot/), with root entrypoints plus `skill/` support paths
 3. The npm package `@orbs-network/spot`
 4. MCP clients through the package bin `spot-mcp`, published in `server.json` as `io.github.orbs-network/spot`
+5. ERC-8004 discovery clients through the hosted registration file [`.well-known/agent-registration.json`](https://orbs-network.github.io/spot/.well-known/agent-registration.json)
+
+The ERC-8004 registration payload is derived from root `manifest.json` and `package.json`; after registering on-chain, record the returned `agentId` and `agentRegistry` in `manifest.json` under `erc8004.registrations` and rebuild.
 
 ## Agent Capabilities
 

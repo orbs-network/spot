@@ -28,7 +28,7 @@ Optimize retrieval with frontmatter `description` and opening text before changi
 
 When changing behavior, docs, packaging, or metadata that affects agent or MCP consumption, update all affected surfaces in the same change.
 
-This commonly includes `SKILL.md`, `manifest.json`, `skill/`, `README.md`, `index.html`, `package.json`, `mcp/`, and derived metadata.
+This commonly includes `SKILL.md`, `manifest.json`, `skill/`, `README.md`, `index.html`, `package.json`, `mcp/`, `.well-known/`, and derived metadata.
 
 ## MCP Metadata
 
@@ -45,6 +45,13 @@ The canonical npm package name is `@orbs-network/spot`.
 The canonical npm bin name is `spot-mcp`.
 
 Keep MCP runtime dependency versions pinned to specific versions unless explicitly asked to relax them.
+
+## ERC-8004 Metadata
+
+Treat root `manifest.json` plus `package.json` as the source of truth for the hosted ERC-8004 registration file.
+Store on-chain ERC-8004 `agentId` / `agentRegistry` pairs in `manifest.json` under `erc8004.registrations`.
+
+Derive `.well-known/agent-registration.json` via `node ./script/sync-erc8004.mjs`; do not hand-maintain duplicate fields there.
 
 ## Build Requirement
 

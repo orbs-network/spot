@@ -13,14 +13,16 @@ while decentralized, non-custodial, oracle-protected, immutable, audited, battle
 
 ## Distribution
 
-This skill ships from the canonical repository [`orbs-network/spot`](https://github.com/orbs-network/spot) across four AI-agent distribution surfaces:
+This skill ships from the canonical repository [`orbs-network/spot`](https://github.com/orbs-network/spot) across five AI-agent distribution surfaces:
 
 1. Repo-local files [`SKILL.md`](SKILL.md), [`manifest.json`](manifest.json), and the checked-out [`skill/`](skill/) directory.
 2. Hosted raw files under [`https://orbs-network.github.io/spot/`](https://orbs-network.github.io/spot/), with root entrypoints plus `skill/` support paths.
 3. The npm package `@orbs-network/spot`, which installs the canonical entrypoints under `node_modules/@orbs-network/spot/skill/`.
 4. The stdio MCP adapter `spot-mcp`, published in `server.json` as `io.github.orbs-network/spot`.
+5. The hosted ERC-8004 registration file at [`https://orbs-network.github.io/spot/.well-known/agent-registration.json`](https://orbs-network.github.io/spot/.well-known/agent-registration.json).
 
 The checked-in `server.json` registry metadata is derived from this skill manifest plus package metadata, so MCP publishing stays aligned.
+The checked-in `.well-known/agent-registration.json` ERC-8004 metadata is derived from the same sources of truth plus the hosted base URL, image, and `erc8004` registration fields in [`manifest.json`](manifest.json).
 
 Outside tools should treat [`SKILL.md`](SKILL.md) as the entrypoint and [`manifest.json`](manifest.json) as the machine-readable companion file.
 
