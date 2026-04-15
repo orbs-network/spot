@@ -1,6 +1,6 @@
 const raw = require('./config.json');
 
-const loadAbi = (name) => require(`./out/${name}.sol/${name}.json`).abi;
+const loadAbi = (name) => require(`./out/${name}.sol/${name}.abi.json`);
 
 const abis = () => ({
   wm: loadAbi('WM'),

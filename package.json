@@ -16,12 +16,14 @@
     "engines": {
         "node": ">=18"
     },
-    "bin": {
-        "spot-mcp": "./mcp/stdio.mjs"
-    },
+    "workspaces": [
+        "skill",
+        "mcp"
+    ],
     "scripts": {
         "fmt": "forge fmt",
-        "build": "node ./script/sync-mcp.mjs && forge build --extra-output-files abi",
+        "sync": "node ./script/sync.mjs",
+        "build": "npm run sync && forge build --extra-output-files abi",
         "test": "forge test",
         "prepublishOnly": "npm run fmt && npm run build && npm run test"
     },
@@ -29,18 +31,9 @@
         "config.json",
         "index.css",
         "index.html",
-        "SKILL.md",
-        "manifest.json",
-        "skill/",
         "script/input/",
-        "out/**/*.json",
-        "index.js",
-        "mcp/",
-        "server.json"
+        "out/**/*.abi.json",
+        "index.js"
     ],
-    "main": "index.js",
-    "dependencies": {
-        "@modelcontextprotocol/sdk": "1.27.1",
-        "zod": "4.3.6"
-    }
+    "main": "index.js"
 }
