@@ -1,0 +1,30 @@
+{
+    "name": "@orbs-network/spot-skill",
+    "version": "2.3.4",
+    "description": "Use for gasless non-custodial EVM market, limit, TWAP, stop-loss, take-profit, delayed-start orders.",
+    "homepage": "https://orbs-network.github.io/spot/",
+    "bugs": {
+        "url": "https://github.com/orbs-network/spot/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/orbs-network/spot.git",
+        "directory": "skill"
+    },
+    "license": "MIT",
+    "author": "danielz@orbs.com",
+    "engines": {
+        "node": ">=18"
+    },
+    "files": [
+        "SKILL.md",
+        "references/01-quickstart.md",
+        "references/02-params.md",
+        "references/03-sign.md",
+        "references/04-patterns.md",
+        "assets/token-addressbook.md",
+        "assets/repermit.skeleton.json",
+        "assets/web3-sign-and-submit.example.js",
+        "scripts/order.js"
+    ]
+}

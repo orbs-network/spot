@@ -1,0 +1,31 @@
+{
+    "name": "@orbs-network/spot-mcp",
+    "version": "2.3.4",
+    "mcpName": "io.github.orbs-network/spot",
+    "description": "MCP adapter for Spot Advanced Swap Orders.",
+    "homepage": "https://orbs-network.github.io/spot/",
+    "bugs": {
+        "url": "https://github.com/orbs-network/spot/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/orbs-network/spot.git",
+        "directory": "mcp"
+    },
+    "license": "MIT",
+    "author": "danielz@orbs.com",
+    "engines": {
+        "node": ">=18"
+    },
+    "bin": {
+        "spot-mcp": "./stdio.mjs"
+    },
+    "files": [
+        "stdio.mjs"
+    ],
+    "dependencies": {
+        "@modelcontextprotocol/sdk": "1.27.1",
+        "zod": "4.3.6",
+        "@orbs-network/spot-skill": "2.3.4"
+    }
+}

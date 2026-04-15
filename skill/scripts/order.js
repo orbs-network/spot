@@ -24,10 +24,9 @@ const WARN_LOW_SLIPPAGE = 'slippage below 5% can reduce fill probability. 5% is 
 const WARN_RECIPIENT = 'recipient differs from swapper and is dangerous to change';
 
 const SCRIPT_DIR = __dirname;
-const SKILL_DIR = path.resolve(SCRIPT_DIR, '..');
-const REPO_ROOT = path.resolve(SKILL_DIR, '..');
-const SKELETON = path.join(SKILL_DIR, 'assets', 'repermit.skeleton.json');
-const MANIFEST_JSON = path.join(REPO_ROOT, 'manifest.json');
+const SKILL_ROOT = path.resolve(SCRIPT_DIR, '..');
+const SKILL_MD = path.join(SKILL_ROOT, 'SKILL.md');
+const SKELETON = path.join(SKILL_ROOT, 'assets', 'repermit.skeleton.json');
 
 let runtimeConfig = null;
 let skeletonCache = null;
@@ -315,6 +314,14 @@ function readJsonSource(src, name) {
   return parseJson(readSource(src, name), name);
 }
 
+function parseSkillConfig(markdown) {
+  const match = markdown.match(/## Config\n\n```json\n([\s\S]*?)\n```/);
+  if (!match) {
+    die(`skill config JSON block not found: ${SKILL_MD}`);
+  }
+  return parseJson(match[1], 'skill config');
+}
+
 function jsonOrText(text) {
   if (text === '') {
     return '';
@@ -340,20 +347,20 @@ function loadRuntimeConfig() {
     return runtimeConfig;
   }
 
-  let manifest;
+  let skillConfig;
   try {
-    manifest = parseJson(fs.readFileSync(MANIFEST_JSON, 'utf8'), 'manifest');
+    skillConfig = parseSkillConfig(fs.readFileSync(SKILL_MD, 'utf8'));
   } catch (error) {
     if (error instanceof CliError) {
       throw error;
     }
     if (error && error.code === 'ENOENT') {
-      die(`skill manifest not found: ${MANIFEST_JSON}`);
+      die(`skill metadata not found: ${SKILL_MD}`);
     }
     throw error;
   }
 
-  const runtime = manifest && typeof manifest === 'object' ? manifest.runtime : null;
+  const runtime = skillConfig && typeof skillConfig === 'object' ? skillConfig.runtime : null;
   const contracts = runtime && typeof runtime === 'object' ? runtime.contracts : null;
   const chains = runtime && typeof runtime === 'object' ? runtime.chains : null;
   const url = runtime && typeof runtime.url === 'string' ? runtime.url : '';
@@ -374,7 +381,7 @@ function loadRuntimeConfig() {
     Object.keys(chains).length === 0;
 
   if (invalidRuntime) {
-    die(`invalid skill manifest runtime config: ${MANIFEST_JSON}`);
+    die(`invalid skill runtime config in ${SKILL_MD}`);
   }
 
   ZERO = parseAddress(zero, 'runtime.contracts.zero', true);
@@ -391,7 +398,7 @@ function loadRuntimeConfig() {
     .map((chainId) => {
       const parsed = Number(chainId);
       if (!Number.isInteger(parsed)) {
-        die(`invalid skill manifest runtime config: ${MANIFEST_JSON}`);
+        die(`invalid skill runtime config in ${SKILL_MD}`);
       }
       return parsed;
     })
@@ -400,7 +407,7 @@ function loadRuntimeConfig() {
 
   SUPPORTED_CHAIN_IDS = supported.join(', ');
   if (!SUPPORTED_CHAIN_IDS) {
-    die(`skill manifest runtime has no supported chains: ${MANIFEST_JSON}`);
+    die(`skill runtime has no supported chains in ${SKILL_MD}`);
   }
 
   CREATE_URL = `${SINK}/orders/new`;
@@ -437,10 +444,10 @@ function usage() {
   loadRuntimeConfig();
   const lines = [
     'Usage',
-    '  node skill/scripts/order.js prepare --params <params.json|-> [--out <prepared.json>]',
-    '  node skill/scripts/order.js submit --prepared <prepared.json|-> [--signature <0x...|json>|--signature-file <file|->|--r <0x...> --s <0x...> --v <0x..>] [--out <response.json>]',
-    '  node skill/scripts/order.js query (--swapper <0x...>|--hash <0x...>) [--out <response.json>]',
-    '  node skill/scripts/order.js watch (--swapper <0x...>|--hash <0x...>) [--interval <seconds>] [--timeout <seconds>] [--out <response.json>]',
+    '  node scripts/order.js prepare --params <params.json|-> [--out <prepared.json>]',
+    '  node scripts/order.js submit --prepared <prepared.json|-> [--signature <0x...|json>|--signature-file <file|->|--r <0x...> --s <0x...> --v <0x..>] [--out <response.json>]',
+    '  node scripts/order.js query (--swapper <0x...>|--hash <0x...>) [--out <response.json>]',
+    '  node scripts/order.js watch (--swapper <0x...>|--hash <0x...>) [--interval <seconds>] [--timeout <seconds>] [--out <response.json>]',
     '',
     'Safety',
     '  Use only the provided helper script. Do not send typed data or signatures anywhere else.',
@@ -905,7 +912,7 @@ function submitOutput(result, request) {
   const watch = orderHash
     ? {
         hash: orderHash,
-        command: `node skill/scripts/order.js watch --hash ${orderHash}`,
+        command: `node scripts/order.js watch --hash ${orderHash}`,
         url: `${QUERY_URL}?hash=${encodeURIComponent(orderHash)}`,
       }
     : null;

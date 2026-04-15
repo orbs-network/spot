@@ -10,9 +10,8 @@ The self-contained `skill/` package is the canonical AI-agent bundle.
 
 Within that bundle:
 
-1. `skill/SKILL.md` is the human and agent entrypoint.
-2. `skill/manifest.json` is the machine-readable companion.
-3. `skill/scripts/order.js` is the canonical execution surface.
+1. `skill/SKILL.md` is the human and agent entrypoint and carries the inline machine-readable skill metadata.
+2. `skill/scripts/order.js` is the canonical execution surface.
 
 Keep the canonical skill slug stable as `spot-advanced-swap-orders`.
 
@@ -20,7 +19,7 @@ Use `Spot Advanced Swap Orders` as the human-facing display title for the skill,
 
 The repository `README.md` is the exception and may use broader protocol-level branding.
 
-Keep `skill/SKILL.md` and `config.json` as the sync inputs for derived metadata consumed by the self-contained skill package.
+Keep `skill/SKILL.md` and `config.json` as the sync inputs for the inline metadata consumed by the self-contained skill package.
 
 Optimize retrieval with frontmatter `description` and opening text before changing the skill slug again.
 

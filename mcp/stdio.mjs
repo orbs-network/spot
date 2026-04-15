@@ -2,6 +2,7 @@
 
 import { spawn } from "node:child_process";
 import { readFile } from "node:fs/promises";
+import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
@@ -9,21 +10,23 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const rootDir = path.resolve(__dirname, "..");
-const packageJsonPath = path.join(rootDir, "package.json");
-const skillMdPath = path.join(rootDir, "SKILL.md");
-const manifestPath = path.join(rootDir, "manifest.json");
-const cliPath = path.join(rootDir, "skill", "scripts", "order.js");
+const require = createRequire(import.meta.url);
+const packageDir = __dirname;
+const packageJsonPath = path.join(packageDir, "package.json");
+const skillDir = resolveSkillDir();
+const skillMdPath = path.join(skillDir, "SKILL.md");
+const cliPath = path.join(skillDir, "scripts", "order.js");
 
-const [pkg, manifest] = await Promise.all([
+const [pkg, skillMd] = await Promise.all([
   readJsonFile(packageJsonPath),
-  readJsonFile(manifestPath),
+  readFile(skillMdPath, "utf8"),
 ]);
 
 const mcpName = requiredString(pkg.mcpName, "package.json mcpName");
 const version = requiredString(pkg.version, "package.json version");
-const skillName = requiredString(manifest.name, "skill manifest name");
-const skillTitle = requiredString(manifest.title, "skill manifest title");
+const skillFrontmatter = parseFrontmatter(skillMd);
+const skillName = requiredString(skillFrontmatter.name, "skill frontmatter name");
+const skillTitle = parseSkillTitle(skillMd);
 
 const server = new McpServer({
   name: mcpName,
@@ -35,7 +38,7 @@ server.registerResource(
   "spot://skill",
   {
     title: `${skillTitle} skill`,
-    description: `Canonical ${skillName} SKILL.md for ${mcpName}`,
+    description: `Canonical ${skillName} SKILL.md with inline metadata for ${mcpName}`,
     mimeType: "text/markdown",
   },
   async (uri) => ({
@@ -44,25 +47,6 @@ server.registerResource(
         uri: uri.href,
         text: await readFile(skillMdPath, "utf8"),
         mimeType: "text/markdown",
-      },
-    ],
-  }),
-);
-
-server.registerResource(
-  "spot-manifest",
-  "spot://manifest",
-  {
-    title: `${skillTitle} manifest`,
-    description: `Canonical ${skillName} manifest.json for ${mcpName}`,
-    mimeType: "application/json",
-  },
-  async (uri) => ({
-    contents: [
-      {
-        uri: uri.href,
-        text: JSON.stringify(manifest, null, 2),
-        mimeType: "application/json",
       },
     ],
   }),
@@ -147,10 +131,39 @@ function requiredString(value, label) {
   return value;
 }
 
+function parseFrontmatter(markdown) {
+  const match = markdown.match(/^---\n([\s\S]*?)\n---\n/);
+  if (!match) {
+    throw new Error("skill frontmatter is required");
+  }
+
+  return Object.fromEntries(
+    match[1]
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        const splitIndex = line.indexOf(":");
+        if (splitIndex === -1) {
+          throw new Error(`invalid frontmatter line: ${line}`);
+        }
+        return [line.slice(0, splitIndex).trim(), line.slice(splitIndex + 1).trim()];
+      }),
+  );
+}
+
+function parseSkillTitle(markdown) {
+  const match = markdown.match(/^#\s+(.+)$/m);
+  if (!match) {
+    throw new Error("skill title heading is required");
+  }
+  return requiredString(match[1], "skill title");
+}
+
 function runCli(args, stdinJson) {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [cliPath, ...args], {
-      cwd: rootDir,
+      cwd: process.cwd(),
       stdio: ["pipe", "pipe", "pipe"],
     });
 
@@ -216,4 +229,12 @@ function toolError(message) {
       },
     ],
   };
+}
+
+function resolveSkillDir() {
+  try {
+    return path.dirname(require.resolve("@orbs-network/spot-skill/package.json"));
+  } catch {
+    return path.resolve(packageDir, "..", "skill");
+  }
 }

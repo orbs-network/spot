@@ -3,7 +3,7 @@
     "version": "2.3.4",
     "mcpName": "io.github.orbs-network/spot",
     "description": "**A DeFi protocol for noncustodial advanced order types on EVM chains.**",
-    "homepage": "https://github.com/orbs-network/spot#readme",
+    "homepage": "https://orbs-network.github.io/spot/",
     "bugs": {
         "url": "https://github.com/orbs-network/spot/issues"
     },

@@ -1,0 +1,21 @@
+{
+    "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+    "name": "io.github.orbs-network/spot",
+    "title": "Spot Advanced Swap Orders",
+    "description": "Use for gasless non-custodial EVM market, limit, TWAP, stop-loss, take-profit, delayed-start orders.",
+    "repository": {
+        "url": "https://github.com/orbs-network/spot",
+        "source": "github"
+    },
+    "version": "2.3.4",
+    "packages": [
+        {
+            "registryType": "npm",
+            "identifier": "@orbs-network/spot-mcp",
+            "version": "2.3.4",
+            "transport": {
+                "type": "stdio"
+            }
+        }
+    ]
+}
