@@ -21,7 +21,9 @@
         "spot-mcp": "./stdio.mjs"
     },
     "files": [
-        "stdio.mjs"
+        "*.json",
+        "*.md",
+        "*.mjs"
     ],
     "dependencies": {
         "@modelcontextprotocol/sdk": "1.27.1",

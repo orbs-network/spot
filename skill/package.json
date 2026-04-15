@@ -17,14 +17,9 @@
         "node": ">=18"
     },
     "files": [
-        "SKILL.md",
-        "references/01-quickstart.md",
-        "references/02-params.md",
-        "references/03-sign.md",
-        "references/04-patterns.md",
-        "assets/token-addressbook.md",
-        "assets/repermit.skeleton.json",
-        "assets/web3-sign-and-submit.example.js",
-        "scripts/order.js"
+        "*.md",
+        "references",
+        "assets",
+        "scripts"
     ]
 }

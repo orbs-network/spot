@@ -1,16 +1,22 @@
 #!/usr/bin/env node
 
+import { execFile } from "node:child_process";
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, "..");
+const execFileAsync = promisify(execFile);
 const rootPackageJsonPath = path.join(rootDir, "package.json");
 const configPath = path.join(rootDir, "config.json");
+const rootReadmePath = path.join(rootDir, "README.md");
 const skillPackageJsonPath = path.join(rootDir, "skill", "package.json");
+const skillReadmePath = path.join(rootDir, "skill", "README.md");
 const skillSkillMdPath = path.join(rootDir, "skill", "SKILL.md");
 const mcpPackageJsonPath = path.join(rootDir, "mcp", "package.json");
+const mcpReadmePath = path.join(rootDir, "mcp", "README.md");
 const serverJsonPath = path.join(rootDir, "mcp", "server.json");
 
 if (process.argv.includes("-h") || process.argv.includes("--help")) {
@@ -18,8 +24,9 @@ if (process.argv.includes("-h") || process.argv.includes("--help")) {
   process.exit(0);
 }
 
-const [rootPkg, skillMd, config, existingMcpPkg] = await Promise.all([
+const [rootPkg, rootReadme, skillMd, config, existingMcpPkg] = await Promise.all([
   readJsonFile(rootPackageJsonPath),
+  readFile(rootReadmePath, "utf8"),
   readFile(skillSkillMdPath, "utf8"),
   readJsonFile(configPath),
   readJsonFile(mcpPackageJsonPath),
@@ -32,6 +39,7 @@ const bugs = requiredObject(rootPkg.bugs, "package.json bugs");
 const engines = requiredObject(rootPkg.engines, "package.json engines");
 const homepage = requiredString(rootPkg.homepage, "package.json homepage");
 const repositoryUrl = normalizeRepositoryUrl(requiredString(repository.url, "package.json repository.url"));
+const repositoryDefaultBranch = await resolveRepositoryDefaultBranch(rootDir);
 const skillFrontmatter = parseFrontmatter(skillMd);
 const skillConfig = normalizeSkillConfig(parseSkillConfig(skillMd), requiredObject(config, "config.json"));
 const skillTitle = parseSkillTitle(skillMd);
@@ -58,12 +66,7 @@ const skillPkg = {
   license: requiredString(rootPkg.license, "package.json license"),
   author: requiredString(rootPkg.author, "package.json author"),
   engines,
-  files: unique([
-    "SKILL.md",
-    ...skillMetadata.references,
-    ...skillMetadata.assets,
-    ...skillMetadata.scripts,
-  ]),
+  files: deriveSkillPackageFiles(skillMetadata),
 };
 
 const mcpPkg = {
@@ -83,7 +86,7 @@ const mcpPkg = {
   bin: {
     "spot-mcp": "./stdio.mjs",
   },
-  files: ["stdio.mjs"],
+  files: ["*.json", "*.md", "*.mjs"],
   ...omitKeys(existingMcpPkg, [
     "name",
     "version",
@@ -127,14 +130,32 @@ const serverJson = {
   ],
 };
 
+const skillReadme = buildWorkspaceReadme({
+  workspaceName: skillPkg.name,
+  rootReadme,
+  repositoryUrl,
+  repositoryDefaultBranch,
+});
+
+const mcpReadme = buildWorkspaceReadme({
+  workspaceName: mcpPkg.name,
+  rootReadme,
+  repositoryUrl,
+  repositoryDefaultBranch,
+});
+
 await Promise.all([
+  writeTextIfChanged(skillReadmePath, skillReadme),
   writeTextIfChanged(skillSkillMdPath, nextSkillMd),
   writeJsonIfChanged(skillPackageJsonPath, skillPkg),
+  writeTextIfChanged(mcpReadmePath, mcpReadme),
   writeJsonIfChanged(mcpPackageJsonPath, mcpPkg),
   writeJsonIfChanged(serverJsonPath, serverJson),
 ]);
 
-process.stdout.write("synced skill/SKILL.md, skill/package.json, mcp/package.json, and mcp/server.json\n");
+process.stdout.write(
+  "synced skill/README.md, skill/SKILL.md, skill/package.json, mcp/README.md, mcp/package.json, and mcp/server.json\n",
+);
 
 async function readJsonFile(filePath) {
   return JSON.parse(await readFile(filePath, "utf8"));
@@ -180,6 +201,25 @@ function requiredStringArray(value, label) {
 
 function normalizeRepositoryUrl(url) {
   return requiredString(url, "normalized repository url").replace(/^git\+/, "").replace(/\.git$/, "");
+}
+
+async function resolveRepositoryDefaultBranch(cwd) {
+  const commands = [
+    ["symbolic-ref", "--short", "refs/remotes/origin/HEAD"],
+    ["branch", "--show-current"],
+  ];
+
+  for (const args of commands) {
+    try {
+      const { stdout } = await execFileAsync("git", args, { cwd });
+      const branch = stdout.trim().replace(/^origin\//, "");
+      if (branch) {
+        return branch;
+      }
+    } catch {}
+  }
+
+  return "master";
 }
 
 function normalizeSkillConfig(skillConfig, fullConfig) {
@@ -256,6 +296,24 @@ function unique(values) {
   return [...new Set(values)];
 }
 
+function deriveSkillPackageFiles(skillMetadata) {
+  return unique([
+    "*.md",
+    ...deriveTopLevelDirectories([
+      ...skillMetadata.references,
+      ...skillMetadata.assets,
+      ...skillMetadata.scripts,
+    ]),
+  ]);
+}
+
+function deriveTopLevelDirectories(relativePaths) {
+  return relativePaths.map((relativePath) => {
+    const [topLevel] = requiredString(relativePath, "package file path").split("/");
+    return requiredString(topLevel, "package file top-level directory");
+  });
+}
+
 function isPlainObject(value) {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
@@ -311,11 +369,44 @@ function replaceSkillConfigBlock(markdown, skillConfig) {
   return `${markdown.slice(0, match.index)}${nextBlock}${markdown.slice(match.index + match[0].length)}`;
 }
 
+function buildWorkspaceReadme({ workspaceName, rootReadme, repositoryUrl, repositoryDefaultBranch }) {
+  const note = [
+    "<!-- Generated by script/sync.mjs from the repository root README.md. Do not edit directly. -->",
+    "",
+    `> Auto-synced workspace README for \`${workspaceName}\`. Repo-relative links are rewritten to canonical GitHub URLs.`,
+    "",
+  ].join("\n");
+
+  return `${note}${rewriteRelativeMarkdownLinks(rootReadme, repositoryUrl, repositoryDefaultBranch)}`;
+}
+
+function rewriteRelativeMarkdownLinks(markdown, repositoryUrl, repositoryDefaultBranch) {
+  return markdown.replace(/\]\((\.\/[^)]+)\)/g, (match, target) => {
+    return match.replace(target, toRepositoryUrl(target, repositoryUrl, repositoryDefaultBranch));
+  });
+}
+
+function toRepositoryUrl(target, repositoryUrl, repositoryDefaultBranch) {
+  const relativePath = target.slice(2);
+  if (relativePath.length === 0) {
+    return repositoryUrl;
+  }
+
+  const kind = relativePath.endsWith("/") ? "tree" : "blob";
+  const normalizedPath = relativePath
+    .split("/")
+    .filter(Boolean)
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+
+  return `${repositoryUrl}/${kind}/${repositoryDefaultBranch}/${normalizedPath}`;
+}
+
 function helpText() {
   return [
     "🛠️  sync.mjs",
     "",
-    "Generate derived skill and MCP metadata from the canonical repo inputs.",
+    "Generate derived skill, MCP, and workspace README metadata from the canonical repo inputs.",
     "",
     "🚀 Usage",
     "  node ./script/sync.mjs",
@@ -327,34 +418,42 @@ function helpText() {
     "     Root package metadata used for versions, repository, author, license, engines, and MCP package naming.",
     "  2. config.json",
     "     Chain deployment config used to derive runtime addresses and adapters.",
-    "  3. skill/SKILL.md",
+    "  3. README.md",
+    "     Root repository README used as the source for auto-synced workspace package READMEs in skill/ and mcp/.",
+    "  4. skill/SKILL.md",
     "     Canonical skill source. Frontmatter provides slug and description. The H1 provides title. The `## Config` JSON block provides references, assets, scripts, and inline runtime metadata.",
-    "  4. mcp/package.json",
+    "  5. mcp/package.json",
     "     MCP package input for MCP-owned fields such as pinned runtime dependencies and any extra publish metadata not derived by sync.",
     "",
     "📤 Outputs",
-    "  1. skill/SKILL.md",
+    "  1. skill/README.md",
+    "     Auto-synced workspace README generated from the root README with repo-relative links rewritten to canonical GitHub URLs.",
+    "  2. skill/SKILL.md",
     "     Normalized `## Config` JSON block with runtime contracts and per-chain adapters derived from config.json.",
-    "  2. skill/package.json",
+    "  3. skill/package.json",
     "     Publish metadata for @orbs-network/spot-skill.",
-    "  3. mcp/package.json",
+    "  4. mcp/README.md",
+    "     Auto-synced workspace README generated from the root README with repo-relative links rewritten to canonical GitHub URLs.",
+    "  5. mcp/package.json",
     "     Synced publish metadata for @orbs-network/spot-mcp. Derived fields are overwritten; MCP-owned fields are preserved.",
-    "  4. mcp/server.json",
+    "  6. mcp/server.json",
     "     MCP registry metadata for io.github.orbs-network/spot.",
     "",
     "🧭 Rules",
     "  1. skill/SKILL.md remains the canonical skill surface, and sync rewrites only its machine-readable `## Config` block.",
     "  2. config.json is the source of truth for deployed addresses and adapter selection.",
-    "  3. mcp/package.json may retain MCP-owned fields such as pinned runtime dependencies.",
-    "  4. Sync overwrites only derived fields in mcp/package.json.",
-    "  5. The script is intentionally non-interactive and takes no mutation flags.",
+    "  3. README.md is the source of truth for workspace package README copies in skill/ and mcp/.",
+    "  4. mcp/package.json may retain MCP-owned fields such as pinned runtime dependencies.",
+    "  5. Sync overwrites only derived fields in mcp/package.json.",
+    "  6. The script is intentionally non-interactive and takes no mutation flags.",
     "",
     "🔎 Validation",
-    "  1. Missing frontmatter, missing `## Config`, invalid JSON, missing chain config, missing mcp/package.json dependencies, or missing package metadata will fail the run.",
-    "  2. If a chain lacks `dex.agent.adapter`, the script falls back to the first sorted dex entry for that chain.",
+    "  1. Missing README.md, missing frontmatter, missing `## Config`, invalid JSON, missing chain config, missing mcp/package.json dependencies, or missing package metadata will fail the run.",
+    "  2. If git remote HEAD cannot be resolved, the script falls back to the current branch and then `master` for canonical GitHub README links.",
+    "  3. If a chain lacks `dex.agent.adapter`, the script falls back to the first sorted dex entry for that chain.",
     "",
     "✅ Typical flow",
-    "  1. Edit skill/SKILL.md, config.json, root package.json, or MCP-owned fields in mcp/package.json.",
+    "  1. Edit README.md, skill/SKILL.md, config.json, root package.json, or MCP-owned fields in mcp/package.json.",
     "  2. Run `npm run sync`.",
     "  3. Run `npm run build`.",
     "",
