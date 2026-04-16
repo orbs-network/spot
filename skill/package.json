@@ -1,7 +1,7 @@
 {
     "name": "@orbs-network/spot-skill",
     "version": "2.4.1",
-    "description": "Use for gasless non-custodial EVM market, limit, TWAP, stop-loss, take-profit, delayed-start orders.",
+    "description": "Use for gasless non-custodial EVM market, limit, TWAP, stop-loss, take-profit, delayed-start swaps.",
     "homepage": "https://orbs-network.github.io/spot/",
     "bugs": {
         "url": "https://github.com/orbs-network/spot/issues"

@@ -1,6 +1,6 @@
 ---
 name: spot-advanced-swap-orders
-description: Use for gasless non-custodial EVM market, limit, TWAP, stop-loss, take-profit, delayed-start orders.
+description: Use for gasless non-custodial EVM market, limit, TWAP, stop-loss, take-profit, delayed-start swaps.
 ---
 
 # Spot Advanced Swap Orders
@@ -74,19 +74,6 @@ while decentralized, non-custodial, oracle-protected, immutable, audited, battle
   }
 }
 ```
-
-## Distribution
-
-This skill ships from the canonical repository [`orbs-network/spot`](https://github.com/orbs-network/spot) across four AI-agent distribution surfaces:
-
-1. Self-contained package file [`SKILL.md`](SKILL.md), plus the local `references/`, `assets/`, and `scripts/` directories.
-2. Hosted raw files under [`https://orbs-network.github.io/spot/`](https://orbs-network.github.io/spot/), with `skill/` paths as the canonical hosted bundle.
-3. The npm package `@orbs-network/spot-skill`, which installs this self-contained bundle as published.
-4. The stdio MCP adapter `spot-mcp`, published in `mcp/server.json` as `io.github.orbs-network/spot`.
-
-The checked-in `mcp/server.json` registry metadata is derived from [`SKILL.md`](SKILL.md) plus package metadata, so MCP publishing stays aligned.
-
-Outside tools should treat [`SKILL.md`](SKILL.md) as both the entrypoint and the machine-readable metadata source. Frontmatter provides slug and description, and the `## Config` block provides the bundled runtime metadata.
 
 ## Workflow
 
