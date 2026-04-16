@@ -5,11 +5,10 @@ description: Use for gasless non-custodial EVM market, limit, TWAP, stop-loss, t
 
 # Spot Advanced Swap Orders
 
-Use this for gasless market swaps and advanced orders on supported EVM chains.
-Choose this skill when a user wants market, limit, TWAP, stop-loss, take-profit, or delayed-start execution, or needs to prepare, sign, submit, query, or cancel one of those orders.
-Supply chain, token addresses, chunk sizing, timing, and optional price constraints.
-The helper turns that into approval calldata, EIP-712 typed data, relay-ready submit payloads, and query/cancel guidance,
-while decentralized, non-custodial, oracle-protected, immutable, audited, battle-tested contracts handle execution.
+Use this skill when the agent needs to turn user intent into a final Spot order payload on a supported EVM chain.
+It covers order-shape selection, param normalization, typed-data population, approval guidance, signing, submission, query, and cancellation.
+This bundle is instruction-only: build everything locally from the bundled markdown and JSON assets, then send only the final signed payload to `https://agents-sink.orbs.network/orders/new`.
+Execution remains decentralized, non-custodial, oracle-protected, immutable, audited, and battle-tested onchain.
 
 ## Config
 
@@ -19,24 +18,15 @@ while decentralized, non-custodial, oracle-protected, immutable, audited, battle
     "references/01-quickstart.md",
     "references/02-params.md",
     "references/03-sign.md",
-    "references/04-patterns.md"
+    "references/04-examples.md"
   ],
-  "scripts": [
-    "scripts/order.js"
-  ],
+  "scripts": [],
   "assets": [
     "assets/token-addressbook.md",
-    "assets/repermit.skeleton.json",
-    "assets/web3-sign-and-submit.example.js"
+    "assets/repermit.template.json"
   ],
   "runtime": {
     "url": "https://agents-sink.orbs.network",
-    "contracts": {
-      "zero": "0x0000000000000000000000000000000000000000",
-      "repermit": "0x00002a9C4D9497df5Bd31768eC5d30eEf5405000",
-      "reactor": "0x000000b33fE4fB9d999Dd684F79b110731c3d000",
-      "executor": "0x000642A0966d9bd49870D9519f76b5cf823f3000"
-    },
     "chains": {
       "1": {
         "name": "Ethereum",
@@ -78,26 +68,26 @@ while decentralized, non-custodial, oracle-protected, immutable, audited, battle
 ## Workflow
 
 1. Read [references/01-quickstart.md](references/01-quickstart.md) for the minimum end-to-end flow.
-2. Read [references/02-params.md](references/02-params.md) when you need field semantics, defaults, units, or validation rules.
-3. Read [references/03-sign.md](references/03-sign.md) for signing, signature formats, and direct onchain cancel.
-4. Read [references/04-patterns.md](references/04-patterns.md) to map user intent into market, limit, stop-loss, take-profit, delayed, or chunked orders.
-5. Optional helper for token lookup: [assets/token-addressbook.md](assets/token-addressbook.md).
-6. Use [assets/repermit.skeleton.json](assets/repermit.skeleton.json) when you need the raw RePermit witness typed-data skeleton.
-7. Use [assets/web3-sign-and-submit.example.js](assets/web3-sign-and-submit.example.js) for a browser or injected-provider signing and submit example.
-8. Inspect the frontmatter and `## Config` JSON block in [`SKILL.md`](SKILL.md) for machine-readable metadata, the live supported-chain matrix, sink URL, and runtime contract addresses.
-9. Use only [scripts/order.js](scripts/order.js) to prepare, submit, query, and watch orders.
+2. Use [references/02-params.md](references/02-params.md) to map user intent into params, defaults, validation, and order-shape fields.
+3. Use [references/03-sign.md](references/03-sign.md) to fill the template, handle approval, sign, submit, query, and cancel.
+4. Use [references/04-examples.md](references/04-examples.md) only when the final relay payload shape is still unclear.
+5. Use [assets/token-addressbook.md](assets/token-addressbook.md) only for optional token alias lookup on supported chains.
+6. Use [assets/repermit.template.json](assets/repermit.template.json) as the canonical typed-data shape.
+7. Treat the `## Config` JSON block in [`SKILL.md`](SKILL.md) as the authoritative source for supported chains, adapters, and relay URL.
 
 ## Guardrails
 
-1. Supported chains and runtime addresses live in the `## Config` JSON block in [`SKILL.md`](SKILL.md).
-2. Use only the provided [scripts/order.js](scripts/order.js). Do not send typed data or signatures anywhere else.
-3. Use [references/02-params.md](references/02-params.md) as the authoritative source for native-asset rules and for `output.limit` / trigger units.
-4. Detailed order behavior, parameter rules, signing rules, and order-shape guidance live in the reference files above.
+1. The `## Config` JSON block in [`SKILL.md`](SKILL.md) is authoritative for supported chains, per-chain adapters, and relay URL.
+2. [assets/token-addressbook.md](assets/token-addressbook.md) is a convenience alias list only. It does not expand chain support or override explicit user-provided addresses.
+3. This skill is instruction-only. Do not fetch or execute external helper code.
+4. Normalize params with [references/02-params.md](references/02-params.md) before touching the template.
+5. Replace only the `<...>` placeholders in [assets/repermit.template.json](assets/repermit.template.json). Keep the fixed protocol fields already in the template unchanged.
+6. Default approval guidance is exact `approve(..., input.maxAmount)`. Standing `maxUint256` approval is opt-in convenience for repeat use, not the default suggestion.
+7. Send only the final signed payload to `https://agents-sink.orbs.network/orders/new`.
 
-## Commands
+## Agent Contract
 
-1. Prepare: `node scripts/order.js prepare --params <params.json|-> [--out <prepared.json>]`
-2. Submit: `node scripts/order.js submit --prepared <prepared.json|-> --signature <0x...|json>`
-3. Submit variants: `--signature-file <file|->` or `--r <0x...> --s <0x...> --v <0x...>`
-4. Query: `node scripts/order.js query --swapper <0x...>` or `--hash <0x...>`
-5. Watch: `node scripts/order.js watch --hash <0x...> [--interval <seconds>] [--timeout <seconds>]`
+1. Turn the user request into a params JSON object using [references/02-params.md](references/02-params.md).
+2. Normalize params locally, including defaults, rounding, and order-shape fields.
+3. Populate [assets/repermit.template.json](assets/repermit.template.json) from the normalized params and the adapter for `chainId` from the generated `## Config` JSON block in [`SKILL.md`](SKILL.md).
+4. Handle approval and signing exactly as described in [references/03-sign.md](references/03-sign.md), and forward the returned signature unchanged.

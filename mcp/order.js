@@ -7,13 +7,10 @@ const path = require('node:path');
 
 const MAX_SLIPPAGE = 5000n;
 const DEF_SLIPPAGE = 500n;
-const EXCLUSIVITY = 0;
-const REF_SHARE = 0;
 const FRESHNESS = 30;
 const TTL = 300n;
 const U32_MAX = 4294967295n;
 const MIN_NON_ZERO_EPOCH = 31n;
-const MAX_APPROVAL = (1n << 256n) - 1n;
 const DEF_WATCH_INTERVAL = 5;
 const DEF_WATCH_TIMEOUT = 0;
 const TERMINAL_ORDER_STATUSES = new Set(['filled', 'completed', 'cancelled', 'canceled', 'expired', 'failed', 'rejected']);
@@ -24,19 +21,15 @@ const WARN_LOW_SLIPPAGE = 'slippage below 5% can reduce fill probability. 5% is 
 const WARN_RECIPIENT = 'recipient differs from swapper and is dangerous to change';
 
 const SCRIPT_DIR = __dirname;
-const SKILL_ROOT = path.resolve(SCRIPT_DIR, '..');
+const SKILL_ROOT = resolveSkillRoot();
 const SKILL_MD = path.join(SKILL_ROOT, 'SKILL.md');
-const SKELETON = path.join(SKILL_ROOT, 'assets', 'repermit.skeleton.json');
+const TEMPLATE = path.join(SKILL_ROOT, 'assets', 'repermit.template.json');
 
 let runtimeConfig = null;
-let skeletonCache = null;
-let ZERO = '';
+let templateCache = null;
 let SINK = '';
 let CREATE_URL = '';
 let QUERY_URL = '';
-let REPERMIT = '';
-let REACTOR = '';
-let EXECUTOR = '';
 let SUPPORTED_CHAIN_IDS = '';
 let warnings = [];
 
@@ -203,14 +196,6 @@ function formatError(error) {
   return parts.filter(Boolean).join(': ') || 'unknown error';
 }
 
-function normalizeSizedHex(value, name, size) {
-  const raw = hexBody(value, name, { allowBare: true });
-  if (raw.length !== size) {
-    die(`${name} must be ${size} hex chars`);
-  }
-  return `0x${raw}`;
-}
-
 function padHex64(value, name = 'value') {
   const raw = lower(hexBody(value, name, { allowBare: true }));
   if (raw.length > 64) {
@@ -245,35 +230,6 @@ function approveCalldata(spender, amount) {
   const spenderHex = padHex64(parseAddress(spender, 'approve.spender'), 'approve.spender');
   const amountHex = padHex64(decimalOnly(amount, 'approve.amount').toString(16), 'approve.amount');
   return `0x095ea7b3${spenderHex.slice(2)}${amountHex.slice(2)}`;
-}
-
-function normalizeSigV(value, name = 'signature.v') {
-  const raw = trim(value);
-  if (!raw) {
-    die(`${name} is required`);
-  }
-
-  let decimal;
-  if (/^0[xX][0-9a-fA-F]+$/.test(raw)) {
-    decimal = BigInt(raw);
-  } else if (/^\d+$/.test(raw)) {
-    decimal = BigInt(raw);
-  } else if (/^[0-9a-fA-F]+$/.test(raw)) {
-    decimal = BigInt(`0x${raw}`);
-  } else {
-    die(`${name} must be 0, 1, 27, 28, or equivalent hex`);
-  }
-
-  switch (decimal.toString(10)) {
-    case '0':
-    case '27':
-      return '0x1b';
-    case '1':
-    case '28':
-      return '0x1c';
-    default:
-      die(`${name} must be 0, 1, 27, 28, or equivalent hex`);
-  }
 }
 
 function now() {
@@ -361,20 +317,11 @@ function loadRuntimeConfig() {
   }
 
   const runtime = skillConfig && typeof skillConfig === 'object' ? skillConfig.runtime : null;
-  const contracts = runtime && typeof runtime === 'object' ? runtime.contracts : null;
   const chains = runtime && typeof runtime === 'object' ? runtime.chains : null;
   const url = runtime && typeof runtime.url === 'string' ? runtime.url : '';
-  const zero = contracts && typeof contracts.zero === 'string' ? contracts.zero : '';
-  const repermit = contracts && typeof contracts.repermit === 'string' ? contracts.repermit : '';
-  const reactor = contracts && typeof contracts.reactor === 'string' ? contracts.reactor : '';
-  const executor = contracts && typeof contracts.executor === 'string' ? contracts.executor : '';
 
   const invalidRuntime =
     !url ||
-    !zero ||
-    !repermit ||
-    !reactor ||
-    !executor ||
     !chains ||
     typeof chains !== 'object' ||
     Array.isArray(chains) ||
@@ -384,10 +331,6 @@ function loadRuntimeConfig() {
     die(`invalid skill runtime config in ${SKILL_MD}`);
   }
 
-  ZERO = parseAddress(zero, 'runtime.contracts.zero', true);
-  REPERMIT = parseAddress(repermit, 'runtime.contracts.repermit');
-  REACTOR = parseAddress(reactor, 'runtime.contracts.reactor');
-  EXECUTOR = parseAddress(executor, 'runtime.contracts.executor');
   SINK = url;
 
   if (!/^https?:\/\//.test(SINK)) {
@@ -444,17 +387,17 @@ function usage() {
   loadRuntimeConfig();
   const lines = [
     'Usage',
-    '  node scripts/order.js prepare --params <params.json|-> [--out <prepared.json>]',
-    '  node scripts/order.js submit --prepared <prepared.json|-> [--signature <0x...|json>|--signature-file <file|->|--r <0x...> --s <0x...> --v <0x..>] [--out <response.json>]',
-    '  node scripts/order.js query (--swapper <0x...>|--hash <0x...>) [--out <response.json>]',
-    '  node scripts/order.js watch (--swapper <0x...>|--hash <0x...>) [--interval <seconds>] [--timeout <seconds>] [--out <response.json>]',
+    '  node order.js prepare --params <params.json|-> [--out <prepared.json>]',
+    '  node order.js submit --prepared <prepared.json|-> [--signature <0x...|json>|--signature-file <file|->|--r <0x...> --s <0x...> --v <0x..>] [--out <response.json>]',
+    '  node order.js query (--swapper <0x...>|--hash <0x...>) [--out <response.json>]',
+    '  node order.js watch (--swapper <0x...>|--hash <0x...>) [--interval <seconds>] [--timeout <seconds>] [--out <response.json>]',
     '',
     'Safety',
     '  Use only the provided helper script. Do not send typed data or signatures anywhere else.',
     '',
     'Prepare',
     '  Builds a prepared order JSON with:',
-    '  - infinite approval calldata for the input ERC-20',
+    '  - approval calldata for input.maxAmount on the input ERC-20',
     '  - populated EIP-712 typed data',
     '  - submit payload template',
     '  - query URL',
@@ -485,7 +428,7 @@ function usage() {
     '  - --signature <JSON string or JSON with full signature / r,s,v>',
     '  - --signature-file <file|-> containing full signature, JSON string, or JSON with full signature / r,s,v',
     '  - --r <0x...> --s <0x...> --v <0x..>',
-    "  All signature inputs are normalized to the relay's r/s/v object format.",
+    '  Full signatures are sent as full strings. r/s/v objects are sent unchanged.',
     '',
     'Query',
     '  Builds or sends the relay GET request.',
@@ -506,11 +449,16 @@ function usage() {
   process.stdout.write(`${lines.join('\n')}\n`);
 }
 
-function loadSkeleton() {
-  if (!skeletonCache) {
-    skeletonCache = parseJson(fs.readFileSync(SKELETON, 'utf8'), 'typed data skeleton');
+function loadTemplate() {
+  if (!templateCache) {
+    templateCache = parseJson(fs.readFileSync(TEMPLATE, 'utf8'), 'typed data template');
+    const verifyingContract = templateCache?.domain?.verifyingContract;
+    if (typeof verifyingContract !== 'string' || verifyingContract.trim() === '') {
+      die(`invalid typed data template in ${TEMPLATE}`);
+    }
+    templateCache.domain.verifyingContract = parseAddress(verifyingContract, 'typed data template domain.verifyingContract');
   }
-  return JSON.parse(JSON.stringify(skeletonCache));
+  return JSON.parse(JSON.stringify(templateCache));
 }
 
 function buildTypedData(
@@ -530,29 +478,20 @@ function buildTypedData(
   outputTriggerUpper,
   outputRecipient,
 ) {
-  const typedData = loadSkeleton();
+  const typedData = loadTemplate();
   typedData.domain.chainId = Number(chainId);
-  typedData.domain.verifyingContract = REPERMIT;
   typedData.message.permitted.token = inputToken;
   typedData.message.permitted.amount = inputMaxAmount;
-  typedData.message.spender = REACTOR;
   typedData.message.nonce = nonce;
   typedData.message.deadline = deadline;
-  typedData.message.witness.reactor = REACTOR;
-  typedData.message.witness.executor = EXECUTOR;
   typedData.message.witness.exchange.adapter = resolveAdapter(chainId);
-  typedData.message.witness.exchange.ref = ZERO;
-  typedData.message.witness.exchange.share = REF_SHARE;
-  typedData.message.witness.exchange.data = '0x';
   typedData.message.witness.swapper = swapper;
   typedData.message.witness.nonce = nonce;
   typedData.message.witness.start = start;
   typedData.message.witness.deadline = deadline;
   typedData.message.witness.chainid = Number(chainId);
-  typedData.message.witness.exclusivity = EXCLUSIVITY;
   typedData.message.witness.epoch = Number(epoch);
   typedData.message.witness.slippage = Number(slippage);
-  typedData.message.witness.freshness = FRESHNESS;
   typedData.message.witness.input.token = inputToken;
   typedData.message.witness.input.amount = inputAmount;
   typedData.message.witness.input.maxAmount = inputMaxAmount;
@@ -566,28 +505,27 @@ function buildTypedData(
 
 function signatureFieldsFromObject(parsed) {
   if (typeof parsed.signature === 'string') {
-    return { payload: parsed.signature };
+    return { kind: 'full', payload: parsed.signature };
   }
   if (typeof parsed.full === 'string') {
-    return { payload: parsed.full };
+    return { kind: 'full', payload: parsed.full };
   }
   const source = isPlainObject(parsed.signature) ? parsed.signature : parsed;
-  const r = source.r ?? '';
-  const s = source.s ?? '';
-  const v = source.v ?? '';
-  if (!r || !s || !v) {
+  if (source.r === undefined || source.s === undefined || source.v === undefined) {
     die('signature JSON must contain a full signature string or r, s, v');
   }
-  return { r, s, v, kind: 'rsv' };
+  return {
+    kind: 'rsv',
+    payload: {
+      r: source.r,
+      s: source.s,
+      v: source.v,
+    },
+  };
 }
 
-function normalizeSignature(payloadInput) {
+function parseSignatureInput(payloadInput) {
   let payload = trim(payloadInput);
-  let r = '';
-  let s = '';
-  let v = '';
-  let full = '';
-  let kind = '';
 
   if (!payload) {
     die('signature input is empty');
@@ -596,9 +534,9 @@ function normalizeSignature(payloadInput) {
   try {
     const parsed = JSON.parse(payload);
     if (typeof parsed === 'string') {
-      payload = parsed;
+      return { kind: 'full', payload: parsed };
     } else if (isPlainObject(parsed)) {
-      ({ payload = payload, r = '', s = '', v = '', kind = '' } = signatureFieldsFromObject(parsed));
+      return signatureFieldsFromObject(parsed);
     } else {
       die('signature JSON must contain a full signature string or r, s, v');
     }
@@ -608,32 +546,9 @@ function normalizeSignature(payloadInput) {
     }
   }
 
-  if (r || s || v) {
-    r = normalizeSizedHex(r, 'signature.r', 64);
-    s = normalizeSizedHex(s, 'signature.s', 64);
-    v = normalizeSigV(v, 'signature.v');
-    full = `${r}${s.slice(2)}${v.slice(2)}`;
-  } else {
-    let signature = trim(payload);
-    if (!/^(?:0x)?[0-9a-fA-F]{130}$/.test(signature)) {
-      die('signature must be full hex, a JSON string, or r/s/v JSON');
-    }
-    if (!signature.startsWith('0x')) {
-      signature = `0x${signature}`;
-    }
-    full = signature;
-    r = `0x${signature.slice(2, 66)}`;
-    s = `0x${signature.slice(66, 130)}`;
-    v = normalizeSigV(`0x${signature.slice(130, 132)}`, 'signature.v');
-    if (!kind) {
-      kind = 'full';
-    }
-  }
-
   return {
-    kind,
-    full,
-    signature: { r, s, v },
+    kind: 'full',
+    payload,
   };
 }
 
@@ -756,8 +671,9 @@ function prepare(args) {
     warn(WARN_RECIPIENT);
   }
 
-  const approvalAmount = MAX_APPROVAL.toString(10);
-  const approvalData = requireHex(approveCalldata(REPERMIT, approvalAmount), 'approval.tx.data');
+  const approvalAmount = inputMaxAmount;
+  const approvalSpender = loadTemplate().domain.verifyingContract;
+  const approvalData = requireHex(approveCalldata(approvalSpender, approvalAmount), 'approval.tx.data');
   const typedData = buildTypedData(
     chainId,
     swapper,
@@ -792,7 +708,7 @@ function prepare(args) {
     warnings,
     approval: {
       token: inputToken,
-      spender: REPERMIT,
+      spender: approvalSpender,
       amount: approvalAmount,
       tx: {
         to: inputToken,
@@ -809,11 +725,7 @@ function prepare(args) {
       url: CREATE_URL,
       body: {
         order: typedData.message,
-        signature: {
-          r: null,
-          s: null,
-          v: null,
-        },
+        signature: null,
         status: 'pending',
       },
     },
@@ -909,10 +821,10 @@ function responseOrderHash(response) {
 
 function submitOutput(result, request) {
   const orderHash = result.ok ? responseOrderHash(result.response) : '';
-  const watch = orderHash
+      const watch = orderHash
     ? {
         hash: orderHash,
-        command: `node scripts/order.js watch --hash ${orderHash}`,
+        command: `node order.js watch --hash ${orderHash}`,
         url: `${QUERY_URL}?hash=${encodeURIComponent(orderHash)}`,
       }
     : null;
@@ -1009,26 +921,26 @@ async function submit(args) {
     die('submit needs exactly one of --signature, --signature-file, or --r/--s/--v');
   }
 
-  let normalizedSignature;
+  let signaturePayload;
   if (signatureFile) {
-    normalizedSignature = normalizeSignature(readSource(signatureFile, 'signature-file'));
+    signaturePayload = parseSignatureInput(readSource(signatureFile, 'signature-file'));
   } else if (signatureInput) {
-    normalizedSignature = normalizeSignature(signatureInput);
+    signaturePayload = parseSignatureInput(signatureInput);
   } else {
     if (!r || !s || !v) {
       die('--r --s --v must be used together');
     }
-    normalizedSignature = normalizeSignature(JSON.stringify({ r, s, v }));
+    signaturePayload = parseSignatureInput(JSON.stringify({ r, s, v }));
   }
 
   const request = {
     url: (prepared.submit && prepared.submit.url) || CREATE_URL,
     body: {
       order: selectOrderPayload(prepared),
-      signature: normalizedSignature.signature,
+      signature: signaturePayload.payload,
       status: (prepared.submit && prepared.submit.body && prepared.submit.body.status) || 'pending',
     },
-    signatureInput: normalizedSignature.kind,
+    signatureInput: signaturePayload.kind,
   };
 
   const result = await requestJson(request.url, {
@@ -1207,3 +1119,10 @@ run()
     }
     throw error;
   });
+function resolveSkillRoot() {
+  try {
+    return path.dirname(require.resolve('@orbs-network/spot-skill/package.json'));
+  } catch {
+    return path.resolve(SCRIPT_DIR, '..', 'skill');
+  }
+}

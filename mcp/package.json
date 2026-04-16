@@ -23,7 +23,8 @@
     "files": [
         "*.json",
         "*.md",
-        "*.mjs"
+        "*.mjs",
+        "*.js"
     ],
     "dependencies": {
         "@modelcontextprotocol/sdk": "1.27.1",

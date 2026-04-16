@@ -11,7 +11,7 @@ The self-contained `skill/` package is the canonical AI-agent bundle.
 Within that bundle:
 
 1. `skill/SKILL.md` is the human and agent entrypoint and carries the inline machine-readable skill metadata.
-2. `skill/scripts/order.js` is the canonical execution surface.
+2. `skill/SKILL.md` and the bundled markdown references are the canonical execution surface for the published skill.
 
 Keep the canonical skill slug stable as `spot-advanced-swap-orders`.
 
@@ -31,7 +31,7 @@ This commonly includes `skill/SKILL.md`, `config.json`, `skill/`, `README.md`, `
 
 ## MCP Metadata
 
-Keep the MCP adapter thin and delegate to `skill/scripts/order.js`.
+Keep the MCP adapter thin and delegate to `mcp/order.js`.
 
 Treat root `package.json`, `skill/SKILL.md`, `config.json`, and MCP-owned fields in `mcp/package.json` as the sync inputs for MCP metadata.
 

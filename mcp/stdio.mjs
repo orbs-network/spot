@@ -15,7 +15,7 @@ const packageDir = __dirname;
 const packageJsonPath = path.join(packageDir, "package.json");
 const skillDir = resolveSkillDir();
 const skillMdPath = path.join(skillDir, "SKILL.md");
-const cliPath = path.join(skillDir, "scripts", "order.js");
+const cliPath = path.join(packageDir, "order.js");
 
 const [pkg, skillMd] = await Promise.all([
   readJsonFile(packageJsonPath),

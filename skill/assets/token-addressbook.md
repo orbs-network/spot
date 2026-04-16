@@ -1,5 +1,8 @@
 # Common Token Addressbook
 
+Use this only as an optional alias helper for the supported chains listed in [../SKILL.md](../SKILL.md).
+The `## Config` block in [`SKILL.md`](../SKILL.md) is the authoritative support list; this file does not expand chain support.
+
 ## Ethereum (`1`)
 
 1. `weth`: `0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2`
@@ -44,15 +47,6 @@
 6. `arb`: `0x912CE59144191C1204E64559FE8253a0e49E6548`
 7. `orbs`: `0xf3C091ed43de9c270593445163a41A876A0bb3dd`
 
-## Optimism (`10`)
-
-1. `weth`: `0x4200000000000000000000000000000000000006`
-2. `wbtc`: `0x68f180fcCe6836688e9084f035309E29Bf0A2095`
-3. `usdc`: `0x7F5c764cBc14f9669B88837ca1490cCa17c31607`
-4. `usdt`: `0x94b008aA00579c1307B0EF2c499aD98a8ce58e58`
-5. `dai`: `0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1`
-6. `op`: `0x4200000000000000000000000000000000000042`
-
 ## Avalanche (`43114`)
 
 1. `wavax`: `0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7`
@@ -70,14 +64,6 @@
 3. `dai`: `0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb`
 4. `cbbtc`: `0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf`
 
-## Mantle (`5000`)
-
-1. `wmnt`: `0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8`
-2. `weth`: `0xdeaddeaddeaddeaddeaddeaddeaddeaddead1111`
-3. `usdc`: `0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9`
-4. `usdt`: `0x201eba5cc46D216Ce6DC03F6a759e8E766e956Ae`
-5. `usdt0`: `0x779Ded0c9e1022225f8E0630b35a9b54bE713736`
-
 ## Linea (`59144`)
 
 1. `weth`: `0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f`
@@ -94,4 +80,3 @@
 4. `usdc`: `0x29219dd400f2Bf60E5a23d13Be72B486D4038894`
 5. `usdt`: `0x6047828dc181963ba44974801FF68e538dA5eaF9`
 6. `sfc`: `0xFC00FACE00000000000000000000000000000000`
-
