@@ -7,7 +7,7 @@ Token decimals below are verified onchain snapshots for convenience. Use them fo
 ## Ethereum (`1`)
 
 | Symbol | Decimals | Address |
-| --- | ---: | --- |
+|  --- | ---: | --- |
 | `weth` | `18` | `0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2` |
 | `wbtc` | `8` | `0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599` |
 | `usdc` | `6` | `0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48` |
@@ -97,3 +97,4 @@ Token decimals below are verified onchain snapshots for convenience. Use them fo
 | `usdc` | `6` | `0x29219dd400f2Bf60E5a23d13Be72B486D4038894` |
 | `usdt` | `6` | `0x6047828dc181963ba44974801FF68e538dA5eaF9` |
 | `sfc` | `18` | `0xFC00FACE00000000000000000000000000000000` |
+

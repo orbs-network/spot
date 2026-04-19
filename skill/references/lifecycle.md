@@ -43,15 +43,9 @@ cast send "$typed_data_domain_verifying_contract" 'cancel(bytes32[])' "[$order_d
 5. Canonical JavaScript cancel path with `ethers` once you already have the digest:
 
 ```js
-import { Contract, JsonRpcProvider, Wallet } from "ethers";
+import { Contract } from "ethers";
 
-const provider = new JsonRpcProvider(process.env.RPC_URL);
-const signer = new Wallet(process.env.PRIVATE_KEY, provider);
-const repermit = new Contract(
-  typedData.domain.verifyingContract,
-  ["function cancel(bytes32[] digests)"],
-  signer
-);
+const repermit = new Contract(typedData.domain.verifyingContract, ["function cancel(bytes32[] digests)"], signer);
 
 const tx = await repermit.cancel([orderDigest]);
 await tx.wait();

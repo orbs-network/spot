@@ -15,18 +15,9 @@ If you already have a configured signer, swap `--interactive` for the appropriat
 7. Canonical JavaScript signing path with `ethers`:
 
 ```js
-import { readFile } from "node:fs/promises";
-import { Wallet } from "ethers";
-
-const typedData = JSON.parse(await readFile("./typed-data.json", "utf8"));
-const signer = new Wallet(process.env.PRIVATE_KEY);
-
-const signature = await signer.signTypedData(
-  typedData.domain,
-  typedData.types,
-  typedData.message
-);
+const signature = await signer.signTypedData(typedData.domain, typedData.types, typedData.message);
 ```
+
 8. Submit this exact relay payload to `https://agents-sink.orbs.network/orders/new`:
 
 ```json
