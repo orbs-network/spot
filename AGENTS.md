@@ -57,6 +57,19 @@ Treat that build as the normal sync boundary for derived MCP metadata.
 
 ## QA Workflow
 
-When the user asks for `qa`, run `npm run qa`.
-Treat `script/qa.zsh` as the source of truth for the evaluator preflight and the main QA flow.
+When the user asks for `qa`:
 
+1. Run `./script/qa-security.zsh` and format the result with emojis.
+2. Treat `qa` as a local dev task that validates full skill inference from the bundled skill docs.
+3. Use chain skill and env.
+4. Do not use `mcp/order.js`, MCP tools, or other repo helper surfaces unless the user explicitly asks to test those surfaces.
+5. If the skill bundle is insufficient, report the gap instead of falling back silently.
+6. Do not query, reference, or use any orders from before this run as examples for any purpose.
+7. Honor user scope modifiers such as `just ethereum`; otherwise run on all supported chains in parallel.
+8. Do not probe a chain first; run the supported-chain set in parallel once.
+9. For prerequisite onchain transactions such as wrap or approve, fan out across chains with `parallel`.
+10. Do not use `cast send --async` in `qa`; each branch should surface the tx hash and final receipt directly so retries remain unambiguous.
+11. Do not use zsh arithmetic for wei or token-amount sizing in `qa`.
+12. Use a safer exact tool such as `bc` or `cast` for amount math.
+13. Execute the intended flow, poll every 5 seconds until each order reaches a final state, and report a table with the run summary, choices, skill files, sufficiency, and any ambiguity.
+14. A `qa` run passes only if the requested E2E flow completes and you can explain decisions from the skill bundle without unreported fallback.

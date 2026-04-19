@@ -142,28 +142,4 @@ Respond with a JSON object and nothing else:
 EOF
 )
 
-main_prompt=$(cat <<'EOF'
-- Use `skill/SKILL.md` and the bundled references to run `qa`.
-- Treat `qa` as a local dev task that validates full skill inference from the bundled skill docs.
-- Use chain skill and env.
-- Do not use `mcp/order.js`, MCP tools, or other repo helper surfaces unless the user explicitly asks to test those surfaces.
-- If the skill bundle is insufficient, report the gap instead of falling back silently.
-- Do not query, reference, or use any orders from before this run as examples for any purpose.
-- Honor user scope modifiers such as `just ethereum`; otherwise run on all supported chains in parallel.
-- Do not probe a chain first; run the supported-chain set in parallel once.
-- For prerequisite onchain transactions such as wrap or approve, fan out across chains with `parallel`.
-- Do not use `cast send --async` in `qa`; each branch should surface the tx hash and final receipt directly so retries remain unambiguous.
-- Do not use zsh arithmetic for wei or token-amount sizing in `qa`.
-- Use a safer exact tool such as `bc` or `cast` for amount math.
-- Execute the intended flow, poll every 5 seconds until each order reaches a final state, and report a table with the run summary, choices, skill files, sufficiency, and any ambiguity.
-- A `qa` run passes only if the requested E2E flow completes and you can explain decisions from the skill bundle without unreported fallback.
-EOF
-)
-
-print -r -- "[security] starting"
-security_json=$(codex exec --cd skill --model gpt-5.4-mini --config plugins.enabled=false --dangerously-bypass-approvals-and-sandbox -- "$security_prompt" 2>&1 | tee /dev/tty)
-print -r -- "[security] done"
-print -r -- "$security_json" | tail -n 1 | jq -r '"🛡️ \(.verdict) (\(.confidence)) - \(.summary)"'
-
-print -r -- "[main] starting"
-codex exec --dangerously-bypass-approvals-and-sandbox -- "$main_prompt"
+codex exec --output-last-message >(cat) --cd skill --model gpt-5.4-mini --config 'plugins={}' --dangerously-bypass-approvals-and-sandbox -- "$security_prompt" >/dev/null 2>/dev/null
