@@ -57,33 +57,6 @@ Treat that build as the normal sync boundary for derived MCP metadata.
 
 ## QA Workflow
 
-When the user asks for `qa`, use [`skill/SKILL.md`](./skill/SKILL.md).
-Use chain skill and env.
-Treat `qa` as a local dev task that validates full skill inference from the bundled skill docs.
-Do not use `mcp/order.js`, MCP tools, or other repo helper surfaces to prepare, submit, query, watch, or cancel orders unless the user explicitly asks to test those surfaces.
-If the skill bundle is insufficient, report the gap instead of falling back silently.
-Do not query, reference, or use any orders from before this run as examples for any purpose.
+When the user asks for `qa`, run `npm run qa`.
+Treat `script/qa.zsh` as the source of truth for the evaluator preflight and the main QA flow.
 
-Honor user scope modifiers such as `just ethereum`;
-otherwise run on all supported chains in parallel.
-Do not probe a chain first; run the supported-chain set in parallel once.
-For prerequisite onchain transactions such as wrap or approve, fan out across chains with `parallel`.
-Do not use `cast send --async` in `qa`; each branch should surface the tx hash and final receipt directly so retries remain unambiguous.
-
-Do not use zsh arithmetic for wei or token-amount sizing in `qa`.
-Use a safer exact tool such as `bc` or `cast` for amount math.
-
-The intended flow is:
-
-1. Open one 2-chunk stop-loss order that should fill immediately (very high trigger).
-2. Use it to swap about `$10` from native exposure into USDC.
-3. Open one 2-chunk take-profit order (very low trigger) that swaps back into native exposure after a 5 minute delay.
-4. If you need repo surfaces outside the skill bundle, report that as a skill gap.
-5. Execute the full round trip and poll every 5 seconds until each order reaches a final state.
-6. In the result, output a table that summarizes the run, including each chain, chosen tokens and amounts, order hashes and statuses, ending balances and deltas, per-chain costs.
-7. In the result, report the choices made, the skill files that justified them, whether the bundle was sufficient, and any ambiguity or misleading guidance encountered.
-
-A `qa` run passes only if:
-
-1. The requested E2E flow completes.
-2. The agent can explain its decisions from the skill bundle without unreported fallback.
