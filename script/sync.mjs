@@ -16,7 +16,7 @@ const skillPackageJsonPath = path.join(rootDir, "skill", "package.json");
 const skillReadmePath = path.join(rootDir, "skill", "README.md");
 const skillSkillMdPath = path.join(rootDir, "skill", "SKILL.md");
 const skillRepermitTemplatePath = path.join(rootDir, "skill", "assets", "repermit.template.json");
-const skillExamplesMdPath = path.join(rootDir, "skill", "references", "04-examples.md");
+const skillExamplesMdPath = path.join(rootDir, "skill", "references", "examples.md");
 const mcpPackageJsonPath = path.join(rootDir, "mcp", "package.json");
 const mcpReadmePath = path.join(rootDir, "mcp", "README.md");
 const serverJsonPath = path.join(rootDir, "mcp", "server.json");
@@ -221,7 +221,7 @@ await Promise.all([
 ]);
 
 process.stdout.write(
-  "synced skill/README.md, skill/SKILL.md, skill/assets/repermit.template.json, skill/references/04-examples.md, skill/package.json, mcp/README.md, mcp/package.json, and mcp/server.json\n",
+  "synced skill/README.md, skill/SKILL.md, skill/assets/repermit.template.json, skill/references/examples.md, skill/package.json, mcp/README.md, mcp/package.json, and mcp/server.json\n",
 );
 
 async function readJsonFile(filePath) {
@@ -666,7 +666,7 @@ function helpText() {
     "     Normalized `## Config` JSON block with relay URL and per-chain adapters derived from config.json.",
     "  3. skill/assets/repermit.template.json",
     "     Auto-synced typed-data template with fixed protocol fields inlined from the canonical runtime config.",
-    "  4. skill/references/04-examples.md",
+    "  4. skill/references/examples.md",
     "     Auto-synced full mock relay payloads for common order shapes.",
     "  5. skill/package.json",
     "     Publish metadata for @orbs-network/spot-skill.",
@@ -681,7 +681,7 @@ function helpText() {
     "  1. skill/SKILL.md remains the canonical skill surface, and sync rewrites only its machine-readable `## Config` block.",
     "  2. config.json is the source of truth for deployed addresses and adapter selection.",
     "  3. skill/assets/repermit.template.json is fully derived by sync; do not hand-edit it.",
-    "  4. skill/references/04-examples.md is fully derived by sync; do not hand-edit it.",
+    "  4. skill/references/examples.md is fully derived by sync; do not hand-edit it.",
     "  5. README.md is the source of truth for workspace package README copies in skill/ and mcp/.",
     "  6. mcp/package.json may retain MCP-owned fields such as pinned runtime dependencies.",
     "  7. Sync overwrites only derived fields in mcp/package.json.",

@@ -59,11 +59,16 @@ Treat that build as the normal sync boundary for derived MCP metadata.
 
 When the user asks for `qa`, use [`skill/SKILL.md`](./skill/SKILL.md).
 Use chain skill and env.
+Treat `qa` as a local dev task that validates full skill inference from the bundled skill docs.
+Do not use `mcp/order.js`, MCP tools, or other repo helper surfaces to prepare, submit, query, watch, or cancel orders unless the user explicitly asks to test those surfaces.
+If the skill bundle is insufficient, report the gap instead of falling back silently.
 Do not query, reference, or use any orders from before this run as examples for any purpose.
 
 Honor user scope modifiers such as `just ethereum`;
 otherwise run on all supported chains in parallel.
 Do not probe a chain first; run the supported-chain set in parallel once.
+For prerequisite onchain transactions such as wrap or approve, fan out across chains with `parallel`.
+Do not use `cast send --async` in `qa`; each branch should surface the tx hash and final receipt directly so retries remain unambiguous.
 
 Do not use zsh arithmetic for wei or token-amount sizing in `qa`.
 Use a safer exact tool such as `bc` or `cast` for amount math.

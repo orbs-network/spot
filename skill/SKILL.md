@@ -15,10 +15,11 @@ Execution remains decentralized, non-custodial, oracle-protected, immutable, aud
 ```json
 {
   "references": [
-    "references/01-quickstart.md",
-    "references/02-params.md",
-    "references/03-sign.md",
-    "references/04-examples.md"
+    "references/quickstart.md",
+    "references/params.md",
+    "references/sign.md",
+    "references/examples.md",
+    "references/lifecycle.md"
   ],
   "scripts": [],
   "assets": [
@@ -67,27 +68,29 @@ Execution remains decentralized, non-custodial, oracle-protected, immutable, aud
 
 ## Workflow
 
-1. Read [references/01-quickstart.md](references/01-quickstart.md) for the minimum end-to-end flow.
-2. Use [references/02-params.md](references/02-params.md) to map user intent into params, defaults, validation, and order-shape fields.
-3. Use [references/03-sign.md](references/03-sign.md) to fill the template, handle approval, sign, submit, query, and cancel.
-4. Use [references/04-examples.md](references/04-examples.md) only when the final relay payload shape is still unclear.
-5. Use [assets/token-addressbook.md](assets/token-addressbook.md) only for optional token alias lookup on supported chains.
-6. Use [assets/repermit.template.json](assets/repermit.template.json) as the canonical typed-data shape.
-7. Treat the `## Config` JSON block in [`SKILL.md`](SKILL.md) as the authoritative source for supported chains, adapters, and relay URL.
+1. Read [references/quickstart.md](references/quickstart.md) for the minimum end-to-end flow.
+2. Use [references/params.md](references/params.md) to map user intent into params, defaults, validation, and order-shape fields.
+3. Use [references/sign.md](references/sign.md) to fill the template, handle approval, sign, and submit.
+4. Use [references/lifecycle.md](references/lifecycle.md) for relay query semantics, status polling, and cancellation.
+5. Use [references/examples.md](references/examples.md) only when the final relay payload shape is still unclear.
+6. Use [assets/token-addressbook.md](assets/token-addressbook.md) only for optional token alias lookup on supported chains.
+7. Use [assets/repermit.template.json](assets/repermit.template.json) as the canonical typed-data shape.
+8. Treat the `## Config` JSON block in [`SKILL.md`](SKILL.md) as the authoritative source for supported chains, adapters, and relay URL.
 
 ## Guardrails
 
 1. The `## Config` JSON block in [`SKILL.md`](SKILL.md) is authoritative for supported chains, per-chain adapters, and relay URL.
 2. [assets/token-addressbook.md](assets/token-addressbook.md) is a convenience alias list only. It does not expand chain support or override explicit user-provided addresses.
 3. This skill is instruction-only. Do not fetch or execute external helper code.
-4. Normalize params with [references/02-params.md](references/02-params.md) before touching the template.
+4. Normalize params with [references/params.md](references/params.md) before touching the template.
 5. Replace only the `<...>` placeholders in [assets/repermit.template.json](assets/repermit.template.json). Keep the fixed protocol fields already in the template unchanged.
 6. Default approval guidance is exact `approve(..., input.maxAmount)`. Standing `maxUint256` approval is opt-in convenience for repeat use, not the default suggestion.
 7. Send only the final signed payload to `https://agents-sink.orbs.network/orders/new`.
 
 ## Agent Contract
 
-1. Turn the user request into a params JSON object using [references/02-params.md](references/02-params.md).
+1. Turn the user request into a params JSON object using [references/params.md](references/params.md).
 2. Normalize params locally, including defaults, rounding, and order-shape fields.
 3. Populate [assets/repermit.template.json](assets/repermit.template.json) from the normalized params and the adapter for `chainId` from the generated `## Config` JSON block in [`SKILL.md`](SKILL.md).
-4. Handle approval and signing exactly as described in [references/03-sign.md](references/03-sign.md), and forward the returned signature unchanged.
+4. Handle approval, signing, and submission exactly as described in [references/sign.md](references/sign.md), and forward the returned signature unchanged.
+5. Query and cancel exactly as described in [references/lifecycle.md](references/lifecycle.md).
