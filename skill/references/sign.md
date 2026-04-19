@@ -8,10 +8,9 @@
 6. Canonical CLI signing path with Foundry `cast`:
 
 ```sh
-cast wallet sign --data --from-file ./typed-data.json --interactive
+cast wallet sign --data --from-file ./typed-data.json
 ```
 
-If you already have a configured signer, swap `--interactive` for the appropriate signer flags such as `--ledger`, `--trezor`, `--account <keystore> --password-file <file>`, or `--private-key <hex>`.
 7. Canonical JavaScript signing path with `ethers`:
 
 ```js
