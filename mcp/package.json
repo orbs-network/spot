@@ -1,6 +1,6 @@
 {
     "name": "@orbs-network/spot-mcp",
-    "version": "2.4.3",
+    "version": "2.4.4",
     "mcpName": "io.github.orbs-network/spot",
     "description": "MCP adapter for Spot Advanced Swap Orders.",
     "homepage": "https://orbs-network.github.io/spot/",
@@ -29,6 +29,6 @@
     "dependencies": {
         "@modelcontextprotocol/sdk": "1.27.1",
         "zod": "4.3.6",
-        "@orbs-network/spot-skill": "2.4.3"
+        "@orbs-network/spot-skill": "2.4.4"
     }
 }
