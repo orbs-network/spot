@@ -62,15 +62,21 @@ When the user asks for `qa`:
 1. Run `./script/qa-security.zsh` and format the result with emojis.
 2. Include the `qa-security` result as a single emoji-prefixed line in the final report whenever `qa-security` ran during the task, with verdict, confidence, and summary.
 3. Treat `qa` as a local dev task that validates full skill inference from the bundled skill docs.
-4. Use chain skill and env.
-5. Do not use `mcp/order.js`, MCP tools, or other repo helper surfaces unless the user explicitly asks to test those surfaces.
-6. If the skill bundle is insufficient, report the gap instead of falling back silently.
-7. Do not query, reference, or use any orders from before this run as examples for any purpose.
-8. Honor user scope modifiers such as `just ethereum`; otherwise run on all supported chains in parallel.
-9. Do not probe a chain first; run the supported-chain set in parallel once.
-10. For prerequisite onchain transactions such as wrap or approve, fan out across chains with `parallel`.
-11. Do not use `cast send --async` in `qa`; each branch should surface the tx hash and final receipt directly so retries remain unambiguous.
-12. Do not use zsh arithmetic for wei or token-amount sizing in `qa`.
-13. Use a safer exact tool such as `bc` or `cast` for amount math.
-14. Execute the intended flow, poll every 5 seconds until each order reaches a final state, and report a table with the run summary, choices, skill files, sufficiency, and any ambiguity.
-15. A `qa` run passes only if the requested E2E flow completes and you can explain decisions from the skill bundle without unreported fallback.
+4. The default `qa` flow is two sequential TWAP orders, not one mixed order or a single-shot market order.
+5. Unless the user overrides scope or shape, place a first order that is a 2-chunk stop-loss from wrapped native to USDC, wait for that order to reach a final state, then place a second order that is a 2-chunk take-profit from USDC back to native.
+6. For each default order, size `input.maxAmount` to about `$10` of that leg's input token, use exactly 2 equal chunks so `input.amount = input.maxAmount / 2` is about `$5` per chunk, and set `epoch = 60`.
+7. For the default stop-loss leg, set `output.triggerLower` to a non-zero per-chunk value chosen from the current per-chunk output so the order is immediately eligible for QA, and set `output.triggerUpper = 0`.
+8. For the default take-profit leg, set `output.triggerUpper` to a non-zero per-chunk value chosen from the current per-chunk output so the order is immediately eligible for QA, and set `output.triggerLower = 0`.
+9. Unless the user overrides tokens, use wrapped native input and USDC output on the first order, then USDC input and native output on the second order, on each supported chain.
+10. Use chain skill and env.
+11. Do not use `mcp/order.js`, MCP tools, or other repo helper surfaces unless the user explicitly asks to test those surfaces.
+12. If the skill bundle is insufficient, report the gap instead of falling back silently.
+13. Do not query, reference, or use any orders from before this run as examples for any purpose.
+14. Honor user scope modifiers such as `just ethereum`; otherwise run on all supported chains in parallel.
+15. Do not probe a chain first; run the supported-chain set in parallel once.
+16. For prerequisite onchain transactions such as wrap or approve, fan out across chains with `parallel`.
+17. Do not use `cast send --async` in `qa`; each branch should surface the tx hash and final receipt directly so retries remain unambiguous.
+18. Do not use zsh arithmetic for wei or token-amount sizing in `qa`.
+19. Use a safer exact tool such as `bc` or `cast` for amount math.
+20. Execute the intended two-order flow, poll every 5 seconds until each order reaches a final state, and report a table with the run summary, choices, skill files, sufficiency, and any ambiguity.
+21. A `qa` run passes only if both requested E2E orders complete and you can explain decisions from the skill bundle without unreported fallback.
