@@ -214,6 +214,7 @@ This repository ships these integration surfaces:
 2. Self-contained skill package [`skill/`](https://github.com/orbs-network/spot/tree/master/skill) published as `@orbs-network/spot-skill`.
 3. MCP package [`mcp/`](https://github.com/orbs-network/spot/tree/master/mcp) published as `@orbs-network/spot-mcp` with server name `io.github.orbs-network/spot`.
 4. Hosted raw files at [`https://orbs-network.github.io/spot/`](https://orbs-network.github.io/spot/) for direct bundle consumption.
+5. Hosted skill distribution on [Clawhub](https://clawhub.ai/eranp-orbs/spot-advanced-swap-orders) for direct skill discovery.
 
 ## Development
 
