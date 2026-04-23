@@ -75,8 +75,10 @@ When the user asks for `qa`:
 14. Honor user scope modifiers such as `just ethereum`; otherwise run on all supported chains in parallel.
 15. Do not probe a chain first; run the supported-chain set in parallel once.
 16. For prerequisite onchain transactions such as wrap or approve, fan out across chains with `parallel`.
-17. Do not use `cast send --async` in `qa`; each branch should surface the tx hash and final receipt directly so retries remain unambiguous.
-18. Do not use zsh arithmetic for wei or token-amount sizing in `qa`.
-19. Use a safer exact tool such as `bc` or `cast` for amount math.
-20. Execute the intended two-order flow, poll every 5 seconds until each order reaches a final state, and report a table with the run summary, choices, skill files, sufficiency, and any ambiguity.
-21. A `qa` run passes only if both requested E2E orders complete and you can explain decisions from the skill bundle without unreported fallback.
+17. In `qa`, when approval is needed, always use a standing max approval such as `approve(..., maxUint256)` rather than an exact `input.maxAmount` approval.
+18. In `qa`, do not send approval-reset or zero-allowance cleanup transactions before, between, or after the default order legs unless the user explicitly asks for them.
+19. Do not use `cast send --async` in `qa`; each branch should surface the tx hash and final receipt directly so retries remain unambiguous.
+20. Do not use zsh arithmetic for wei or token-amount sizing in `qa`.
+21. Use a safer exact tool such as `bc` or `cast` for amount math.
+22. Execute the intended two-order flow, poll every 5 seconds until each order reaches a final state, and report a table with the run summary, choices, skill files, sufficiency, and any ambiguity.
+23. A `qa` run passes only if both requested E2E orders complete and you can explain decisions from the skill bundle without unreported fallback.

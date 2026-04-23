@@ -13,6 +13,7 @@ const U32_MAX = 4294967295n;
 const MIN_NON_ZERO_EPOCH = 31n;
 const DEF_WATCH_INTERVAL = 5;
 const DEF_WATCH_TIMEOUT = 0;
+const ZERO = '0x0000000000000000000000000000000000000000';
 const TERMINAL_ORDER_STATUSES = new Set(['filled', 'completed', 'cancelled', 'canceled', 'expired', 'failed', 'rejected']);
 const NOTE_ORACLE = 'Oracle protection applies to all order types and every chunk.';
 const NOTE_EPOCH = 'epoch is the delay between chunks, but it is not exact: one chunk can fill once anywhere inside each epoch window.';
