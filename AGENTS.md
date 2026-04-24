@@ -65,8 +65,8 @@ When the user asks for `qa`:
 4. The default `qa` flow is two sequential TWAP orders, not one mixed order or a single-shot market order.
 5. Unless the user overrides scope or shape, place a first order that is a 2-chunk stop-loss from wrapped native to USDC, wait for that order to reach a final state, then place a second order that is a 2-chunk take-profit from USDC back to native.
 6. For each default order, size `input.maxAmount` to about `$10` of that leg's input token, use exactly 2 equal chunks so `input.amount = input.maxAmount / 2` is about `$5` per chunk, and set `epoch = 60`.
-7. For the default stop-loss leg, set `output.triggerLower` to a non-zero per-chunk value chosen from the current per-chunk output so the order is immediately eligible for QA, and set `output.triggerUpper = 0`.
-8. For the default take-profit leg, set `output.triggerUpper` to a non-zero per-chunk value chosen from the current per-chunk output so the order is immediately eligible for QA, and set `output.triggerLower = 0`.
+7. For the default stop-loss leg, set `output.triggerLower` to effectively infinite output-token units so the order is immediately eligible for QA, and set `output.triggerUpper = 0`.
+8. For the default take-profit leg, set `output.triggerUpper = 1` wei so the order is immediately eligible for QA, and set `output.triggerLower = 0`.
 9. Unless the user overrides tokens, use wrapped native input and USDC output on the first order, then USDC input and native output on the second order, on each supported chain.
 10. Use chain skill and env.
 11. Do not use `mcp/order.js`, MCP tools, or other repo helper surfaces unless the user explicitly asks to test those surfaces.
@@ -80,5 +80,6 @@ When the user asks for `qa`:
 19. Do not use `cast send --async` in `qa`; each branch should surface the tx hash and final receipt directly so retries remain unambiguous.
 20. Do not use zsh arithmetic for wei or token-amount sizing in `qa`.
 21. Use a safer exact tool such as `bc` or `cast` for amount math.
-22. Execute the intended two-order flow, poll every 5 seconds until each order reaches a final state, and report a table with the run summary, choices, skill files, sufficiency, and any ambiguity.
-23. A `qa` run passes only if both requested E2E orders complete and you can explain decisions from the skill bundle without unreported fallback.
+22. Execute the intended two-order flow, poll every 5 seconds until each order reaches a final state.
+23. Report a table with the run summary, choices, skill files, sufficiency, ambiguity, any retries or inline fixes or double takes taken, and final order states.
+24. A `qa` run passes only if both requested E2E orders complete and you can explain decisions from the skill bundle without unreported fallback.

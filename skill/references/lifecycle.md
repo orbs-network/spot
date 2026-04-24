@@ -9,25 +9,26 @@ Use this file for relay query semantics, status polling, and exact-match cancell
 3. Canonical order status field is `.orders[0].metadata.status`. If it is absent, fall back to `.orders[0].status`.
 4. Canonical chunk status field is `.orders[0].metadata.chunks[].status` when `metadata.chunks` exists.
 5. Known non-terminal statuses are `pending` and `eligible`.
-6. Known terminal statuses are `filled`, `completed`, `cancelled`, `expired`, `failed`, and `rejected`.
+6. Known terminal statuses are `filled`, `completed`, `partially_completed`, `cancelled`, `expired`, `failed`, and `rejected`.
 7. Cancellation can surface as `cancelled`, or `failed` with cancellation text, depending on relay normalization. Treat them as terminal outcomes after you have confirmed the onchain cancel transaction.
-8. Poll every 5 seconds until the order reaches a terminal status.
-9. Canonical CLI query path:
+8. `partially_completed` means at least one chunk reached a successful final state and at least one chunk did not. Treat it as terminal for polling and report the chunk statuses.
+9. Poll every 5 seconds until the order reaches a terminal status.
+10. Canonical CLI query path:
 
 ```sh
 curl -fsS "https://agents-sink.orbs.network/orders?hash=$order_hash" \
   | jq -r '.orders[0] | (.metadata.status // .status // "pending")'
 ```
 
-10. Canonical CLI chunk-status path:
+11. Canonical CLI chunk-status path:
 
 ```sh
 curl -fsS "https://agents-sink.orbs.network/orders?hash=$order_hash" \
   | jq -r '.orders[0].metadata.chunks[]?.status'
 ```
 
-11. Secondary recovery path: `GET https://agents-sink.orbs.network/orders?swapper=<swapper>`. Use it only when you do not have `orderHash` yet or need to recover from an ambiguous submit response.
-12. If you query by `swapper` and receive multiple orders, disambiguate by `hash` before polling or reporting status.
+12. Secondary recovery path: `GET https://agents-sink.orbs.network/orders?swapper=<swapper>`. Use it only when you do not have `orderHash` yet or need to recover from an ambiguous submit response.
+13. If you query by `swapper` and receive multiple orders, disambiguate by `hash` before polling or reporting status.
 
 ## Cancel
 
