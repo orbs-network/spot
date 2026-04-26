@@ -68,7 +68,7 @@ When the user asks for `qa`:
 7. For the default stop-loss leg, set `output.triggerLower` to effectively infinite output-token units so the order is immediately eligible for QA, and set `output.triggerUpper = 0`.
 8. For the default take-profit leg, set `output.triggerUpper = 1` wei so the order is immediately eligible for QA, and set `output.triggerLower = 0`.
 9. Unless the user overrides tokens, use wrapped native input and USDC output on the first order, then USDC input and native output on the second order, on each supported chain.
-10. Use chain skill and env.
+10. Use the `$chain` skill and its environment for local EVM context, signer-managed Foundry execution, address resolution, balances, token metadata, wrapping, approvals, and transaction sending.
 11. Do not use `mcp/order.js`, MCP tools, or other repo helper surfaces unless the user explicitly asks to test those surfaces.
 12. If the skill bundle is insufficient, report the gap instead of falling back silently.
 13. Do not query, reference, or use any orders from before this run as examples for any purpose.
