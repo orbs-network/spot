@@ -17,8 +17,8 @@
     },
     "1": {
         "adapter": {
-            "odos-v2": "",
-            "sushi": ""
+            "odos-v2": "0x1ae80D14C52F82c09a54C423e6f9D5Fb737089C8",
+            "sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c"
         },
         "dex": {
             "agent": {
@@ -39,7 +39,7 @@
     },
     "10": {
         "adapter": {
-            "odos-v2": ""
+            "odos-v2": "0xc7Ec90152fd5A6210570cb04C4Ab099Bdac352af"
         },
         "dex": {
             "agent": {
@@ -53,8 +53,8 @@
     },
     "56": {
         "adapter": {
-            "odos-v2": "",
-            "pancakeswap-v2": ""
+            "odos-v2": "0x6c17cc2984A87BD8b002c6E3C08dBB8c8Eb89E48",
+            "pancakeswap-v2": "0xaf3532dca7b4a75cD06671614C093e9e8fb5b1F2"
         },
         "dex": {
             "agent": {
@@ -90,9 +90,9 @@
     },
     "146": {
         "adapter": {
-            "odos-v2": "",
-            "magpie-v3": "",
-            "openocean-v2": ""
+            "odos-v2": "0x0123695379045f9db515E6a77d8154959B94B599",
+            "magpie-v3": "0xa5AB087b39dAf175650EFB4F7B8E977C1585a662",
+            "openocean-v2": "0xc7f07C830e22FCA94bF52F38C6707F9D396c6172"
         },
         "dex": {
             "agent": {
@@ -127,8 +127,8 @@
     },
     "137": {
         "adapter": {
-            "odos-v2": "",
-            "paraswap-v5": ""
+            "odos-v2": "0x5628D7383b42E14E83DA310de3e7E04E6b025418",
+            "paraswap-v5": "0x179C4b8e982b5F1365d36CC8d0c1CEB621B7198D"
         },
         "dex": {
             "agent": {
@@ -156,11 +156,11 @@
     },
     "8453": {
         "adapter": {
-            "odos-v2": "",
-            "pancakeswap-v2": "",
-            "kyber-v2": "",
-            "trebleswap": "",
-            "sushi": ""
+            "odos-v2": "0x1c947387AFC3435135e3da51ccEAB20eD5377DeA",
+            "pancakeswap-v2": "0x917b492557957f5dD3e69c04c8E1Ac3d6948c022",
+            "kyber-v2": "0x6f4e5b8d7F6b037c62277992c39E7834D7C04596",
+            "trebleswap": "0x6f4938535879c668A797F2a6e9B912c54f9D43Cf",
+            "sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c"
         },
         "dex": {
             "agent": {
@@ -203,9 +203,9 @@
     },
     "59144": {
         "adapter": {
-            "odos-v2": "",
-            "pancakeswap-v2": "",
-            "openocean": ""
+            "odos-v2": "0xA58A55AC39b47504A63993A91B78544158862e61",
+            "pancakeswap-v2": "0x917b492557957f5dD3e69c04c8E1Ac3d6948c022",
+            "openocean": "0xd2e68b1d1C5DBB2D6cC396c10C55017e01309C37"
         },
         "dex": {
             "agent": {
@@ -234,10 +234,10 @@
     },
     "42161": {
         "adapter": {
-            "odos-v2": "",
-            "paraswap-v5": "",
-            "pancakeswap-v2": "",
-            "sushi": ""
+            "odos-v2": "0x419faf03F5661e0F0471eF9D7935f09534ffc50F",
+            "paraswap-v5": "0x179C4b8e982b5F1365d36CC8d0c1CEB621B7198D",
+            "pancakeswap-v2": "0x917b492557957f5dD3e69c04c8E1Ac3d6948c022",
+            "sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c"
         },
         "dex": {
             "agent": {
@@ -294,8 +294,8 @@
     },
     "43114": {
         "adapter": {
-            "odos-v2": "",
-            "kyber-v2": ""
+            "odos-v2": "0x533dA659Ef4C2C1d4c98420e1dbe9C68D8538f50",
+            "kyber-v2": "0x6f4e5b8d7F6b037c62277992c39E7834D7C04596"
         },
         "dex": {
             "agent": {
@@ -323,7 +323,7 @@
     },
     "5000": {
         "adapter": {
-            "odos-v2": ""
+            "odos-v2": "0x3a0fA0f95ea07026c5f84D8d3444Dd6E15AE1874"
         },
         "dex": {
             "agent": {
@@ -337,7 +337,7 @@
     },
     "80094": {
         "adapter": {
-            "kodiak": ""
+            "kodiak": "0xcB16237c88A859d46Ae850B97d7D1bdECF482C06"
         },
         "dex": {
             "kodiak": {
@@ -351,8 +351,8 @@
     },
     "1329": {
         "adapter": {
-            "dragon": "",
-            "openocean-v2": ""
+            "dragon": "0x1e84A9f30607959d2d8b1a04171ef7D9522Ef502",
+            "openocean-v2": "0xc7f07C830e22FCA94bF52F38C6707F9D396c6172"
         },
         "dex": {
             "dragon": {
@@ -373,7 +373,7 @@
     },
     "14": {
         "adapter": {
-            "spark": ""
+            "spark": "0x00c7617C471Ef69124464CEc318a3b8CC90aE9A7"
         },
         "dex": {
             "spark": {
@@ -387,8 +387,8 @@
     },
     "143": {
         "adapter": {
-            "openocean-v2": "",
-            "kyber-v2": ""
+            "openocean-v2": "0xc7f07C830e22FCA94bF52F38C6707F9D396c6172",
+            "kyber-v2": "0x6f4e5b8d7F6b037c62277992c39E7834D7C04596"
         },
         "dex": {
             "yowie": {
@@ -409,7 +409,7 @@
     },
     "747474": {
         "adapter": {
-            "sushi": ""
+            "sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c"
         },
         "dex": {
             "sushiswap": {

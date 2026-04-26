@@ -12,6 +12,7 @@ components=(
 )
 
 dex=""
+adapter_solver=""
 verify=false
 args=()
 typeset -A runtime_env
@@ -22,6 +23,8 @@ Usage: script/deploy [options] [-- forge script args]
 
 Options:
   -d, --dex NAME     Deploy and configure a specific dex (requires CHAIN_ID; auto-deploys core contracts when OWNER is set).
+  -a, --adapter SOLVER
+                    Deploy and configure the generic adapter for a solver on the active chain.
   -v, --verify       Verify configured core contracts.
   -h, --help         Show this help message.
 EOF
@@ -37,6 +40,11 @@ while [[ $# -gt 0 ]]; do
     -d|--dex)
       [[ $# -lt 2 || -z $2 ]] && { printf 'error: missing dex name\n' >&2; exit 1; }
       dex=${2:l}
+      shift 2
+      ;;
+    -a|--adapter)
+      [[ $# -lt 2 || -z $2 ]] && { printf 'error: missing adapter solver\n' >&2; exit 1; }
+      adapter_solver=${2:l}
       shift 2
       ;;
     -v|--verify)
@@ -81,11 +89,25 @@ dex_salt_for() {
   cast keccak "$dex"
 }
 
+adapter_salt_for() {
+  local solver=${1:-}
+  [[ -z $solver ]] && { printf 'error: missing solver name for adapter salt\n' >&2; exit 1; }
+  command -v cast >/dev/null 2>&1 || { printf 'error: cast is required to compute adapter salt\n' >&2; exit 1; }
+  cast keccak "$solver"
+}
+
 update_config() {
   local target=$1 address=$2 tmp=$(mktemp)
   if [[ $target == global:* ]]; then
     jq --indent 4 --arg key "${target#global:}" --arg addr "$address" '
       setpath(["*", $key]; $addr)
+    ' "$CONFIG_FILE" >"$tmp"
+  elif [[ $target == adapter:* ]]; then
+    local chain solver
+    local IFS=':'
+    read -r _ chain solver <<< "$target"
+    jq --indent 4 --arg chain "$chain" --arg solver "$solver" --arg addr "$address" '
+      setpath([$chain, "adapter", $solver]; $addr)
     ' "$CONFIG_FILE" >"$tmp"
   else
     local chain dex field
@@ -116,6 +138,54 @@ dex_field_for() {
   jq -r --arg chain "$chain" --arg dex "$dex" --arg field "$field" '
     .[$chain].dex[$dex][$field] // ""
   ' "$CONFIG_FILE"
+}
+
+adapter_field_for() {
+  local chain=$1 solver=$2
+  jq -r --arg chain "$chain" --arg solver "$solver" '
+    .[$chain].adapter[$solver] // ""
+  ' "$CONFIG_FILE"
+}
+
+adapter_config_for_solver() {
+  local chain=$1 solver=$2
+  jq -er --arg chain "$chain" --arg solver "$solver" '
+    def signature:
+      {
+        type: (.type // ""),
+        router: (.router // ""),
+        permit2: (.permit2 // "")
+      };
+
+    (.[$chain].dex // {}) as $dex
+    | ($dex | to_entries | map(select(.value.solver == $solver))) as $matches
+    | if ($matches | length) == 0 then
+        error("solver \"" + $solver + "\" is not configured for chain " + $chain)
+      else
+        ($matches | map(select(.key == "agent")) | first) as $agent
+        | if $agent then
+            $agent.value | signature
+          else
+            ($matches | map(.value | signature) | unique) as $signatures
+            | if ($signatures | length) == 1 then
+                $signatures[0]
+              else
+                error("solver \"" + $solver + "\" has multiple adapter configs on chain " + $chain + "; add dex.agent or deploy explicitly")
+              end
+          end
+      end
+  ' "$CONFIG_FILE"
+}
+
+deploy_script_for_adapter_type() {
+  local adapter_type=$1
+  case $adapter_type in
+    default) printf 'DeployDefaultAdapter' ;;
+    p2) printf 'DeployP2Adapter' ;;
+    paraswap) printf 'DeployParaswapAdapter' ;;
+    universal) printf 'DeployUniversalAdapter' ;;
+    *) return 1 ;;
+  esac
 }
 
 core_field_for() {
@@ -259,21 +329,10 @@ deploy_dex() {
   fi
 
   local script
-  case $adapter_type in
-    default)
-      script=DeployDefaultAdapter
-      ;;
-    p2)
-      script=DeployP2Adapter
-      ;;
-    paraswap)
-      script=DeployParaswapAdapter
-      ;;
-    universal)
-      script=DeployUniversalAdapter
-      ;;
-    *) printf 'error: unsupported adapter type %s\n' "$adapter_type" >&2; exit 1 ;;
-  esac
+  if ! script=$(deploy_script_for_adapter_type "$adapter_type"); then
+    printf 'error: unsupported adapter type %s\n' "$adapter_type" >&2
+    exit 1
+  fi
 
   local adapter_address fee_address
   adapter_address=$(jq -r --arg chain "$chain_id" --arg dex "$dex" '.[$chain].dex[$dex].adapter // ""' "$CONFIG_FILE")
@@ -322,6 +381,61 @@ deploy_dex() {
   else
     run "$dex_salt" DeployRefinery "dex:${chain_id}:${dex}:fee"
   fi
+}
+
+deploy_adapter() {
+  local solver=$1 chain_id=${CHAIN_ID:-}
+  if [[ -z $chain_id ]]; then
+    printf 'error: CHAIN_ID is required for --adapter\n' >&2
+    exit 1
+  fi
+
+  local adapter_address
+  adapter_address=$(adapter_field_for "$chain_id" "$solver")
+  if [[ -n $adapter_address ]]; then
+    printf 'Generic adapter already configured for solver %s on chain %s (%s); skipping deployment\n' "$solver" "$chain_id" "$adapter_address"
+    return 0
+  fi
+
+  local adapter_config adapter_type router permit2
+  if ! adapter_config=$(adapter_config_for_solver "$chain_id" "$solver"); then
+    exit 1
+  fi
+  adapter_type=$(jq -r '.type' <<< "$adapter_config")
+  router=$(jq -r '.router' <<< "$adapter_config")
+  permit2=$(jq -r '.permit2' <<< "$adapter_config")
+
+  local script
+  if ! script=$(deploy_script_for_adapter_type "$adapter_type"); then
+    printf 'error: unsupported adapter type %s for solver %s\n' "$adapter_type" "$solver" >&2
+    exit 1
+  fi
+
+  local -a adapter_env=()
+  case $adapter_type in
+    default|paraswap)
+      if [[ -z $router ]]; then
+        printf 'error: ROUTER is required for solver %s on chain %s\n' "$solver" "$chain_id" >&2
+        exit 1
+      fi
+      adapter_env=("ROUTER=$router")
+      ;;
+    p2)
+      if [[ -z $router ]]; then
+        printf 'error: ROUTER is required for solver %s on chain %s\n' "$solver" "$chain_id" >&2
+        exit 1
+      fi
+      if [[ -z $permit2 ]]; then
+        printf 'error: PERMIT2 is required for p2 solver %s on chain %s\n' "$solver" "$chain_id" >&2
+        exit 1
+      fi
+      adapter_env=("ROUTER=$router" "PERMIT2=$permit2")
+      ;;
+    universal)
+      ;;
+  esac
+
+  run "$(adapter_salt_for "$solver")" "$script" "adapter:${chain_id}:${solver}" "${adapter_env[@]}"
 }
 
 verify_contracts() {
@@ -390,6 +504,11 @@ verify_adapter_contracts() {
 
 if $verify; then
   verify_contracts
+  exit 0
+fi
+
+if [[ -n $adapter_solver ]]; then
+  deploy_adapter "$adapter_solver"
   exit 0
 fi
 
