@@ -250,15 +250,14 @@ deploy_dex() {
   local dex_salt
   dex_salt=$(dex_salt_for "$dex")
 
-  local dex_type
-  if ! dex_type=$(jq -er --arg chain "$chain_id" --arg dex "$dex" '
+  local adapter_type
+  if ! adapter_type=$(jq -er --arg chain "$chain_id" --arg dex "$dex" '
       .[$chain].dex[$dex].type
       // error("dex \"" + $dex + "\" is not configured for chain " + $chain)
     ' "$CONFIG_FILE"); then
     exit 1
   fi
 
-  local adapter_type=${dex_type%%:*}
   local script
   case $adapter_type in
     default)
@@ -273,7 +272,7 @@ deploy_dex() {
     universal)
       script=DeployUniversalAdapter
       ;;
-    *) printf 'error: unsupported adapter type %s\n' "$dex_type" >&2; exit 1 ;;
+    *) printf 'error: unsupported adapter type %s\n' "$adapter_type" >&2; exit 1 ;;
   esac
 
   local adapter_address fee_address
@@ -377,11 +376,10 @@ verify_adapter_contracts() {
 
   [[ -z $rows ]] && return 0
 
-  local dex type addr adapter_type contract script
+  local dex type addr contract script
   while IFS=$'\t' read -r dex type addr; do
     [[ -z $dex || -z $type || -z $addr ]] && continue
-    adapter_type=${type%%:*}
-    if ! contract=$(adapter_contract_for "$adapter_type"); then
+    if ! contract=$(adapter_contract_for "$type"); then
       printf 'warning: unsupported adapter type %s for dex %s; skipping adapter verify\n' "$type" "$dex" >&2
       continue
     fi
