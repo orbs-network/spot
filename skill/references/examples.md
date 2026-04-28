@@ -20,7 +20,7 @@ Mix limit, trigger, and delay fields as needed.
       "reactor": "0x000000b33fE4fB9d999Dd684F79b110731c3d000",
       "executor": "0x000642A0966d9bd49870D9519f76b5cf823f3000",
       "exchange": {
-        "adapter": "0x026B8977319F67078e932a08feAcB59182B5380f",
+        "adapter": "0x9999999999999999999999999999999999999999",
         "ref": "0x0000000000000000000000000000000000000000",
         "share": 0,
         "data": "0x"
@@ -33,7 +33,7 @@ Mix limit, trigger, and delay fields as needed.
       "exclusivity": 0,
       "epoch": 0,
       "slippage": 500,
-      "freshness": 30,
+      "freshness": 60,
       "input": {
         "token": "0x1111111111111111111111111111111111111111",
         "amount": "1000000",
@@ -48,8 +48,7 @@ Mix limit, trigger, and delay fields as needed.
       }
     }
   },
-  "signature": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb1b",
-  "status": "pending"
+  "signature": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb1b"
 }
 ```
 
@@ -69,7 +68,7 @@ Mix limit, trigger, and delay fields as needed.
       "reactor": "0x000000b33fE4fB9d999Dd684F79b110731c3d000",
       "executor": "0x000642A0966d9bd49870D9519f76b5cf823f3000",
       "exchange": {
-        "adapter": "0xC1bB4d5071Fe7109ae2D67AE05826A3fe9116cfc",
+        "adapter": "0x9999999999999999999999999999999999999999",
         "ref": "0x0000000000000000000000000000000000000000",
         "share": 0,
         "data": "0x"
@@ -82,7 +81,7 @@ Mix limit, trigger, and delay fields as needed.
       "exclusivity": 0,
       "epoch": 0,
       "slippage": 500,
-      "freshness": 30,
+      "freshness": 60,
       "input": {
         "token": "0x4444444444444444444444444444444444444444",
         "amount": "5000000000000000000",
@@ -97,8 +96,7 @@ Mix limit, trigger, and delay fields as needed.
       }
     }
   },
-  "signature": "0xccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd1c",
-  "status": "pending"
+  "signature": "0xccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd1c"
 }
 ```
 
@@ -118,7 +116,7 @@ Mix limit, trigger, and delay fields as needed.
       "reactor": "0x000000b33fE4fB9d999Dd684F79b110731c3d000",
       "executor": "0x000642A0966d9bd49870D9519f76b5cf823f3000",
       "exchange": {
-        "adapter": "0x5906C4dD71D5afFe1a8f0215409E912eB5d593AD",
+        "adapter": "0x9999999999999999999999999999999999999999",
         "ref": "0x0000000000000000000000000000000000000000",
         "share": 0,
         "data": "0x"
@@ -131,7 +129,7 @@ Mix limit, trigger, and delay fields as needed.
       "exclusivity": 0,
       "epoch": 300,
       "slippage": 500,
-      "freshness": 30,
+      "freshness": 60,
       "input": {
         "token": "0x7777777777777777777777777777777777777777",
         "amount": "3000000",
@@ -146,8 +144,7 @@ Mix limit, trigger, and delay fields as needed.
       }
     }
   },
-  "signature": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b",
-  "status": "pending"
+  "signature": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b"
 }
 ```
 

@@ -11,7 +11,7 @@ Spot provides non-custodial market, limit, TWAP, stop-loss, take-profit, and del
 1. ✅ **Non-custodial**: RePermit binds spend authorization to exact order hashes instead of handing custody to the protocol.
 2. 🔒 **Oracle-protected**: Trigger checks, slippage caps, freshness windows, and deadlines constrain execution.
 3. 🛡️ **Battle-tested**: Contracts are audited and covered by an extensive Foundry test suite.
-4. 🏗️ **Production-ready**: Spot is built for multi-chain deployment with repo-shipped config, ABIs, skill files, and MCP metadata.
+4. 🏗️ **Production-ready**: Spot is built for multi-chain deployment with repo-shipped config, ABIs, skill files, and a hosted MCP endpoint.
 
 ## Supported Order Types
 
@@ -209,7 +209,7 @@ This repository ships these integration surfaces:
 
 1. Root package `@orbs-network/spot` for config, build orchestration, contracts, and published metadata inputs.
 2. Self-contained skill package [`skill/`](./skill/) published as `@orbs-network/spot-skill`.
-3. MCP package [`mcp/`](./mcp/) published as `@orbs-network/spot-mcp` with server name `io.github.orbs-network/spot`.
+3. Hosted MCP endpoint at [`https://agents-sink.orbs.network/mcp`](https://agents-sink.orbs.network/mcp).
 4. Hosted raw files at [`https://orbs-network.github.io/spot/`](https://orbs-network.github.io/spot/) for direct bundle consumption.
 5. Hosted skill distribution on [Clawhub](https://clawhub.ai/eranp-orbs/spot-advanced-swap-orders) for direct skill discovery.
 
@@ -225,13 +225,13 @@ npm run fmt
 Notes:
 
 1. `npm run build` runs `npm run sync` and then `forge build --extra-output-files abi`.
-2. Sync-generated skill metadata, MCP registry metadata, and derived `mcp/package.json` fields should not be hand-maintained; MCP-owned fields there such as pinned runtime dependencies are maintained in `mcp/package.json`.
+2. Sync-generated skill metadata should not be hand-maintained.
 3. Use `forge test` for the Foundry suite.
 
 ## Contributing
 
 1. Make the smallest coherent change.
-2. Keep `skill/`, MCP metadata, and any affected published surfaces in sync.
+2. Keep `skill/`, hosted MCP references, and any affected published surfaces in sync.
 3. Run `npm run build` after changes.
 4. Run tests when behavior changes or when explicitly requested.
 

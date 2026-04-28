@@ -177,7 +177,7 @@
             "exclusivity": 0,
             "epoch": "<EPOCH_SECONDS>",
             "slippage": "<SLIPPAGE_BPS>",
-            "freshness": 30,
+            "freshness": 60,
             "input": {
                 "token": "<INPUT_TOKEN>",
                 "amount": "<INPUT_AMOUNT>",

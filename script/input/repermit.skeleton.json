@@ -2,7 +2,7 @@
     "domain": {
         "name": "RePermit",
         "version": "1",
-        "chainId": "<CHAINID>",
+        "chainId": "<CHAIN_ID>",
         "verifyingContract": "<REPERMIT>"
     },
     "primaryType": "RePermitWitnessTransferFrom",
@@ -154,8 +154,8 @@
     },
     "message": {
         "permitted": {
-            "token": "<INTOKEN>",
-            "amount": "<INTOTALAMOUNT>"
+            "token": "<INPUT_TOKEN>",
+            "amount": "<INPUT_MAX_AMOUNT>"
         },
         "spender": "<REACTOR>",
         "nonce": "<NONCE>",
@@ -166,29 +166,29 @@
             "exchange": {
                 "adapter": "<ADAPTER>",
                 "ref": "<REFERRER>",
-                "share": "<REFSHAREBPS>",
+                "share": 0,
                 "data": "<ADAPTER_USER_DATA>"
             },
             "swapper": "<SWAPPER>",
             "nonce": "<NONCE>",
             "start": "<START>",
             "deadline": "<DEADLINE>",
-            "chainid": "<CHAINID>",
-            "exclusivity": "<EXCLUSIVITYBPS>",
-            "epoch": "<EPOCHSECONDS>",
-            "slippage": "<SLIPPAGEBPS>",
-            "freshness": "<FRESHNESSSECONDS>",
+            "chainid": "<CHAIN_ID>",
+            "exclusivity": 0,
+            "epoch": "<EPOCH_SECONDS>",
+            "slippage": "<SLIPPAGE_BPS>",
+            "freshness": 60,
             "input": {
-                "token": "<INTOKEN>",
-                "amount": "<INCHUNKAMOUNT>",
-                "maxAmount": "<INTOTALAMOUNT>"
+                "token": "<INPUT_TOKEN>",
+                "amount": "<INPUT_AMOUNT>",
+                "maxAmount": "<INPUT_MAX_AMOUNT>"
             },
             "output": {
-                "token": "<OUTTOKEN>",
-                "limit": "<OUTAMOUNTMIN>",
-                "triggerLower": "<OUTAMOUNTTRIGGERLOWER>",
-                "triggerUpper": "<OUTAMOUNTTRIGGERUPPER>",
-                "recipient": "<RECIPIENT>"
+                "token": "<OUTPUT_TOKEN>",
+                "limit": "<OUTPUT_LIMIT>",
+                "triggerLower": "<OUTPUT_TRIGGER_LOWER>",
+                "triggerUpper": "<OUTPUT_TRIGGER_UPPER>",
+                "recipient": "<OUTPUT_RECIPIENT>"
             }
         }
     }
