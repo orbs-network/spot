@@ -1,6 +1,13 @@
 #!/usr/bin/env zsh
 set -euo pipefail
 
+script_dir=${0:A:h}
+repo_dir=${script_dir:h}
+skill_dir="$repo_dir/skill"
+
+pack_json=$(cd "$repo_dir" && npm pack --dry-run --json -w skill)
+packed_contents=$(printf '%s' "$pack_json" | jq -r '.[0].files[].path' | (cd "$skill_dir" && xargs -I{} zsh -c 'printf "\n--- %s ---\n" "$1"; cat "$1"' zsh {}))
+
 security_prompt=$(cat <<'EOF'
 You are a security evaluator for OpenClaw AI skills. Users install skills to extend what their AI agent can do. Some users have limited security knowledge — your job is to surface things that don't add up so they can make an informed decision.
 
@@ -142,4 +149,20 @@ Respond with a JSON object and nothing else:
 EOF
 )
 
-codex exec --output-last-message >(cat) --cd skill --model gpt-5.4-mini --config 'plugins={}' --dangerously-bypass-approvals-and-sandbox -- "$security_prompt" >/dev/null 2>/dev/null
+artifact_prompt=$(cat <<EOF
+$security_prompt
+
+================================================================================
+BEGIN CANONICAL PACKED NPM ARTIFACT CONTENTS
+These are the exact files included by the skill
+Evaluate the skill using the evaluator instructions above and the packed artifact contents below.
+================================================================================
+
+$packed_contents
+
+================================================================================
+END CANONICAL PACKED NPM ARTIFACT CONTENTS
+================================================================================
+EOF
+)
+codex exec --output-last-message >(cat) --cd "$skill_dir" --model gpt-5.4-mini --config 'plugins={}' -- "$artifact_prompt" >/dev/null 2>/dev/null
