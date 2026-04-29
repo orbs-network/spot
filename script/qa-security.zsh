@@ -6,7 +6,7 @@ repo_dir=${script_dir:h}
 skill_dir="$repo_dir/skill"
 
 pack_json=$(cd "$repo_dir" && npm pack --dry-run --json -w skill)
-packed_contents=$(printf '%s' "$pack_json" | jq -r '.[0].files[].path' | (cd "$skill_dir" && xargs -I{} zsh -c 'printf "\n--- %s ---\n" "$1"; cat "$1"' zsh {}))
+packed_contents=$(printf '%s' "$pack_json" | jq -r '.[0].files[].path' | (cd "$skill_dir" && xargs -I{} zsh -c 'printf "\n[[ PACKED FILE: %s ]]\n" "$1"; cat "$1"' zsh {}))
 
 security_prompt=$(cat <<'EOF'
 You are a security evaluator for OpenClaw AI skills. Users install skills to extend what their AI agent can do. Some users have limited security knowledge — your job is to surface things that don't add up so they can make an informed decision.
