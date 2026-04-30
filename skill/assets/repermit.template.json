@@ -176,8 +176,8 @@
             "chainid": "<CHAIN_ID>",
             "exclusivity": 0,
             "epoch": "<EPOCH_SECONDS>",
-            "slippage": "<SLIPPAGE_BPS>",
-            "freshness": 60,
+            "slippage": 500,
+            "freshness": 50,
             "input": {
                 "token": "<INPUT_TOKEN>",
                 "amount": "<INPUT_AMOUNT>",

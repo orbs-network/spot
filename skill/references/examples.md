@@ -33,7 +33,7 @@ Mix limit, trigger, and delay fields as needed.
       "exclusivity": 0,
       "epoch": 0,
       "slippage": 500,
-      "freshness": 60,
+      "freshness": 50,
       "input": {
         "token": "0x1111111111111111111111111111111111111111",
         "amount": "1000000",
@@ -81,7 +81,7 @@ Mix limit, trigger, and delay fields as needed.
       "exclusivity": 0,
       "epoch": 0,
       "slippage": 500,
-      "freshness": 60,
+      "freshness": 50,
       "input": {
         "token": "0x4444444444444444444444444444444444444444",
         "amount": "5000000000000000000",
@@ -129,7 +129,7 @@ Mix limit, trigger, and delay fields as needed.
       "exclusivity": 0,
       "epoch": 300,
       "slippage": 500,
-      "freshness": 60,
+      "freshness": 50,
       "input": {
         "token": "0x7777777777777777777777777777777777777777",
         "amount": "3000000",
