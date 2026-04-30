@@ -20,7 +20,7 @@ contract ResolutionLibFuzzTest is BaseTest {
         uint256 upperTrigger,
         uint256 inputValue,
         uint256 outputValue,
-        uint256 slippage
+        uint32 slippage
     ) external {
         vm.assume(inAmount > 0 && inAmount < type(uint128).max);
         vm.assume(limit < type(uint128).max);
@@ -29,7 +29,7 @@ contract ResolutionLibFuzzTest is BaseTest {
         vm.assume(inputValue > 0 && outputValue > 0 && inputValue < 1e36 && outputValue < 1e36);
         vm.assume(slippage <= Constants.MAX_SLIPPAGE);
 
-        BaseTest.slippage = uint32(slippage);
+        BaseTest.slippage = slippage;
         // default freshness is 1
         BaseTest.executor = address(this);
         BaseTest.inToken = address(token);

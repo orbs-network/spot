@@ -10,4 +10,7 @@ optimizer_runs = 1_000_000
 verbosity = 3
 no_match_coverage = "^script/"
 
+[lint]
+exclude_lints = ["block-timestamp"]
+
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

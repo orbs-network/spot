@@ -23,7 +23,7 @@ contract OrderValidationLibFuzzTest is BaseTest {
         uint256 minOut,
         uint256 lowerTrigger,
         uint256 upperTrigger,
-        uint256 slippage
+        uint32 slippage
     ) external view {
         vm.assume(swapper != address(0));
         vm.assume(inToken != address(0));
@@ -44,7 +44,7 @@ contract OrderValidationLibFuzzTest is BaseTest {
         co.order.output = Output({
             token: outToken, limit: minOut, triggerLower: lowerTrigger, triggerUpper: upperTrigger, recipient: recipient
         });
-        co.order.slippage = uint32(slippage);
+        co.order.slippage = slippage;
         co.order.start = block.timestamp;
         co.order.deadline = block.timestamp + 1;
         co.order.chainid = block.chainid;

@@ -59,7 +59,6 @@ jq --indent 4 --arg description "$description" '
     repository: (.repository + { directory: "skill" }),
     license,
     author,
-    engines,
     files: ["*.md", "references", "assets"]
   }
 ' --arg skill_package "$skill_package" "$pkg" > "$skill_pkg"
@@ -67,6 +66,8 @@ jq --indent 4 --arg description "$description" '
 repermit="$(jq -r '."*".repermit' "$deploy")"
 reactor="$(jq -r '."*".reactor' "$deploy")"
 executor="$(jq -r '."*".executor' "$deploy")"
+skeleton_slippage="$(jq -r '.message.witness.slippage' "$template_skeleton")"
+skeleton_freshness="$(jq -r '.message.witness.freshness' "$template_skeleton")"
 
 render() {
   local source_file="$1"
@@ -87,7 +88,12 @@ render_example() {
     --argjson spec "$1" \
     --arg reactor "$reactor" \
     --arg executor "$executor" \
-    --arg adapter "$mock_adapter" '
+    --arg adapter "$mock_adapter" \
+    --arg skeleton_slippage "$skeleton_slippage" \
+    --arg skeleton_freshness "$skeleton_freshness" '
+      if ($spec.epoch != 0 and $spec.epoch <= ($skeleton_freshness | tonumber)) then
+        error("example epoch must be 0 or greater than skeleton freshness")
+      else
       {
         order: {
           permitted: {
@@ -113,8 +119,8 @@ render_example() {
             chainid: $spec.chainId,
             exclusivity: 0,
             epoch: $spec.epoch,
-            slippage: $spec.slippage,
-            freshness: 60,
+            slippage: ($skeleton_slippage | tonumber),
+            freshness: ($skeleton_freshness | tonumber),
             input: {
               token: $spec.inputToken,
               amount: $spec.inputAmount,
@@ -131,6 +137,7 @@ render_example() {
         },
         signature: $spec.signature
       }
+      end
     '
 }
 

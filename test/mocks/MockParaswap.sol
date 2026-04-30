@@ -3,12 +3,15 @@ pragma solidity 0.8.27;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract MockTokenTransferProxy {
+    using SafeERC20 for IERC20;
+
     event Pulled(address indexed token, address indexed from, address indexed to, uint256 amount);
 
     function pull(address token, address from, address to, uint256 amount) external {
-        IERC20(token).transferFrom(from, to, amount);
+        IERC20(token).safeTransferFrom(from, to, amount);
         emit Pulled(token, from, to, amount);
     }
 }
