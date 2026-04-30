@@ -49,7 +49,7 @@ A typical order lifecycle is:
 2. **Price attestation**: The cosigner signs both trigger-time and current market price data.
 3. **Execution trigger**: A whitelisted executor calls `Executor.execute()` when the order is eligible.
 4. **Validation**: `OrderReactor` validates signatures, checks `start`, enforces epoch windows, verifies timestamps, and applies slippage protection.
-5. **Settlement**: The reactor transfers input tokens, the executor runs adapter logic via delegatecall, and the system enforces minimum output.
+5. **Settlement**: The reactor transfers input tokens, validates the fill result, and enforces minimum output.
 6. **Distribution**: Surplus output is distributed between the swapper and optional referrer according to configured shares.
 
 ## Security
@@ -84,8 +84,7 @@ Spot is also oracle-protected: execution depends on cosigned trigger and market 
 
 1. **Reentrancy Protection**: `OrderReactor` uses `ReentrancyGuard`; `Executor` and `Refinery` rely on WM gating and internal invariants.
 2. **Safe Token Handling**: The system supports USDT-like tokens and ETH handling semantics.
-3. **Delegatecall Isolation**: Adapters run in the controlled executor context with validation around settlement.
-4. **Emergency Pause**: `OrderReactor` can be paused by WM-allowed addresses.
+3. **Emergency Pause**: `OrderReactor` can be paused by WM-allowed addresses.
 
 ## Examples
 
@@ -153,7 +152,7 @@ Order memory order = Order({
 1. 🧠 **OrderReactor** (`src/OrderReactor.sol`): Validates orders, checks epoch constraints, computes minimum output from cosigned prices, settles via inlined implementation with reentrancy protection, and supports emergency pause via the WM allowlist.
 2. ✍️ **RePermit** (`src/RePermit.sol`): Permit2-style EIP-712 signatures with witness data that bind allowances to exact order hashes, preventing signature reuse.
 3. 🧾 **Cosigner** (`src/ops/Cosigner.sol`): Attests to trigger-time and current market prices with token validation.
-4. 🛠️ **Executor** (`src/Executor.sol`): Whitelisted fillers that run venue logic via delegatecall to adapters, enforce minimum output, and distribute surplus.
+4. 🛠️ **Executor** (`src/Executor.sol`): Whitelisted fillers that execute eligible orders, enforce minimum output, and distribute surplus.
 5. 🔐 **WM** (`src/ops/WM.sol`): Two-step ownership allowlist manager for executors and admin functions with event emission.
 6. 🏭 **Refinery** (`src/ops/Refinery.sol`): Operations utility for batching multicalls and sweeping token balances by basis points.
 
@@ -165,7 +164,7 @@ Based on `src/Structs.sol`, each order contains:
 struct Order {
     address reactor;           // OrderReactor contract address
     address executor;          // Authorized executor for this order
-    Exchange exchange;         // Adapter, referrer, and data
+    Exchange exchange;         // Exchange parameters, referrer, and data
     address swapper;           // Order creator/signer
     uint256 nonce;             // Unique identifier
     uint256 start;             // Earliest execution timestamp

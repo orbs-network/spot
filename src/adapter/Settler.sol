@@ -2,6 +2,7 @@
 pragma solidity 0.8.27;
 
 import {IWrappedNative} from "src/interface/IWrappedNative.sol";
+import {IExchangeAdapter} from "src/interface/IExchangeAdapter.sol";
 import {CosignedOrder, Execution} from "src/Structs.sol";
 import {OrderLib} from "src/lib/OrderLib.sol";
 import {RePermit} from "src/RePermit.sol";
@@ -11,9 +12,7 @@ import {TokenLib} from "src/lib/TokenLib.sol";
 /// @title Settler
 /// @notice Pulls output from solver liquidity and pays solver with input tokens.
 /// @dev `x.target` is the solver address and `x.data` encodes `(uint256 outputAmount, bytes solverSig)`.
-contract Settler {
-    error InvalidTarget();
-
+contract Settler is IExchangeAdapter {
     address public immutable repermit;
     address public immutable wrappedNative;
 
@@ -22,13 +21,13 @@ contract Settler {
         wrappedNative = _wrappedNative;
     }
 
-    function swap(CosignedOrder memory co, Execution memory x) external {
+    function delegateSwap(bytes32, uint256, CosignedOrder memory co, Execution memory x) external override {
         if (x.target == address(0)) revert InvalidTarget();
 
         (uint256 outputAmount, bytes memory solverSig) = abi.decode(x.data, (uint256, bytes));
         bytes32 hash = OrderLib.hash(co.order);
 
-        TokenLib.transferFrom(co.order.input.token, msg.sender, x.target, co.order.input.amount);
+        TokenLib.transfer(co.order.input.token, x.target, co.order.input.amount);
 
         RePermit(repermit)
             .repermitWitnessTransferFrom(
@@ -39,9 +38,7 @@ contract Settler {
                     co.order.nonce,
                     co.order.deadline
                 ),
-                RePermitLib.TransferRequest(
-                    co.order.output.token == address(0) ? address(this) : msg.sender, outputAmount
-                ),
+                RePermitLib.TransferRequest(address(this), outputAmount),
                 x.target,
                 hash,
                 OrderLib.WITNESS_TYPE_SUFFIX,
@@ -50,7 +47,6 @@ contract Settler {
 
         if (co.order.output.token == address(0)) {
             IWrappedNative(wrappedNative).withdraw(outputAmount);
-            TokenLib.transfer(address(0), msg.sender, outputAmount);
         }
     }
 
