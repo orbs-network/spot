@@ -89,6 +89,34 @@ dex_salt_for() {
   cast keccak "$dex"
 }
 
+dex_component_salt_for() {
+  local dex=${1:-} component=${2:-}
+  [[ -z $dex ]] && { printf 'error: missing dex name for salt\n' >&2; exit 1; }
+  [[ -z $component ]] && { printf 'error: missing dex component for salt\n' >&2; exit 1; }
+
+  if [[ $dex != agent ]]; then
+    dex_salt_for "$dex"
+    return 0
+  fi
+
+  local key value
+  case $component in
+    adapter) key=agentAdapter ;;
+    fee) key=agentFee ;;
+    *)
+      printf 'error: unsupported agent dex component %s\n' "$component" >&2
+      exit 1
+      ;;
+  esac
+
+  value=$(salt_for "$key")
+  if [[ -z $value || $value == null ]]; then
+    printf 'error: config.*.salt.%s is required for agent %s deployment\n' "$key" "$component" >&2
+    exit 1
+  fi
+  printf '%s' "$value"
+}
+
 adapter_salt_for() {
   local solver=${1:-}
   [[ -z $solver ]] && { printf 'error: missing solver name for adapter salt\n' >&2; exit 1; }
@@ -113,9 +141,15 @@ update_config() {
     local chain dex field
     local IFS=':'
     read -r _ chain dex field <<< "$target"
-    jq --indent 4 --arg chain "$chain" --arg dex "$dex" --arg field "$field" --arg addr "$address" '
-      setpath([$chain, "dex", $dex, $field]; $addr)
-    ' "$CONFIG_FILE" >"$tmp"
+    if [[ $dex == agent ]]; then
+      jq --indent 4 --arg field "$field" --arg addr "$address" '
+        setpath(["*", "agent", $field]; $addr)
+      ' "$CONFIG_FILE" >"$tmp"
+    else
+      jq --indent 4 --arg chain "$chain" --arg dex "$dex" --arg field "$field" --arg addr "$address" '
+        setpath([$chain, "dex", $dex, $field]; $addr)
+      ' "$CONFIG_FILE" >"$tmp"
+    fi
   fi
   mv "$tmp" "$CONFIG_FILE"
   printf 'Updated %s -> %s\n\n' "$target" "$address"
@@ -135,9 +169,15 @@ should_update_config() {
 
 dex_field_for() {
   local chain=$1 dex=$2 field=$3
-  jq -r --arg chain "$chain" --arg dex "$dex" --arg field "$field" '
-    .[$chain].dex[$dex][$field] // ""
-  ' "$CONFIG_FILE"
+  if [[ $dex == agent ]]; then
+    jq -r --arg field "$field" '
+      ."*".agent[$field] // ""
+    ' "$CONFIG_FILE"
+  else
+    jq -r --arg chain "$chain" --arg dex "$dex" --arg field "$field" '
+      .[$chain].dex[$dex][$field] // ""
+    ' "$CONFIG_FILE"
+  fi
 }
 
 adapter_field_for() {
@@ -317,13 +357,18 @@ deploy_dex() {
 
   ensure_core_contracts_for_dex "$dex" "$chain_id"
 
-  local dex_salt
-  dex_salt=$(dex_salt_for "$dex")
+  local adapter_salt fee_salt
+  adapter_salt=$(dex_component_salt_for "$dex" adapter)
+  fee_salt=$(dex_component_salt_for "$dex" fee)
 
   local adapter_type
   if ! adapter_type=$(jq -er --arg chain "$chain_id" --arg dex "$dex" '
-      .[$chain].dex[$dex].type
-      // error("dex \"" + $dex + "\" is not configured for chain " + $chain)
+      if $dex == "agent" then
+        ."*".agent.type // error("agent dex is not configured in *")
+      else
+        .[$chain].dex[$dex].type
+        // error("dex \"" + $dex + "\" is not configured for chain " + $chain)
+      end
     ' "$CONFIG_FILE"); then
     exit 1
   fi
@@ -335,8 +380,8 @@ deploy_dex() {
   fi
 
   local adapter_address fee_address
-  adapter_address=$(jq -r --arg chain "$chain_id" --arg dex "$dex" '.[$chain].dex[$dex].adapter // ""' "$CONFIG_FILE")
-  fee_address=$(jq -r --arg chain "$chain_id" --arg dex "$dex" '.[$chain].dex[$dex].fee // ""' "$CONFIG_FILE")
+  adapter_address=$(dex_field_for "$chain_id" "$dex" adapter)
+  fee_address=$(dex_field_for "$chain_id" "$dex" fee)
 
   if [[ -n $adapter_address ]]; then
     printf 'Adapter already configured for %s on chain %s (%s); skipping deployment\n' "$dex" "$chain_id" "$adapter_address"
@@ -373,13 +418,13 @@ deploy_dex() {
         ;;
     esac
 
-    run "$dex_salt" "$script" "dex:${chain_id}:${dex}:adapter" "${adapter_env[@]}"
+    run "$adapter_salt" "$script" "dex:${chain_id}:${dex}:adapter" "${adapter_env[@]}"
   fi
 
   if [[ -n $fee_address ]]; then
     printf 'Fee already configured for %s on chain %s (%s); skipping deployment\n' "$dex" "$chain_id" "$fee_address"
   else
-    run "$dex_salt" DeployRefinery "dex:${chain_id}:${dex}:fee"
+    run "$fee_salt" DeployRefinery "dex:${chain_id}:${dex}:fee"
   fi
 }
 
@@ -481,7 +526,7 @@ verify_adapter_contracts() {
 
   local rows
   rows=$(jq -r --arg chain "$chain_id" '
-    (.[$chain].dex // {})
+    ((if (."*".agent? // null) then {agent: ."*".agent} else {} end) + ((.[$chain].dex // {}) | del(.agent)))
     | to_entries[]
     | select((.value.adapter // "") != "")
     | [.key, (.value.type // ""), .value.adapter]

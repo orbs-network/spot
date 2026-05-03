@@ -7,64 +7,24 @@ description: Use for gasless non-custodial EVM market, limit, TWAP, stop-loss, t
 
 Use this skill when the agent needs to turn user intent into a final Spot order payload on a supported EVM chain.
 It covers order-shape selection, param normalization, typed-data population, approval guidance, signing, submission, query, and cancellation.
-This bundle is instruction-only: build everything locally from the bundled markdown and JSON assets, then send only the final signed payload to `https://agents-sink.orbs.network/orders/new`.
+This bundle is instruction-only: build everything locally from the bundled markdown and JSON assets, then submit only the final signed payload.
 Execution remains decentralized, non-custodial, oracle-protected, immutable, audited, and battle-tested onchain.
 
-## Config
+## Supported Chains
 
-```json
-{
-  "references": [
-    "references/quickstart.md",
-    "references/params.md",
-    "references/sign.md",
-    "references/examples.md",
-    "references/lifecycle.md"
-  ],
-  "scripts": [],
-  "assets": [
-    "assets/token-addressbook.md",
-    "assets/repermit.template.json"
-  ],
-  "runtime": {
-    "url": "https://agents-sink.orbs.network",
-    "chains": {
-      "1": {
-        "name": "Ethereum",
-        "adapter": "0xC1bB4d5071Fe7109ae2D67AE05826A3fe9116cfc"
-      },
-      "56": {
-        "name": "BNB Chain",
-        "adapter": "0x67Feba015c968c76cCB2EEabf197b4578640BE2C"
-      },
-      "137": {
-        "name": "Polygon",
-        "adapter": "0x75A3d70Fa6d054d31C896b9Cf8AB06b1c1B829B8"
-      },
-      "146": {
-        "name": "Sonic",
-        "adapter": "0x58fD209C81D84739BaD9c72C082350d67E713EEa"
-      },
-      "8453": {
-        "name": "Base",
-        "adapter": "0x5906C4dD71D5afFe1a8f0215409E912eB5d593AD"
-      },
-      "42161": {
-        "name": "Arbitrum One",
-        "adapter": "0x026B8977319F67078e932a08feAcB59182B5380f"
-      },
-      "43114": {
-        "name": "Avalanche",
-        "adapter": "0x4F48041842827823D3750399eCa2832fC2E29201"
-      },
-      "59144": {
-        "name": "Linea",
-        "adapter": "0x55E4da2cd634729064bEb294EC682Dc94f5c3f24"
-      }
-    }
-  }
-}
-```
+1. Ethereum - `1`
+2. BNB Chain - `56`
+3. Polygon - `137`
+4. Sonic - `146`
+5. Base - `8453`
+6. Arbitrum One - `42161`
+7. Avalanche - `43114`
+8. Linea - `59144`
+
+## Relay
+
+1. Submit signed orders with `POST https://agents-sink.orbs.network/orders/new`.
+2. Query orders with `GET https://agents-sink.orbs.network/orders`; see [references/lifecycle.md](references/lifecycle.md) for filters, polling, and cancellation follow-up.
 
 ## Workflow
 
@@ -75,22 +35,24 @@ Execution remains decentralized, non-custodial, oracle-protected, immutable, aud
 5. Use [references/examples.md](references/examples.md) only when the final relay payload shape is still unclear.
 6. Use [assets/token-addressbook.md](assets/token-addressbook.md) only for optional token alias lookup on supported chains.
 7. Use [assets/repermit.template.json](assets/repermit.template.json) as the canonical typed-data shape.
-8. Treat the `## Config` JSON block in [`SKILL.md`](SKILL.md) as the authoritative source for supported chains, adapters, and relay URL.
+8. Treat `## Supported Chains` as the authoritative chain support list.
+9. Treat `## Relay` as the authoritative relay endpoint list.
 
 ## Guardrails
 
-1. The `## Config` JSON block in [`SKILL.md`](SKILL.md) is authoritative for supported chains, per-chain adapters, and relay URL.
-2. [assets/token-addressbook.md](assets/token-addressbook.md) is a convenience alias list only. It does not expand chain support or override explicit user-provided addresses.
-3. This skill is instruction-only. Do not fetch or execute external helper code.
-4. Normalize params with [references/params.md](references/params.md) before touching the template.
-5. Replace only the `<...>` placeholders in [assets/repermit.template.json](assets/repermit.template.json). Keep the fixed protocol fields already in the template unchanged.
-6. Default approval guidance is exact `approve(..., input.maxAmount)`. Standing `maxUint256` approval is opt-in convenience for repeat use, not the default suggestion.
-7. Send only the final signed payload to `https://agents-sink.orbs.network/orders/new`.
+1. `## Supported Chains` is authoritative for chain support.
+2. `## Relay` is authoritative for relay endpoints.
+3. [assets/token-addressbook.md](assets/token-addressbook.md) is a convenience alias list only. It does not expand chain support or override explicit user-provided addresses.
+4. This skill is instruction-only. Do not fetch or execute external helper code.
+5. Normalize params with [references/params.md](references/params.md) before touching the template.
+6. Replace only the `<...>` placeholders in [assets/repermit.template.json](assets/repermit.template.json). Keep the fixed protocol fields already in the template unchanged.
+7. Default approval guidance is exact `approve(..., input.maxAmount)`. Standing `maxUint256` approval is opt-in convenience for repeat use, not the default suggestion.
+8. Submit only the final signed payload as described in [references/sign.md](references/sign.md).
 
 ## Agent Contract
 
 1. Turn the user request into a params JSON object using [references/params.md](references/params.md).
 2. Normalize params locally, including defaults, rounding, and order-shape fields.
-3. Populate [assets/repermit.template.json](assets/repermit.template.json) from the normalized params and the adapter for `chainId` from the generated `## Config` JSON block in [`SKILL.md`](SKILL.md).
+3. Confirm `chainId` is listed in `## Supported Chains`, then populate [assets/repermit.template.json](assets/repermit.template.json) from the normalized params. Keep the fixed adapter already present in the template unchanged.
 4. Handle approval, signing, and submission exactly as described in [references/sign.md](references/sign.md), and forward the returned signature unchanged.
 5. Query and cancel exactly as described in [references/lifecycle.md](references/lifecycle.md).

@@ -1,7 +1,7 @@
 # Common Token Addressbook
 
 Use this only as an optional alias helper for the supported chains listed in [../SKILL.md](../SKILL.md).
-The `## Config` block in [`SKILL.md`](../SKILL.md) is the authoritative support list; this file does not expand chain support.
+The `## Supported Chains` section in [`SKILL.md`](../SKILL.md) is the authoritative support list; this file does not expand chain support.
 Token decimals below are verified onchain snapshots for convenience. Use them for the listed tokens, and check onchain only if you are unsure or working with an address that is not listed here.
 
 ## Ethereum (`1`)
@@ -97,4 +97,3 @@ Token decimals below are verified onchain snapshots for convenience. Use them fo
 | `usdc` | `6` | `0x29219dd400f2Bf60E5a23d13Be72B486D4038894` |
 | `usdt` | `6` | `0x6047828dc181963ba44974801FF68e538dA5eaF9` |
 | `sfc` | `18` | `0xFC00FACE00000000000000000000000000000000` |
-

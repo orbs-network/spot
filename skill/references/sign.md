@@ -1,7 +1,7 @@
 # Template, Sign, And Submit
 
 1. Load [../assets/repermit.template.json](../assets/repermit.template.json) and the normalized params. Respect the JSON typing rules from [params.md](params.md).
-2. Replace only the remaining `<...>` placeholders. Keep the fixed protocol fields already present in the template unchanged. Set `<ADAPTER>` to the adapter listed for `chainId` in the generated `## Config` JSON block in [../SKILL.md](../SKILL.md).
+2. Confirm `chainId` is listed in `## Supported Chains` in [../SKILL.md](../SKILL.md), then replace only the remaining `<...>` placeholders. Keep the fixed protocol fields already present in the template unchanged.
 3. If allowance for `input.token` to `typedData.domain.verifyingContract` is lower than `input.maxAmount`, the default suggestion is a standard ERC-20 `approve(typedData.domain.verifyingContract, input.maxAmount)` transaction first.
 4. If you explicitly want a standing approval instead, `maxUint256` is often more convenient for repeat orders, but keep it opt-in rather than the default suggestion.
 5. Sign `typedData` with any EIP-712-capable wallet or library. The signer must equal `swapper`.

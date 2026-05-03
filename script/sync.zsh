@@ -18,36 +18,6 @@ branch="master"
 skill_package="@orbs-network/spot-skill"
 mock_adapter="0x9999999999999999999999999999999999999999"
 
-config_text="$(
-  awk '
-  /^```json$/ && seen { inside = 1; next }
-  /^```$/ && inside { exit }
-  inside { print }
-  /^## Config$/ { seen = 1 }
-  ' "$skill" |
-  jq --slurpfile deploy "$deploy" '
-  .runtime.chains |= with_entries(
-    .value.adapter = (
-      $deploy[0][.key].dex.agent.adapter //
-      ($deploy[0][.key].dex | to_entries | sort_by(.key)[0].value.adapter)
-    )
-  )
-  '
-)"
-
-zmodload zsh/mapfile
-config_marker=$'## Config\n\n```json\n'
-config_fence=$'\n```'
-skill_text="${mapfile[$skill]}"
-if [[ "$skill_text" != *"$config_marker"* ]]; then
-  print -u2 "missing config block in $skill"
-  exit 1
-fi
-before_config="${skill_text%%$config_marker*}"
-config_tail="${skill_text#*$config_marker}"
-after_config="${config_tail#*$config_fence}"
-mapfile[$skill]="${before_config}${config_marker}${config_text}${config_fence}${after_config}"
-
 description="$(sed -n '2,/^---$/s/^description:[[:space:]]*//p' "$skill" | head -1)"
 jq --indent 4 --arg description "$description" '
   {
@@ -66,6 +36,7 @@ jq --indent 4 --arg description "$description" '
 repermit="$(jq -r '."*".repermit' "$deploy")"
 reactor="$(jq -r '."*".reactor' "$deploy")"
 executor="$(jq -r '."*".executor' "$deploy")"
+adapter="$(jq -r '."*".agent.adapter' "$deploy")"
 skeleton_slippage="$(jq -r '.message.witness.slippage' "$template_skeleton")"
 skeleton_freshness="$(jq -r '.message.witness.freshness' "$template_skeleton")"
 
@@ -76,6 +47,7 @@ render() {
     -e "s|<REPERMIT>|$repermit|g" \
     -e "s|<REACTOR>|$reactor|g" \
     -e "s|<EXECUTOR>|$executor|g" \
+    -e "s|<ADAPTER>|$adapter|g" \
     -e "s|<REFERRER>|0x0000000000000000000000000000000000000000|g" \
     -e "s|<ADAPTER_USER_DATA>|0x|g" \
     "$source_file"
