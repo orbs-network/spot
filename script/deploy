@@ -142,8 +142,8 @@ update_config() {
     local IFS=':'
     read -r _ chain dex field <<< "$target"
     if [[ $dex == agent ]]; then
-      jq --indent 4 --arg field "$field" --arg addr "$address" '
-        setpath(["*", "dex", "agent", $field]; $addr)
+      jq --indent 4 --arg chain "$chain" --arg field "$field" --arg addr "$address" '
+        setpath([$chain, "dex", "agent", $field]; $addr)
       ' "$CONFIG_FILE" >"$tmp"
     else
       jq --indent 4 --arg chain "$chain" --arg dex "$dex" --arg field "$field" --arg addr "$address" '
