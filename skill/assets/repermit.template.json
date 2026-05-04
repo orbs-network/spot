@@ -164,7 +164,7 @@
             "reactor": "0x000000b33fE4fB9d999Dd684F79b110731c3d000",
             "executor": "0x000642A0966d9bd49870D9519f76b5cf823f3000",
             "exchange": {
-                "adapter": "0x0002BeFB46587d460AcEA9B2792c4A4c67B9cADa",
+                "adapter": "<ADAPTER>",
                 "ref": "0x0000000000000000000000000000000000000000",
                 "share": 0,
                 "data": "0x"

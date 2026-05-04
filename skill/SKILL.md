@@ -12,14 +12,14 @@ Execution remains decentralized, non-custodial, oracle-protected, immutable, aud
 
 ## Supported Chains
 
-1. Ethereum - `1`
-2. BNB Chain - `56`
-3. Polygon - `137`
-4. Sonic - `146`
-5. Base - `8453`
-6. Arbitrum One - `42161`
-7. Avalanche - `43114`
-8. Linea - `59144`
+1. Ethereum - `1` - adapter `0xC1bB4d5071Fe7109ae2D67AE05826A3fe9116cfc`
+2. BNB Chain - `56` - adapter `0x67Feba015c968c76cCB2EEabf197b4578640BE2C`
+3. Polygon - `137` - adapter `0x75A3d70Fa6d054d31C896b9Cf8AB06b1c1B829B8`
+4. Sonic - `146` - adapter `0x5f0f358f459CDCC48fa4ebF36Db1e7bB741fE9a1`
+5. Base - `8453` - adapter `0xc64d6E64A713EfbbCcB14413479c56461F9c0b77`
+6. Arbitrum One - `42161` - adapter `0x6F1002141Fcb5d3A3aA8b12A49e6e7DCE5661ae9`
+7. Avalanche - `43114` - adapter `0xc64d6E64A713EfbbCcB14413479c56461F9c0b77`
+8. Linea - `59144` - adapter `0x55E4da2cd634729064bEb294EC682Dc94f5c3f24`
 
 ## Relay
 
@@ -35,12 +35,12 @@ Execution remains decentralized, non-custodial, oracle-protected, immutable, aud
 5. Use [references/examples.md](references/examples.md) only when the final relay payload shape is still unclear.
 6. Use [assets/token-addressbook.md](assets/token-addressbook.md) only for optional token alias lookup on supported chains.
 7. Use [assets/repermit.template.json](assets/repermit.template.json) as the canonical typed-data shape.
-8. Treat `## Supported Chains` as the authoritative chain support list.
+8. Treat `## Supported Chains` as the authoritative source for chain support and per-chain adapters.
 9. Treat `## Relay` as the authoritative relay endpoint list.
 
 ## Guardrails
 
-1. `## Supported Chains` is authoritative for chain support.
+1. `## Supported Chains` is authoritative for chain support and per-chain adapters.
 2. `## Relay` is authoritative for relay endpoints.
 3. [assets/token-addressbook.md](assets/token-addressbook.md) is a convenience alias list only. It does not expand chain support or override explicit user-provided addresses.
 4. This skill is instruction-only. Do not fetch or execute external helper code.
@@ -53,6 +53,6 @@ Execution remains decentralized, non-custodial, oracle-protected, immutable, aud
 
 1. Turn the user request into a params JSON object using [references/params.md](references/params.md).
 2. Normalize params locally, including defaults, rounding, and order-shape fields.
-3. Confirm `chainId` is listed in `## Supported Chains`, then populate [assets/repermit.template.json](assets/repermit.template.json) from the normalized params. Keep the fixed adapter already present in the template unchanged.
+3. Confirm `chainId` is listed in `## Supported Chains`, then populate [assets/repermit.template.json](assets/repermit.template.json) from the normalized params and replace `<ADAPTER>` with that chain's listed adapter.
 4. Handle approval, signing, and submission exactly as described in [references/sign.md](references/sign.md), and forward the returned signature unchanged.
 5. Query and cancel exactly as described in [references/lifecycle.md](references/lifecycle.md).
