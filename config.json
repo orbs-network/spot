@@ -127,9 +127,9 @@
             },
             "agent": {
                 "type": "default",
-                "solver": "odos-v2",
-                "router": "0xaC041Df48dF9791B0654f1Dbbf2CC8450C5f2e9D",
-                "adapter": "0x58fD209C81D84739BaD9c72C082350d67E713EEa",
+                "solver": "magpie-v3",
+                "router": "0xc325856e5585823aaC0D1Fd46c35c608D95E65A9",
+                "adapter": "0x5f0f358f459CDCC48fa4ebF36Db1e7bB741fE9a1",
                 "fee": "0x03A70aC8126340d3cd6b5828816172693C398661"
             }
         }
