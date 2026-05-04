@@ -15,7 +15,7 @@ Execution remains decentralized, non-custodial, oracle-protected, immutable, aud
 1. Ethereum - `1` - adapter `0xC1bB4d5071Fe7109ae2D67AE05826A3fe9116cfc`
 2. BNB Chain - `56` - adapter `0x67Feba015c968c76cCB2EEabf197b4578640BE2C`
 3. Polygon - `137` - adapter `0x75A3d70Fa6d054d31C896b9Cf8AB06b1c1B829B8`
-4. Sonic - `146` - adapter `0x5f0f358f459CDCC48fa4ebF36Db1e7bB741fE9a1`
+4. Sonic - `146` - adapter `0xD87ee28806bc0060789C4789F123647f4Df25A6C`
 5. Base - `8453` - adapter `0xc64d6E64A713EfbbCcB14413479c56461F9c0b77`
 6. Arbitrum One - `42161` - adapter `0x6F1002141Fcb5d3A3aA8b12A49e6e7DCE5661ae9`
 7. Avalanche - `43114` - adapter `0xc64d6E64A713EfbbCcB14413479c56461F9c0b77`

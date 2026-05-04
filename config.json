@@ -127,9 +127,9 @@
             },
             "agent": {
                 "type": "default",
-                "solver": "magpie-v3",
-                "router": "0xc325856e5585823aaC0D1Fd46c35c608D95E65A9",
-                "adapter": "0x5f0f358f459CDCC48fa4ebF36Db1e7bB741fE9a1",
+                "solver": "openocean-v2",
+                "router": "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64",
+                "adapter": "0xD87ee28806bc0060789C4789F123647f4Df25A6C",
                 "fee": "0x03A70aC8126340d3cd6b5828816172693C398661"
             }
         }
