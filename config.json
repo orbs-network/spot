@@ -203,9 +203,9 @@
             },
             "agent": {
                 "type": "default",
-                "solver": "odos-v2",
-                "router": "0x19cEeAd7105607Cd444F5ad10dd51356436095a1",
-                "adapter": "0x5906C4dD71D5afFe1a8f0215409E912eB5d593AD",
+                "solver": "kyber-v2",
+                "router": "0x6131B5fae19EA4f9D964eAc0408E4408b66337b5",
+                "adapter": "0xc64d6E64A713EfbbCcB14413479c56461F9c0b77",
                 "fee": "0x03A70aC8126340d3cd6b5828816172693C398661"
             }
         }
