@@ -293,10 +293,10 @@
                 "fee": "0x28F6C9dBE21fFc146Af8d5D15c49Cf48F61140Dc"
             },
             "agent": {
-                "type": "default",
-                "solver": "odos-v2",
-                "router": "0xa669e7A0d4b3e4Fa48af2dE86BD4CD7126Be4e13",
-                "adapter": "0x026B8977319F67078e932a08feAcB59182B5380f",
+                "type": "paraswap",
+                "solver": "paraswap-v5",
+                "router": "0xDEF171Fe48CF0115B1d80b88dc8eAB59176FEe57",
+                "adapter": "0x6F1002141Fcb5d3A3aA8b12A49e6e7DCE5661ae9",
                 "fee": "0x03A70aC8126340d3cd6b5828816172693C398661"
             }
         }
