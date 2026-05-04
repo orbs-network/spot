@@ -16,10 +16,12 @@
             "agentAdapter": "0xf6d54cf6a0619f1fb8e1ded91d4c23e7bb9f498c56735fb0c7669423c766219f",
             "agentFee": "0x151234279af18acc113f70463977058efa2e598b5bfc0c106c75fd638d344c0a"
         },
-        "agent": {
-            "type": "universal",
-            "adapter": "0x0002BeFB46587d460AcEA9B2792c4A4c67B9cADa",
-            "fee": "0x0006d9557Ac9Af4f31962896299ba4FaBDaB9fEE"
+        "dex": {
+            "agent": {
+                "type": "universal",
+                "adapter": "0x0002BeFB46587d460AcEA9B2792c4A4c67B9cADa",
+                "fee": "0x0006d9557Ac9Af4f31962896299ba4FaBDaB9fEE"
+            }
         }
     },
     "1": {

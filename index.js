@@ -15,20 +15,22 @@ const abis = () => ({
 function config(chainId, dexName) {
   if (!chainId) return;
 
-  const { dex: _globalDex, ...baseDefaults } = raw['*'] ?? {};
+  const { dex: globalDex, salt: _globalSalt, ...baseDefaults } = raw['*'] ?? {};
   const chainConfig = raw[chainId];
   if (!chainConfig) return;
 
-  const { dex, ...chainDefaults } = chainConfig;
+  const { dex, salt: _chainSalt, ...chainDefaults } = chainConfig;
 
-  if (!dexName?.trim()) {
-    return { ...baseDefaults, ...chainDefaults };
-  }
+  const mergedConfig = { ...baseDefaults, ...chainDefaults };
+  const name = dexName?.trim();
 
-  const dexOverrides = dex?.[dexName];
-  if (!dexOverrides) return;
+  if (!name) return mergedConfig;
 
-  return { ...baseDefaults, ...chainDefaults, ...dexOverrides };
+  const globalDexOverrides = globalDex?.[name];
+  const chainDexOverrides = dex?.[name];
+  if (!globalDexOverrides && !chainDexOverrides) return;
+
+  return { ...mergedConfig, ...globalDexOverrides, ...chainDexOverrides };
 }
 
 module.exports = { config, abis, raw };

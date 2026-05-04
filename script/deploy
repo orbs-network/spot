@@ -143,7 +143,7 @@ update_config() {
     read -r _ chain dex field <<< "$target"
     if [[ $dex == agent ]]; then
       jq --indent 4 --arg field "$field" --arg addr "$address" '
-        setpath(["*", "agent", $field]; $addr)
+        setpath(["*", "dex", "agent", $field]; $addr)
       ' "$CONFIG_FILE" >"$tmp"
     else
       jq --indent 4 --arg chain "$chain" --arg dex "$dex" --arg field "$field" --arg addr "$address" '
@@ -170,8 +170,8 @@ should_update_config() {
 dex_field_for() {
   local chain=$1 dex=$2 field=$3
   if [[ $dex == agent ]]; then
-    jq -r --arg field "$field" '
-      ."*".agent[$field] // ""
+    jq -r --arg chain "$chain" --arg field "$field" '
+      .[$chain].dex.agent[$field] // ."*".dex.agent[$field] // ""
     ' "$CONFIG_FILE"
   else
     jq -r --arg chain "$chain" --arg dex "$dex" --arg field "$field" '
@@ -364,7 +364,7 @@ deploy_dex() {
   local adapter_type
   if ! adapter_type=$(jq -er --arg chain "$chain_id" --arg dex "$dex" '
       if $dex == "agent" then
-        ."*".agent.type // error("agent dex is not configured in *")
+        .[$chain].dex.agent.type // ."*".dex.agent.type // error("agent dex is not configured")
       else
         .[$chain].dex[$dex].type
         // error("dex \"" + $dex + "\" is not configured for chain " + $chain)
@@ -526,7 +526,7 @@ verify_adapter_contracts() {
 
   local rows
   rows=$(jq -r --arg chain "$chain_id" '
-    ((if (."*".agent? // null) then {agent: ."*".agent} else {} end) + ((.[$chain].dex // {}) | del(.agent)))
+    ((."*".dex // {}) + (.[$chain].dex // {}))
     | to_entries[]
     | select((.value.adapter // "") != "")
     | [.key, (.value.type // ""), .value.adapter]

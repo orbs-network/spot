@@ -36,7 +36,7 @@ jq --indent 4 --arg description "$description" '
 repermit="$(jq -r '."*".repermit' "$deploy")"
 reactor="$(jq -r '."*".reactor' "$deploy")"
 executor="$(jq -r '."*".executor' "$deploy")"
-adapter="$(jq -r '."*".agent.adapter' "$deploy")"
+adapter="$(jq -r '."*".dex.agent.adapter' "$deploy")"
 skeleton_slippage="$(jq -r '.message.witness.slippage' "$template_skeleton")"
 skeleton_freshness="$(jq -r '.message.witness.freshness' "$template_skeleton")"
 
