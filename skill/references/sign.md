@@ -11,10 +11,13 @@
 cast wallet sign --data --from-file ./typed-data.json
 ```
 
-7. Canonical JavaScript signing path with `ethers`:
+7. Canonical browser-wallet signing path:
 
 ```js
-const signature = await signer.signTypedData(typedData.domain, typedData.types, typedData.message);
+const signature = await ethereum.request({
+  method: "eth_signTypedData_v4",
+  params: [swapper, JSON.stringify(typedData)],
+});
 ```
 
 8. Submit this exact relay payload to `https://agents-sink.orbs.network/orders/new`:
