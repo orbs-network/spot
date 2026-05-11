@@ -22,7 +22,7 @@ usage() {
 Usage: script/deploy [options] [-- forge script args]
 
 Options:
-  -d, --dex NAME     Deploy and configure a specific dex (requires CHAIN_ID; auto-deploys core contracts when OWNER is set).
+  -d, --dex NAME     Deploy and configure a specific dex (requires CHAIN_ID; auto-deploys core contracts when ETH_FROM is set).
   -a, --adapter SOLVER
                     Deploy and configure the generic adapter for a solver on the active chain.
   -v, --verify       Verify configured core contracts.
@@ -283,13 +283,13 @@ ensure_core_contracts_for_dex() {
     [[ -n $address ]] || missing+=("$key")
   done
 
-  if [[ -n ${OWNER:-} ]]; then
+  if [[ -n ${ETH_FROM:-} ]]; then
     deploy_core_contracts
     return 0
   fi
 
   if (( ${#missing[@]} > 0 )); then
-    printf 'error: OWNER is required to auto-deploy missing core contracts before deploying dex %s on chain %s; missing config for: %s\n' \
+    printf 'error: ETH_FROM is required to auto-deploy missing core contracts before deploying dex %s on chain %s; missing config for: %s\n' \
       "$dex" "$chain_id" "${(j:, :)missing}" >&2
     exit 1
   fi
@@ -558,11 +558,11 @@ if [[ -n $adapter_solver ]]; then
 fi
 
 if [[ -n $dex ]]; then
-  require_env_var OWNER
+  require_env_var ETH_FROM
   deploy_dex "$dex"
   exit 0
 fi
 
-require_env_var OWNER
+require_env_var ETH_FROM
 
 deploy_core_contracts

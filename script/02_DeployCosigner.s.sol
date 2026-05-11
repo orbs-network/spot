@@ -9,7 +9,7 @@ contract DeployCosigner is Script {
     address private constant COSIGNER_OWNER = 0x61C4c6670FBA2Fa8Eb5eb2d930ae6d05fC78f05C;
 
     function run() public returns (address cosigner) {
-        address owner = vm.envOr("OWNER", address(0));
+        address owner = vm.envOr("ETH_FROM", address(0));
         bytes32 salt = vm.envOr("SALT", bytes32(0));
 
         bytes32 initCodeHash = hashInitCode(type(Cosigner).creationCode, abi.encode(owner));

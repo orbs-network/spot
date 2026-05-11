@@ -8,7 +8,7 @@ import {UpdateWMWhitelist} from "script/00_UpdateWMWhitelist.s.sol";
 
 contract DeployWM is Script {
     function run() public returns (address wm) {
-        address owner = vm.envAddress("OWNER");
+        address owner = vm.envAddress("ETH_FROM");
         bytes32 salt = vm.envOr("SALT", bytes32(0));
 
         bytes32 initCodeHash = hashInitCode(type(WM).creationCode, abi.encode(owner));
