@@ -100,15 +100,15 @@
     "146": {
         "adapter": {
             "odos-v2": "0x0123695379045f9db515E6a77d8154959B94B599",
-            "magpie-v3": "0xa5AB087b39dAf175650EFB4F7B8E977C1585a662",
-            "openocean-v2": "0xc7f07C830e22FCA94bF52F38C6707F9D396c6172"
+            "openocean-v2": "0xc7f07C830e22FCA94bF52F38C6707F9D396c6172",
+            "flytrade": "0x4914efb617fEa2Fd7529fdb365854Fd8f17bCBDE"
         },
         "dex": {
             "spooky": {
                 "type": "default",
-                "solver": "magpie-v3",
-                "router": "0xc325856e5585823aaC0D1Fd46c35c608D95E65A9",
-                "adapter": "0x56083Eb47d4d7d520F4d2b4a0DC98BE56bb98068",
+                "solver": "flytrade",
+                "router": "0x20f6ee51340adeed01a59b0e65cb3703f3dc860c",
+                "adapter": "0x0F6533Fd45D13ad6AAa364023d6c05eCB2d3Ac2E",
                 "fee": "0x840Df4684B35BC68BcdA3F6707A3c82A0D662f8b"
             },
             "swapx": {
@@ -120,9 +120,9 @@
             },
             "shadow": {
                 "type": "default",
-                "solver": "magpie-v3",
-                "router": "0xc325856e5585823aaC0D1Fd46c35c608D95E65A9",
-                "adapter": "0x1adEE94aBa11F19981130F77a1B2620b67e4409A",
+                "solver": "flytrade",
+                "router": "0x20f6ee51340adeed01a59b0e65cb3703f3dc860c",
+                "adapter": "0x39b024E187e5f35fea05953fECB9314a97de3d94",
                 "fee": "0xb9e3751fAF3187E1bC468E56a707a8A91754460e"
             },
             "agent": {
