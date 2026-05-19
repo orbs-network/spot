@@ -12,6 +12,15 @@ const abis = () => ({
   adapter: loadAbi('DefaultDexAdapter'),
 });
 
+function adapters(chainId) {
+  if (!chainId) return;
+
+  const chainConfig = raw[chainId];
+  if (!chainConfig) return;
+
+  return { ...(raw['*']?.adapter ?? {}), ...(chainConfig.adapter ?? {}) };
+}
+
 function config(chainId, dexName) {
   if (!chainId) return;
 
@@ -33,4 +42,4 @@ function config(chainId, dexName) {
   return { ...mergedConfig, ...globalDexOverrides, ...chainDexOverrides };
 }
 
-module.exports = { config, abis, raw };
+module.exports = { config, adapters, abis, raw };
