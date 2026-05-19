@@ -5,6 +5,7 @@ root="${0:A:h:h}"
 pkg="$root/package.json"
 deploy="$root/config.json"
 readme="$root/README.md"
+server="$root/server.json"
 skill="$root/skill/SKILL.md"
 skill_pkg="$root/skill/package.json"
 skill_readme="$root/skill/README.md"
@@ -18,7 +19,53 @@ branch="master"
 skill_package="@orbs-network/spot-skill"
 mock_adapter="0x9999999999999999999999999999999999999999"
 
-description="$(sed -n '2,/^---$/s/^description:[[:space:]]*//p' "$skill" | head -1)"
+version="$(jq -r '.version' "$pkg")"
+skill_tmp="$(mktemp)"
+awk -v version="$version" '
+  NR == 1 && $0 == "---" {
+    in_frontmatter = 1
+    print
+    next
+  }
+  in_frontmatter && $0 == "---" {
+    if (!updated) {
+      print "version: " version
+    }
+    in_frontmatter = 0
+    print
+    next
+  }
+  in_frontmatter && $0 ~ /^version:[[:space:]]*/ {
+    print "version: " version
+    updated = 1
+    next
+  }
+  {
+    print
+  }
+' "$skill" > "$skill_tmp"
+mv "$skill_tmp" "$skill"
+
+description="$(
+  awk '
+    NR > 1 && $0 == "---" { exit }
+    NR > 1 && $0 ~ /^description:[[:space:]]*/ {
+      sub(/^description:[[:space:]]*/, "")
+      print
+      exit
+    }
+  ' "$skill"
+)"
+
+if [[ -f "$server" ]]; then
+  server_tmp="$(mktemp)"
+  jq --indent 2 --arg version "$version" --arg description "$description" '
+    .version = $version
+    | .description = $description
+  ' "$server" > "$server_tmp"
+  mv "$server_tmp" "$server"
+fi
+
 jq --indent 4 --arg description "$description" '
   {
     name: $ARGS.named.skill_package,
