@@ -26,13 +26,13 @@
     },
     "1": {
         "adapter": {
-            "odos-v2": "0x1ae80D14C52F82c09a54C423e6f9D5Fb737089C8",
-            "sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c"
+            "Odos": "0x1ae80D14C52F82c09a54C423e6f9D5Fb737089C8",
+            "Sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c"
         },
         "dex": {
             "sushiswap": {
                 "type": "default",
-                "solver": "sushi",
+                "solver": "Sushi",
                 "router": "0xAC4c6e212A361c968F1725b4d055b47E63F80b75",
                 "adapter": "0x2e43A28FAf083717CcD9B246d97C61E1Bc9914Df",
                 "fee": "0x28F6C9dBE21fFc146Af8d5D15c49Cf48F61140Dc"
@@ -41,26 +41,26 @@
     },
     "10": {
         "adapter": {
-            "odos-v2": "0xc7Ec90152fd5A6210570cb04C4Ab099Bdac352af"
+            "Odos": "0xc7Ec90152fd5A6210570cb04C4Ab099Bdac352af"
         },
         "dex": {}
     },
     "56": {
         "adapter": {
-            "odos-v2": "0x6c17cc2984A87BD8b002c6E3C08dBB8c8Eb89E48",
-            "pancakeswap-v2": "0xaf3532dca7b4a75cD06671614C093e9e8fb5b1F2"
+            "Odos": "0x6c17cc2984A87BD8b002c6E3C08dBB8c8Eb89E48",
+            "Orbs": "0xaf3532dca7b4a75cD06671614C093e9e8fb5b1F2"
         },
         "dex": {
             "thena": {
                 "type": "default",
-                "solver": "odos-v2",
+                "solver": "Odos",
                 "router": "0x89b8AA89FDd0507a99d334CBe3C808fAFC7d850E",
                 "adapter": "0x9E61dEabe996236814c28eC69ab2A7405cB6f03E",
                 "fee": "0x15eBc8b5b3877512FFF23650188694A9a8891FAc"
             },
             "pancake": {
                 "type": "p2",
-                "solver": "pancakeswap-v2",
+                "solver": "Orbs",
                 "router": "0xd9C500DfF816a1Da21A48A732d3498Bf09dc9AEB",
                 "permit2": "0x31c2F6fcFf4F8759b3Bd5Bf0e1084A055615c768",
                 "adapter": "0x52Ed96B1AEd25818B6A284b063b055488E012b73",
@@ -68,7 +68,7 @@
             },
             "newera": {
                 "type": "default",
-                "solver": "odos-v2",
+                "solver": "Odos",
                 "router": "0x89b8AA89FDd0507a99d334CBe3C808fAFC7d850E",
                 "adapter": "0x6236a466CE5c368DC6686d69cAcf5561196B76ef",
                 "fee": "0x4E7454909eB6D539111D56b50d68897E933D2d11"
@@ -77,28 +77,28 @@
     },
     "146": {
         "adapter": {
-            "odos-v2": "0x0123695379045f9db515E6a77d8154959B94B599",
-            "openocean-v2": "0xc7f07C830e22FCA94bF52F38C6707F9D396c6172",
-            "flytrade": "0x4914efb617fEa2Fd7529fdb365854Fd8f17bCBDE"
+            "Odos": "0x0123695379045f9db515E6a77d8154959B94B599",
+            "OpenOcean": "0xc7f07C830e22FCA94bF52F38C6707F9D396c6172",
+            "Magpie": "0x4914efb617fEa2Fd7529fdb365854Fd8f17bCBDE"
         },
         "dex": {
             "spooky": {
                 "type": "default",
-                "solver": "flytrade",
+                "solver": "Magpie",
                 "router": "0x20f6ee51340adeed01a59b0e65cb3703f3dc860c",
                 "adapter": "0x0F6533Fd45D13ad6AAa364023d6c05eCB2d3Ac2E",
                 "fee": "0x840Df4684B35BC68BcdA3F6707A3c82A0D662f8b"
             },
             "swapx": {
                 "type": "default",
-                "solver": "openocean-v2",
+                "solver": "OpenOcean",
                 "router": "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64",
                 "adapter": "0xa7AE3ABf86C81cCEFEd6bE77045F2a32660c1B1c",
                 "fee": "0x6E03f7BC0f141894612AA017796096399623895F"
             },
             "shadow": {
                 "type": "default",
-                "solver": "flytrade",
+                "solver": "Magpie",
                 "router": "0x20f6ee51340adeed01a59b0e65cb3703f3dc860c",
                 "adapter": "0x39b024E187e5f35fea05953fECB9314a97de3d94",
                 "fee": "0xb9e3751fAF3187E1bC468E56a707a8A91754460e"
@@ -107,20 +107,20 @@
     },
     "137": {
         "adapter": {
-            "odos-v2": "0x5628D7383b42E14E83DA310de3e7E04E6b025418",
-            "paraswap-v5": "0x179C4b8e982b5F1365d36CC8d0c1CEB621B7198D"
+            "Odos": "0x5628D7383b42E14E83DA310de3e7E04E6b025418",
+            "Paraswap": "0x179C4b8e982b5F1365d36CC8d0c1CEB621B7198D"
         },
         "dex": {
             "quick": {
                 "type": "paraswap",
-                "solver": "paraswap-v5",
+                "solver": "Paraswap",
                 "router": "0xDEF171Fe48CF0115B1d80b88dc8eAB59176FEe57",
                 "adapter": "0x727e1CbA41Ff1ff11C32fa43DAb499b4317A1b65",
                 "fee": "0xd207DC6a6dA88f27c8DB78201F974161b1d84b1f"
             },
             "teafi": {
                 "type": "paraswap",
-                "solver": "paraswap-v5",
+                "solver": "Paraswap",
                 "router": "0xDEF171Fe48CF0115B1d80b88dc8eAB59176FEe57",
                 "adapter": "0xF710D67C783D2C14671EC1c61B0683DCb996F5c3",
                 "fee": "0x04Ff96e2c4D62b5771795d307AD679a25b3D2D50"
@@ -129,16 +129,16 @@
     },
     "8453": {
         "adapter": {
-            "odos-v2": "0x1c947387AFC3435135e3da51ccEAB20eD5377DeA",
-            "pancakeswap-v2": "0x917b492557957f5dD3e69c04c8E1Ac3d6948c022",
-            "kyber-v2": "0x6f4e5b8d7F6b037c62277992c39E7834D7C04596",
-            "trebleswap": "0x6f4938535879c668A797F2a6e9B912c54f9D43Cf",
-            "sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c"
+            "Odos": "0x1c947387AFC3435135e3da51ccEAB20eD5377DeA",
+            "Orbs": "0x917b492557957f5dD3e69c04c8E1Ac3d6948c022",
+            "Kyber": "0x6f4e5b8d7F6b037c62277992c39E7834D7C04596",
+            "TrebleSwap": "0x6f4938535879c668A797F2a6e9B912c54f9D43Cf",
+            "Sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c"
         },
         "dex": {
             "pancake": {
                 "type": "p2",
-                "solver": "pancakeswap-v2",
+                "solver": "Orbs",
                 "router": "0xFE6508f0015C778Bdcc1fB5465bA5ebE224C9912",
                 "permit2": "0x31c2F6fcFf4F8759b3Bd5Bf0e1084A055615c768",
                 "adapter": "0xA7CcB11F1D20D1F915FC220F5Cb1646E4523bB75",
@@ -146,21 +146,21 @@
             },
             "quick": {
                 "type": "default",
-                "solver": "kyber-v2",
+                "solver": "Kyber",
                 "router": "0x6131B5fae19EA4f9D964eAc0408E4408b66337b5",
                 "adapter": "0x0438644898F69bfF1018Cb01a81877D14d3e6493",
                 "fee": "0xd207DC6a6dA88f27c8DB78201F974161b1d84b1f"
             },
             "trebleswap": {
                 "type": "default",
-                "solver": "trebleswap",
+                "solver": "TrebleSwap",
                 "router": "0x347539D82A14C0A3a89769f1024774A545a151ac",
                 "adapter": "0x6f4938535879c668A797F2a6e9B912c54f9D43Cf",
                 "fee": "0x15fc883d7DF4e681Ddb9E43e7B1D8c61d4fC162C"
             },
             "sushiswap": {
                 "type": "default",
-                "solver": "sushi",
+                "solver": "Sushi",
                 "router": "0xAC4c6e212A361c968F1725b4d055b47E63F80b75",
                 "adapter": "0x2e43A28FAf083717CcD9B246d97C61E1Bc9914Df",
                 "fee": "0x28F6C9dBE21fFc146Af8d5D15c49Cf48F61140Dc"
@@ -169,14 +169,14 @@
     },
     "59144": {
         "adapter": {
-            "odos-v2": "0xA58A55AC39b47504A63993A91B78544158862e61",
-            "pancakeswap-v2": "0x917b492557957f5dD3e69c04c8E1Ac3d6948c022",
-            "openocean": "0xd2e68b1d1C5DBB2D6cC396c10C55017e01309C37"
+            "Odos": "0xA58A55AC39b47504A63993A91B78544158862e61",
+            "Orbs": "0x917b492557957f5dD3e69c04c8E1Ac3d6948c022",
+            "OpenOcean": "0xd2e68b1d1C5DBB2D6cC396c10C55017e01309C37"
         },
         "dex": {
             "pancake": {
                 "type": "p2",
-                "solver": "pancakeswap-v2",
+                "solver": "Orbs",
                 "router": "0xFE6508f0015C778Bdcc1fB5465bA5ebE224C9912",
                 "permit2": "0x31c2F6fcFf4F8759b3Bd5Bf0e1084A055615c768",
                 "adapter": "0xA7CcB11F1D20D1F915FC220F5Cb1646E4523bB75",
@@ -184,7 +184,7 @@
             },
             "lynex": {
                 "type": "default",
-                "solver": "openocean",
+                "solver": "OpenOcean",
                 "router": "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64",
                 "adapter": "0xd8bC1FF79a642e8D7Fbd0711374F287202fBb3AA",
                 "fee": "0xcb36ed1B1BfAD8F7FC9651f52d21f04A68677423"
@@ -193,43 +193,43 @@
     },
     "42161": {
         "adapter": {
-            "odos-v2": "0x419faf03F5661e0F0471eF9D7935f09534ffc50F",
-            "paraswap-v5": "0x179C4b8e982b5F1365d36CC8d0c1CEB621B7198D",
-            "pancakeswap-v2": "0x917b492557957f5dD3e69c04c8E1Ac3d6948c022",
-            "sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c"
+            "Odos": "0x419faf03F5661e0F0471eF9D7935f09534ffc50F",
+            "Paraswap": "0x179C4b8e982b5F1365d36CC8d0c1CEB621B7198D",
+            "Orbs": "0x917b492557957f5dD3e69c04c8E1Ac3d6948c022",
+            "Sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c"
         },
         "dex": {
             "arbidex": {
                 "type": "default",
-                "solver": "odos-v2",
+                "solver": "Odos",
                 "router": "0xa669e7A0d4b3e4Fa48af2dE86BD4CD7126Be4e13",
                 "adapter": "0xaA66173674F4331e7e672899B3E6aB1190450898",
                 "fee": "0xa0c11852f8A44e32F9EC10AD25986A53842f72Ca"
             },
             "ramses": {
                 "type": "paraswap",
-                "solver": "paraswap-v5",
+                "solver": "Paraswap",
                 "router": "0xDEF171Fe48CF0115B1d80b88dc8eAB59176FEe57",
                 "adapter": "0xf075352f43cd15bA51B0957A4465223EDf6b4Cd8",
                 "fee": "0xB5BaCB60ECDa0bEF809B2A26eC9B4B926835D7af"
             },
             "omni": {
                 "type": "paraswap",
-                "solver": "paraswap-v5",
+                "solver": "Paraswap",
                 "router": "0xDEF171Fe48CF0115B1d80b88dc8eAB59176FEe57",
                 "adapter": "0x41c925E8E4fC65136BDf5322824E0D8c20c4824e",
                 "fee": "0xba5291526c30B097E9F1Fd1Be301E2ab6E0782aa"
             },
             "chronos": {
                 "type": "default",
-                "solver": "odos-v2",
+                "solver": "Odos",
                 "router": "0x19cEeAd7105607Cd444F5ad10dd51356436095a1",
                 "adapter": "0x6a6b8975d1b131EFd0a9b536766EE7E5d4a16CF2",
                 "fee": "0x5729af83240EFecAa18eafaAE82961c2DD045Dbe"
             },
             "pancake": {
                 "type": "p2",
-                "solver": "pancakeswap-v2",
+                "solver": "Orbs",
                 "router": "0xFE6508f0015C778Bdcc1fB5465bA5ebE224C9912",
                 "permit2": "0x31c2F6fcFf4F8759b3Bd5Bf0e1084A055615c768",
                 "adapter": "0xA7CcB11F1D20D1F915FC220F5Cb1646E4523bB75",
@@ -237,7 +237,7 @@
             },
             "sushiswap": {
                 "type": "default",
-                "solver": "sushi",
+                "solver": "Sushi",
                 "router": "0xAC4c6e212A361c968F1725b4d055b47E63F80b75",
                 "adapter": "0x2e43A28FAf083717CcD9B246d97C61E1Bc9914Df",
                 "fee": "0x28F6C9dBE21fFc146Af8d5D15c49Cf48F61140Dc"
@@ -246,20 +246,20 @@
     },
     "43114": {
         "adapter": {
-            "odos-v2": "0x533dA659Ef4C2C1d4c98420e1dbe9C68D8538f50",
-            "kyber-v2": "0x6f4e5b8d7F6b037c62277992c39E7834D7C04596"
+            "Odos": "0x533dA659Ef4C2C1d4c98420e1dbe9C68D8538f50",
+            "Kyber": "0x6f4e5b8d7F6b037c62277992c39E7834D7C04596"
         },
         "dex": {
             "blackhole": {
                 "type": "default",
-                "solver": "kyber-v2",
+                "solver": "Kyber",
                 "router": "0x6131B5fae19EA4f9D964eAc0408E4408b66337b5",
                 "adapter": "0xccdF1D6ce95FeC0F842197470CE8969A678B0A04",
                 "fee": "0x7f8B62520D9B5DA0ED517cc36e8dcb2a356f1928"
             },
             "pangolin": {
                 "type": "default",
-                "solver": "kyber-v2",
+                "solver": "Kyber",
                 "router": "0x6131B5fae19EA4f9D964eAc0408E4408b66337b5",
                 "adapter": "0xf42106eBf985bF49b39eba0114F57FA05e7B52eD",
                 "fee": "0xde92da99D188Ceb54A11ec711EF52D808A6260B5"
@@ -268,18 +268,18 @@
     },
     "5000": {
         "adapter": {
-            "odos-v2": "0x3a0fA0f95ea07026c5f84D8d3444Dd6E15AE1874"
+            "Odos": "0x3a0fA0f95ea07026c5f84D8d3444Dd6E15AE1874"
         },
         "dex": {}
     },
     "80094": {
         "adapter": {
-            "kodiak": "0xcB16237c88A859d46Ae850B97d7D1bdECF482C06"
+            "Kodiak": "0xcB16237c88A859d46Ae850B97d7D1bdECF482C06"
         },
         "dex": {
             "kodiak": {
                 "type": "default",
-                "solver": "kodiak",
+                "solver": "Kodiak",
                 "router": "0x43Dac637c4383f91B4368041E7A8687da3806Cae",
                 "adapter": "0xcB16237c88A859d46Ae850B97d7D1bdECF482C06",
                 "fee": "0xBA47Ec15aFbCF6e7e9F52900632049530bB6bAe4"
@@ -288,20 +288,20 @@
     },
     "1329": {
         "adapter": {
-            "dragon": "0x1e84A9f30607959d2d8b1a04171ef7D9522Ef502",
-            "openocean-v2": "0xc7f07C830e22FCA94bF52F38C6707F9D396c6172"
+            "DragonSwap": "0x1e84A9f30607959d2d8b1a04171ef7D9522Ef502",
+            "OpenOcean": "0xc7f07C830e22FCA94bF52F38C6707F9D396c6172"
         },
         "dex": {
             "dragon": {
                 "type": "default",
-                "solver": "dragon",
+                "solver": "DragonSwap",
                 "router": "0x11DA6463D6Cb5a03411Dbf5ab6f6bc3997Ac7428",
                 "adapter": "0x1e84A9f30607959d2d8b1a04171ef7D9522Ef502",
                 "fee": "0x0dc1E0525202b32e89bA78ed55b1e5cEdB751334"
             },
             "nami": {
                 "type": "default",
-                "solver": "openocean-v2",
+                "solver": "OpenOcean",
                 "router": "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64",
                 "adapter": "0xba56F9A7865d430c8293851D576b5728Ca711ff5",
                 "fee": "0xeB58450e23632003f013568703F54446070E2E80"
@@ -310,12 +310,12 @@
     },
     "14": {
         "adapter": {
-            "spark": "0x00c7617C471Ef69124464CEc318a3b8CC90aE9A7"
+            "SparkDex": "0x00c7617C471Ef69124464CEc318a3b8CC90aE9A7"
         },
         "dex": {
             "spark": {
                 "type": "default",
-                "solver": "spark",
+                "solver": "SparkDex",
                 "router": "0x0f3D8a38D4c74afBebc2c42695642f0e3acb15D3",
                 "adapter": "0x00c7617C471Ef69124464CEc318a3b8CC90aE9A7",
                 "fee": "0xaeA8C3e1a129A77686E115b1a46D9aD8405F7D2b"
@@ -324,20 +324,20 @@
     },
     "143": {
         "adapter": {
-            "openocean-v2": "0xc7f07C830e22FCA94bF52F38C6707F9D396c6172",
-            "kyber-v2": "0x6f4e5b8d7F6b037c62277992c39E7834D7C04596"
+            "OpenOcean": "0xc7f07C830e22FCA94bF52F38C6707F9D396c6172",
+            "Kyber": "0x6f4e5b8d7F6b037c62277992c39E7834D7C04596"
         },
         "dex": {
             "yowie": {
                 "type": "default",
-                "solver": "openocean-v2",
+                "solver": "OpenOcean",
                 "router": "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64",
                 "adapter": "0xCA84Ab5a5A5bf2cff6AC0C835eF049365D13c6cB",
                 "fee": "0x6AF3eE77A3A3257777F5649aFa611b4C7Fd975Ef"
             },
             "pangolin": {
                 "type": "default",
-                "solver": "kyber-v2",
+                "solver": "Kyber",
                 "router": "0x6131B5fae19EA4f9D964eAc0408E4408b66337b5",
                 "adapter": "0xf42106eBf985bF49b39eba0114F57FA05e7B52eD",
                 "fee": "0xde92da99D188Ceb54A11ec711EF52D808A6260B5"
@@ -346,12 +346,12 @@
     },
     "747474": {
         "adapter": {
-            "sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c"
+            "Sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c"
         },
         "dex": {
             "sushiswap": {
                 "type": "default",
-                "solver": "sushi",
+                "solver": "Sushi",
                 "router": "0xAC4c6e212A361c968F1725b4d055b47E63F80b75",
                 "adapter": "0x2e43A28FAf083717CcD9B246d97C61E1Bc9914Df",
                 "fee": "0x28F6C9dBE21fFc146Af8d5D15c49Cf48F61140Dc"
