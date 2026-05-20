@@ -83,21 +83,18 @@ jq --indent 4 --arg description "$description" '
 repermit="$(jq -r '."*".repermit' "$deploy")"
 reactor="$(jq -r '."*".reactor' "$deploy")"
 executor="$(jq -r '."*".executor' "$deploy")"
-# Future universal-agent adapter mode:
-# adapter="$(jq -r '."*".dex.agent.adapter' "$deploy")"
+adapter="$(jq -r '."*".dex.agent.adapter' "$deploy")"
 skeleton_slippage="$(jq -r '.message.witness.slippage' "$template_skeleton")"
 skeleton_freshness="$(jq -r '.message.witness.freshness' "$template_skeleton")"
 
 render() {
   local source_file="$1"
   shift
-  # Future universal-agent adapter mode:
-  # add this sed replacement back into the command below:
-  #     -e "s|<ADAPTER>|$adapter|g" \
   sed "$@" \
     -e "s|<REPERMIT>|$repermit|g" \
     -e "s|<REACTOR>|$reactor|g" \
     -e "s|<EXECUTOR>|$executor|g" \
+    -e "s|<ADAPTER>|$adapter|g" \
     -e "s|<REFERRER>|0x0000000000000000000000000000000000000000|g" \
     -e "s|<ADAPTER_USER_DATA>|0x|g" \
     "$source_file"
