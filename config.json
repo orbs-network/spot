@@ -14,13 +14,20 @@
             "executor": "0x9abc67d936f79e493f1f14050c2f6adb87ec208ff7aaae2e7ae788a7cb4796d7",
             "refinery": "0x9746de29f1dd31b2c8460d71e92a7aefa34911130e61f274f37776e598c48bec",
             "agentAdapter": "0xf6d54cf6a0619f1fb8e1ded91d4c23e7bb9f498c56735fb0c7669423c766219f",
-            "agentFee": "0x151234279af18acc113f70463977058efa2e598b5bfc0c106c75fd638d344c0a"
+            "agentFee": "0x151234279af18acc113f70463977058efa2e598b5bfc0c106c75fd638d344c0a",
+            "utilaAdapter": "0x7671291910b559d7a05ab73ee31dd714d9c6e7b065c9496338bf427182ae5145",
+            "utilaFee": "0x46f797cddb221ecf6279b56f52e2f6360cd721ef95bd5a17dd0ffceffaaf7fd6"
         },
         "dex": {
             "agent": {
                 "type": "universal",
                 "adapter": "0x0002BeFB46587d460AcEA9B2792c4A4c67B9cADa",
                 "fee": "0x0006d9557Ac9Af4f31962896299ba4FaBDaB9fEE"
+            },
+            "utila": {
+                "type": "universal",
+                "adapter": "0x000ADa14B2ECF45Da6Cf1B33dE34e05231E9C76f",
+                "fee": "0x000FEee351263c82501a4dF5f699a8b630ac7f36"
             }
         }
     },

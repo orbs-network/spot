@@ -94,27 +94,16 @@ dex_component_salt_for() {
   [[ -z $dex ]] && { printf 'error: missing dex name for salt\n' >&2; exit 1; }
   [[ -z $component ]] && { printf 'error: missing dex component for salt\n' >&2; exit 1; }
 
-  if [[ $dex != agent ]]; then
-    dex_salt_for "$dex"
+  local suffix="${(U)component[1,1]}${component[2,-1]}"
+  local key="${dex}${suffix}" value
+
+  value=$(salt_for "$key")
+  if [[ -n $value && $value != null ]]; then
+    printf '%s' "$value"
     return 0
   fi
 
-  local key value
-  case $component in
-    adapter) key=agentAdapter ;;
-    fee) key=agentFee ;;
-    *)
-      printf 'error: unsupported agent dex component %s\n' "$component" >&2
-      exit 1
-      ;;
-  esac
-
-  value=$(salt_for "$key")
-  if [[ -z $value || $value == null ]]; then
-    printf 'error: config.*.salt.%s is required for agent %s deployment\n' "$key" "$component" >&2
-    exit 1
-  fi
-  printf '%s' "$value"
+  dex_salt_for "$dex"
 }
 
 adapter_salt_for() {
@@ -141,15 +130,9 @@ update_config() {
     local chain dex field
     local IFS=':'
     read -r _ chain dex field <<< "$target"
-    if [[ $dex == agent ]]; then
-      jq --indent 4 --arg chain "$chain" --arg field "$field" --arg addr "$address" '
-        setpath([$chain, "dex", "agent", $field]; $addr)
-      ' "$CONFIG_FILE" >"$tmp"
-    else
-      jq --indent 4 --arg chain "$chain" --arg dex "$dex" --arg field "$field" --arg addr "$address" '
-        setpath([$chain, "dex", $dex, $field]; $addr)
-      ' "$CONFIG_FILE" >"$tmp"
-    fi
+    jq --indent 4 --arg chain "$chain" --arg dex "$dex" --arg field "$field" --arg addr "$address" '
+      setpath([$chain, "dex", $dex, $field]; $addr)
+    ' "$CONFIG_FILE" >"$tmp"
   fi
   mv "$tmp" "$CONFIG_FILE"
   printf 'Updated %s -> %s\n\n' "$target" "$address"
@@ -167,17 +150,27 @@ should_update_config() {
   $broadcast && ! $debug
 }
 
+forge_args() {
+  local has_rpc_url=false arg
+  for arg in "${args[@]}"; do
+    case $arg in
+      --rpc-url|--rpc-url=*|--fork-url|--fork-url=*|-r) has_rpc_url=true ;;
+    esac
+  done
+
+  if (( ${#args[@]} > 0 )); then
+    printf '%s\n' "${args[@]}"
+  fi
+  if ! $has_rpc_url && [[ -n ${ETH_RPC_URL:-} ]]; then
+    printf '%s\n' --rpc-url "$ETH_RPC_URL"
+  fi
+}
+
 dex_field_for() {
   local chain=$1 dex=$2 field=$3
-  if [[ $dex == agent ]]; then
-    jq -r --arg chain "$chain" --arg field "$field" '
-      .[$chain].dex.agent[$field] // ."*".dex.agent[$field] // ""
-    ' "$CONFIG_FILE"
-  else
-    jq -r --arg chain "$chain" --arg dex "$dex" --arg field "$field" '
-      .[$chain].dex[$dex][$field] // ""
-    ' "$CONFIG_FILE"
-  fi
+  jq -r --arg chain "$chain" --arg dex "$dex" --arg field "$field" '
+    .[$chain].dex[$dex][$field] // ."*".dex[$dex][$field] // ""
+  ' "$CONFIG_FILE"
 }
 
 adapter_field_for() {
@@ -262,8 +255,11 @@ remember_runtime_address() {
 }
 
 deploy_core_contracts() {
+  local -a selected=("$@")
+  (( ${#selected[@]} == 0 )) && selected=("${components[@]}")
+
   local key script
-  for key in "${components[@]}"; do
+  for key in "${selected[@]}"; do
     if [[ $key == wm ]]; then
       script=DeployWM
     else
@@ -283,12 +279,12 @@ ensure_core_contracts_for_dex() {
     [[ -n $address ]] || missing+=("$key")
   done
 
-  if [[ -n ${ETH_FROM:-} ]]; then
-    deploy_core_contracts
-    return 0
-  fi
-
   if (( ${#missing[@]} > 0 )); then
+    if [[ -n ${ETH_FROM:-} ]]; then
+      deploy_core_contracts "${missing[@]}"
+      return 0
+    fi
+
     printf 'error: ETH_FROM is required to auto-deploy missing core contracts before deploying dex %s on chain %s; missing config for: %s\n' \
       "$dex" "$chain_id" "${(j:, :)missing}" >&2
     exit 1
@@ -301,6 +297,7 @@ run() {
 
   local -a env_assignments=("$@")
   local -a runtime_assignments=()
+  local -a script_args=()
   local tmp=$(mktemp) raw_tmp=$(mktemp)
   local load_opts=(-u)
   local runtime_assignment
@@ -313,6 +310,9 @@ run() {
     [[ -n $runtime_assignment ]] || continue
     runtime_assignments+=("$runtime_assignment")
   done < <(runtime_env_assignments)
+  while IFS= read -r runtime_assignment; do
+    script_args+=("$runtime_assignment")
+  done < <(forge_args)
   if (( ${#runtime_assignments[@]} > 0 )); then
     env_assignments=("${runtime_assignments[@]}" "${env_assignments[@]}")
   fi
@@ -321,7 +321,7 @@ run() {
   if (( ${#env_assignments[@]} > 0 )); then
     cmd+=(env "${env_assignments[@]}")
   fi
-  cmd+=(forge script "$script" "${args[@]}" --json)
+  cmd+=(forge script "$script" "${script_args[@]}" --json)
 
   if ! "${cmd[@]}" >"$raw_tmp"; then
     cat "$raw_tmp"
@@ -363,12 +363,9 @@ deploy_dex() {
 
   local adapter_type
   if ! adapter_type=$(jq -er --arg chain "$chain_id" --arg dex "$dex" '
-      if $dex == "agent" then
-        .[$chain].dex.agent.type // ."*".dex.agent.type // error("agent dex is not configured")
-      else
-        .[$chain].dex[$dex].type
-        // error("dex \"" + $dex + "\" is not configured for chain " + $chain)
-      end
+      .[$chain].dex[$dex].type
+      // ."*".dex[$dex].type
+      // error("dex \"" + $dex + "\" is not configured for chain " + $chain)
     ' "$CONFIG_FILE"); then
     exit 1
   fi
