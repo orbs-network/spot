@@ -4,7 +4,7 @@
 
 Spot provides non-custodial market, limit, TWAP, stop-loss, take-profit, and delayed-start orders on EVM chains, backed by immutable onchain contracts.
 
-**🔒 [Security Audit Report](./Audit-AstraSec.pdf)** by AstraSec
+**🔒 Security Audit Reports:** [Initial AstraSec audit](./Audit-AstraSec.pdf) and [updated AstraSec audit](./Audit2-AstraSec.pdf)
 
 ## Why Spot
 
@@ -51,7 +51,7 @@ A typical order lifecycle is:
 
 ## Security
 
-Spot's contracts were professionally audited. See the **[Security Audit Report](./Audit-AstraSec.pdf)**.
+Spot's contracts were professionally audited by AstraSec. See the **[initial security audit report](./Audit-AstraSec.pdf)** and **[updated security audit report](./Audit2-AstraSec.pdf)**.
 Spot is also oracle-protected: execution depends on cosigned trigger and market price data, freshness windows, and slippage checks.
 
 ### Access Controls
