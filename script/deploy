@@ -215,6 +215,7 @@ deploy_script_for_adapter_type() {
   case $adapter_type in
     default) printf 'DeployDefaultAdapter' ;;
     p2) printf 'DeployP2Adapter' ;;
+    dynamicp2) printf 'DeployDynamicP2Adapter' ;;
     paraswap) printf 'DeployParaswapAdapter' ;;
     universal) printf 'DeployUniversalAdapter' ;;
     *) return 1 ;;
@@ -411,6 +412,16 @@ deploy_dex() {
         fi
         adapter_env=("ROUTER=$router" "PERMIT2=$permit2")
         ;;
+      dynamicp2)
+        local permit2
+        permit2=$(dex_field_for "$chain_id" "$dex" permit2)
+        if [[ -z $permit2 ]]; then
+          printf 'error: PERMIT2 is required for dynamicp2 dex %s on chain %s (set config.%s.dex.%s.permit2)\n' \
+            "$dex" "$chain_id" "$chain_id" "$dex" >&2
+          exit 1
+        fi
+        adapter_env=("PERMIT2=$permit2")
+        ;;
       universal)
         ;;
     esac
@@ -473,6 +484,13 @@ deploy_adapter() {
       fi
       adapter_env=("ROUTER=$router" "PERMIT2=$permit2")
       ;;
+    dynamicp2)
+      if [[ -z $permit2 ]]; then
+        printf 'error: PERMIT2 is required for dynamicp2 solver %s on chain %s\n' "$solver" "$chain_id" >&2
+        exit 1
+      fi
+      adapter_env=("PERMIT2=$permit2")
+      ;;
     universal)
       ;;
   esac
@@ -507,6 +525,7 @@ adapter_contract_for() {
   case $adapter_type in
     default) printf 'DefaultDexAdapter' ;;
     p2) printf 'P2DexAdapter' ;;
+    dynamicp2) printf 'DynamicP2DexAdapter' ;;
     paraswap) printf 'ParaswapDexAdapter' ;;
     universal) printf 'UniversalAdapter' ;;
     *) return 1 ;;

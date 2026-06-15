@@ -43,6 +43,11 @@
                 "router": "0xAC4c6e212A361c968F1725b4d055b47E63F80b75",
                 "adapter": "0x2e43A28FAf083717CcD9B246d97C61E1Bc9914Df",
                 "fee": "0x28F6C9dBE21fFc146Af8d5D15c49Cf48F61140Dc"
+            },
+            "ring": {
+                "type": "dynamicp2",
+                "solver": "Ring",
+                "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3"
             }
         }
     },
@@ -79,6 +84,11 @@
                 "router": "0x89b8AA89FDd0507a99d334CBe3C808fAFC7d850E",
                 "adapter": "0x6236a466CE5c368DC6686d69cAcf5561196B76ef",
                 "fee": "0x4E7454909eB6D539111D56b50d68897E933D2d11"
+            },
+            "ring": {
+                "type": "dynamicp2",
+                "solver": "Ring",
+                "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3"
             }
         }
     },
@@ -134,6 +144,16 @@
             }
         }
     },
+    "130": {
+        "adapter": {},
+        "dex": {
+            "ring": {
+                "type": "dynamicp2",
+                "solver": "Ring",
+                "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3"
+            }
+        }
+    },
     "8453": {
         "adapter": {
             "Odos": "0x1c947387AFC3435135e3da51ccEAB20eD5377DeA",
@@ -171,6 +191,11 @@
                 "router": "0xAC4c6e212A361c968F1725b4d055b47E63F80b75",
                 "adapter": "0x2e43A28FAf083717CcD9B246d97C61E1Bc9914Df",
                 "fee": "0x28F6C9dBE21fFc146Af8d5D15c49Cf48F61140Dc"
+            },
+            "ring": {
+                "type": "dynamicp2",
+                "solver": "Ring",
+                "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3"
             }
         }
     },
@@ -248,6 +273,11 @@
                 "router": "0xAC4c6e212A361c968F1725b4d055b47E63F80b75",
                 "adapter": "0x2e43A28FAf083717CcD9B246d97C61E1Bc9914Df",
                 "fee": "0x28F6C9dBE21fFc146Af8d5D15c49Cf48F61140Dc"
+            },
+            "ring": {
+                "type": "dynamicp2",
+                "solver": "Ring",
+                "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3"
             }
         }
     },
@@ -278,6 +308,26 @@
             "Odos": "0x3a0fA0f95ea07026c5f84D8d3444Dd6E15AE1874"
         },
         "dex": {}
+    },
+    "999": {
+        "adapter": {},
+        "dex": {
+            "ring": {
+                "type": "dynamicp2",
+                "solver": "Ring",
+                "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3"
+            }
+        }
+    },
+    "4326": {
+        "adapter": {},
+        "dex": {
+            "ring": {
+                "type": "dynamicp2",
+                "solver": "Ring",
+                "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3"
+            }
+        }
     },
     "80094": {
         "adapter": {
@@ -348,6 +398,16 @@
                 "router": "0x6131B5fae19EA4f9D964eAc0408E4408b66337b5",
                 "adapter": "0xf42106eBf985bF49b39eba0114F57FA05e7B52eD",
                 "fee": "0xde92da99D188Ceb54A11ec711EF52D808A6260B5"
+            }
+        }
+    },
+    "196": {
+        "adapter": {},
+        "dex": {
+            "ring": {
+                "type": "dynamicp2",
+                "solver": "Ring",
+                "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3"
             }
         }
     },
