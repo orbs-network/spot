@@ -34,7 +34,8 @@
     "1": {
         "adapter": {
             "Odos": "0x1ae80D14C52F82c09a54C423e6f9D5Fb737089C8",
-            "Sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c"
+            "Sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c",
+            "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B"
         },
         "dex": {
             "sushiswap": {
@@ -47,20 +48,32 @@
             "ring": {
                 "type": "dynamicp2",
                 "solver": "Ring",
-                "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3"
+                "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+                "adapter": "0x028fa69049aB68EC42064Eb18896D587dD41Af2a",
+                "fee": "0xA04329696aAd1417c75Cf6d91342815001999B21"
             }
         }
     },
     "10": {
         "adapter": {
-            "Odos": "0xc7Ec90152fd5A6210570cb04C4Ab099Bdac352af"
+            "Odos": "0xc7Ec90152fd5A6210570cb04C4Ab099Bdac352af",
+            "Sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c"
         },
-        "dex": {}
+        "dex": {
+            "sushiswap": {
+                "type": "default",
+                "solver": "Sushi",
+                "router": "0xAC4c6e212A361c968F1725b4d055b47E63F80b75",
+                "adapter": "0x2e43A28FAf083717CcD9B246d97C61E1Bc9914Df",
+                "fee": "0x28F6C9dBE21fFc146Af8d5D15c49Cf48F61140Dc"
+            }
+        }
     },
     "56": {
         "adapter": {
             "Odos": "0x6c17cc2984A87BD8b002c6E3C08dBB8c8Eb89E48",
-            "Orbs": "0xaf3532dca7b4a75cD06671614C093e9e8fb5b1F2"
+            "Orbs": "0xaf3532dca7b4a75cD06671614C093e9e8fb5b1F2",
+            "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B"
         },
         "dex": {
             "thena": {
@@ -88,7 +101,9 @@
             "ring": {
                 "type": "dynamicp2",
                 "solver": "Ring",
-                "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3"
+                "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+                "adapter": "0x028fa69049aB68EC42064Eb18896D587dD41Af2a",
+                "fee": "0xA04329696aAd1417c75Cf6d91342815001999B21"
             }
         }
     },
@@ -145,12 +160,16 @@
         }
     },
     "130": {
-        "adapter": {},
+        "adapter": {
+            "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B"
+        },
         "dex": {
             "ring": {
                 "type": "dynamicp2",
                 "solver": "Ring",
-                "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3"
+                "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+                "adapter": "0x028fa69049aB68EC42064Eb18896D587dD41Af2a",
+                "fee": "0xA04329696aAd1417c75Cf6d91342815001999B21"
             }
         }
     },
@@ -160,7 +179,8 @@
             "Orbs": "0x917b492557957f5dD3e69c04c8E1Ac3d6948c022",
             "Kyber": "0x6f4e5b8d7F6b037c62277992c39E7834D7C04596",
             "TrebleSwap": "0x6f4938535879c668A797F2a6e9B912c54f9D43Cf",
-            "Sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c"
+            "Sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c",
+            "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B"
         },
         "dex": {
             "pancake": {
@@ -195,7 +215,9 @@
             "ring": {
                 "type": "dynamicp2",
                 "solver": "Ring",
-                "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3"
+                "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+                "adapter": "0x028fa69049aB68EC42064Eb18896D587dD41Af2a",
+                "fee": "0xA04329696aAd1417c75Cf6d91342815001999B21"
             }
         }
     },
@@ -228,7 +250,8 @@
             "Odos": "0x419faf03F5661e0F0471eF9D7935f09534ffc50F",
             "Paraswap": "0x179C4b8e982b5F1365d36CC8d0c1CEB621B7198D",
             "Orbs": "0x917b492557957f5dD3e69c04c8E1Ac3d6948c022",
-            "Sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c"
+            "Sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c",
+            "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B"
         },
         "dex": {
             "arbidex": {
@@ -277,7 +300,9 @@
             "ring": {
                 "type": "dynamicp2",
                 "solver": "Ring",
-                "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3"
+                "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+                "adapter": "0x028fa69049aB68EC42064Eb18896D587dD41Af2a",
+                "fee": "0xA04329696aAd1417c75Cf6d91342815001999B21"
             }
         }
     },
@@ -305,27 +330,46 @@
     },
     "5000": {
         "adapter": {
-            "Odos": "0x3a0fA0f95ea07026c5f84D8d3444Dd6E15AE1874"
+            "Odos": "0x3a0fA0f95ea07026c5f84D8d3444Dd6E15AE1874",
+            "Sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c"
         },
-        "dex": {}
+        "dex": {
+            "sushiswap": {
+                "type": "default",
+                "solver": "Sushi",
+                "router": "0xAC4c6e212A361c968F1725b4d055b47E63F80b75",
+                "adapter": "0x2e43A28FAf083717CcD9B246d97C61E1Bc9914Df",
+                "fee": "0x28F6C9dBE21fFc146Af8d5D15c49Cf48F61140Dc"
+            }
+        }
     },
     "999": {
-        "adapter": {},
+        "reactor": "0x826dD029Becf04868aae378aE4C0cf1b9DEa354B",
+        "executor": "0x71dd93213714132868123798Cbe103d2f65c81A1",
+        "adapter": {
+            "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B"
+        },
         "dex": {
             "ring": {
                 "type": "dynamicp2",
                 "solver": "Ring",
-                "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3"
+                "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+                "adapter": "0x028fa69049aB68EC42064Eb18896D587dD41Af2a",
+                "fee": "0xA04329696aAd1417c75Cf6d91342815001999B21"
             }
         }
     },
     "4326": {
-        "adapter": {},
+        "adapter": {
+            "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B"
+        },
         "dex": {
             "ring": {
                 "type": "dynamicp2",
                 "solver": "Ring",
-                "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3"
+                "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+                "adapter": "0x028fa69049aB68EC42064Eb18896D587dD41Af2a",
+                "fee": "0xA04329696aAd1417c75Cf6d91342815001999B21"
             }
         }
     },
@@ -402,12 +446,16 @@
         }
     },
     "196": {
-        "adapter": {},
+        "adapter": {
+            "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B"
+        },
         "dex": {
             "ring": {
                 "type": "dynamicp2",
                 "solver": "Ring",
-                "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3"
+                "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+                "adapter": "0x028fa69049aB68EC42064Eb18896D587dD41Af2a",
+                "fee": "0xA04329696aAd1417c75Cf6d91342815001999B21"
             }
         }
     },
