@@ -16,7 +16,9 @@
             "agentAdapter": "0xf6d54cf6a0619f1fb8e1ded91d4c23e7bb9f498c56735fb0c7669423c766219f",
             "agentFee": "0x151234279af18acc113f70463977058efa2e598b5bfc0c106c75fd638d344c0a",
             "utilaAdapter": "0x7671291910b559d7a05ab73ee31dd714d9c6e7b065c9496338bf427182ae5145",
-            "utilaFee": "0x46f797cddb221ecf6279b56f52e2f6360cd721ef95bd5a17dd0ffceffaaf7fd6"
+            "utilaFee": "0x46f797cddb221ecf6279b56f52e2f6360cd721ef95bd5a17dd0ffceffaaf7fd6",
+            "efAdapter": "0xa5425e0f84a7cf12c4213f57396810d808d88e43a65210786bd0d9a98a314728",
+            "efFee": "0x14387b821c54f18e2a9351887a92cc79164a5ea0b88cfc3f36741eae6d4fd815"
         },
         "dex": {
             "agent": {
@@ -28,6 +30,11 @@
                 "type": "universal",
                 "adapter": "0x000ADa14B2ECF45Da6Cf1B33dE34e05231E9C76f",
                 "fee": "0x000FEee351263c82501a4dF5f699a8b630ac7f36"
+            },
+            "ef": {
+                "type": "universal",
+                "adapter": "0xeF1B796D708BD776F6b377E93eAd8Ca5fA0C3117",
+                "fee": "0xeF1D677d7aE1a066beb26cC1C74E31C082B75FEf"
             }
         }
     },
