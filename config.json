@@ -18,7 +18,9 @@
             "utilaAdapter": "0x7671291910b559d7a05ab73ee31dd714d9c6e7b065c9496338bf427182ae5145",
             "utilaFee": "0x46f797cddb221ecf6279b56f52e2f6360cd721ef95bd5a17dd0ffceffaaf7fd6",
             "efAdapter": "0xa5425e0f84a7cf12c4213f57396810d808d88e43a65210786bd0d9a98a314728",
-            "efFee": "0x14387b821c54f18e2a9351887a92cc79164a5ea0b88cfc3f36741eae6d4fd815"
+            "efFee": "0x14387b821c54f18e2a9351887a92cc79164a5ea0b88cfc3f36741eae6d4fd815",
+            "htAdapter": "0x2ec50a8a136049da76c16f3dd12a8ed1b23f2bc91aca73c6a20cc8344e34f998",
+            "htFee": "0x2f902a86a7f6abeedc073e76cd33d4737f25189e18c8f450f16d2ffe14405242"
         },
         "dex": {
             "agent": {
@@ -35,6 +37,11 @@
                 "type": "universal",
                 "adapter": "0xeF1B796D708BD776F6b377E93eAd8Ca5fA0C3117",
                 "fee": "0xeF1D677d7aE1a066beb26cC1C74E31C082B75FEf"
+            },
+            "ht": {
+                "type": "universal",
+                "adapter": "0xA560a960C3b7784f5c335C33028D31596b91650b",
+                "fee": "0xE7a926C0cb01aCCE74e5d4FCeB7CA1699e200608"
             }
         }
     },
@@ -80,7 +87,8 @@
         "adapter": {
             "Odos": "0x6c17cc2984A87BD8b002c6E3C08dBB8c8Eb89E48",
             "Orbs": "0xaf3532dca7b4a75cD06671614C093e9e8fb5b1F2",
-            "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B"
+            "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B",
+            "OpenOcean": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d"
         },
         "dex": {
             "thena": {
@@ -111,6 +119,13 @@
                 "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
                 "adapter": "0x028fa69049aB68EC42064Eb18896D587dD41Af2a",
                 "fee": "0xA04329696aAd1417c75Cf6d91342815001999B21"
+            },
+            "topaz": {
+                "type": "default",
+                "solver": "OpenOcean",
+                "router": "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64",
+                "adapter": "0x671c59dCbc8ee3a08D15e1D03a88032740869919",
+                "fee": "0xDbB17E23d12cd3C0AA856528F7177a68f98fFd5B"
             }
         }
     },

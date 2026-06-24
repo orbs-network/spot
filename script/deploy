@@ -44,7 +44,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     -a|--adapter)
       [[ $# -lt 2 || -z $2 ]] && { printf 'error: missing adapter solver\n' >&2; exit 1; }
-      adapter_solver=${2:l}
+      adapter_solver=$2
       shift 2
       ;;
     -v|--verify)
