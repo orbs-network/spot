@@ -17,6 +17,7 @@
     ],
     "scripts": {
         "fmt": "forge fmt",
+        "config": "./script/config",
         "sync": "./script/sync.zsh",
         "build": "npm run sync && forge build --extra-output-files abi",
         "test": "forge test",

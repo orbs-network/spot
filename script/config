@@ -1,0 +1,472 @@
+#!/usr/bin/env zsh
+set -euo pipefail
+
+root="${0:A:h:h}"
+self="${0:A}"
+config="$root/config.json"
+skill_file="$root/skill/SKILL.md"
+chain_args=()
+dex_rows=()
+issue_rows=()
+supported_order=()
+typeset -A supported_names
+typeset -A code_cache
+code_state_result=""
+
+usage() {
+  print 'Usage: script/config [CHAIN_ID|* ...]'
+  print
+  print 'Options:'
+  print '  -h, --help     Show this help message.'
+  print
+  print 'CHAIN_ID defaults to *; quote "*" in shells so it expands to all Spot-supported chains.'
+}
+
+die() {
+  print -u2 "error: $*"
+  exit 1
+}
+
+parse_args() {
+  while (( $# > 0 )); do
+    case $1 in
+      -h|--help)
+        usage
+        exit 0
+        ;;
+      --)
+        shift
+        chain_args+=("$@")
+        break
+        ;;
+      --*)
+        die "unknown option: $1"
+        ;;
+      *)
+        chain_args+=("$1")
+        shift
+        ;;
+    esac
+  done
+}
+
+load_supported_chains() {
+  local chain_id chain_name
+  while IFS=$'\t' read -r chain_id chain_name; do
+    [[ -n $chain_id ]] || continue
+    supported_order+=("$chain_id")
+    supported_names[$chain_id]=$chain_name
+  done < <(
+    awk '
+      /^## Supported Chains[[:space:]]*$/ {
+        capture = 1
+        next
+      }
+      capture && /^## / {
+        exit
+      }
+      capture && /^[0-9]+[.][[:space:]]/ {
+        if (!match($0, /`[0-9]+`/)) {
+          next
+        }
+        id = substr($0, RSTART + 1, RLENGTH - 2)
+        name = $0
+        sub(/^[0-9]+[.][[:space:]]*/, "", name)
+        sub(/[[:space:]]*-[[:space:]]*`[0-9]+`.*/, "", name)
+        print id "\t" name
+      }
+    ' "$skill_file"
+  )
+}
+
+selected_chains() {
+  local -A seen=()
+  local -a selected=()
+  local arg chain_id
+
+  (( ${#chain_args[@]} > 0 )) || chain_args=("*")
+
+  for arg in "${chain_args[@]}"; do
+    if [[ $arg == "*" ]]; then
+      for chain_id in "${supported_order[@]}"; do
+        [[ -z ${seen[$chain_id]-} ]] || continue
+        selected+=("$chain_id")
+        seen[$chain_id]=1
+      done
+      continue
+    fi
+
+    [[ -z ${seen[$arg]-} ]] || continue
+    selected+=("$arg")
+    seen[$arg]=1
+  done
+
+  printf '%s\n' "${selected[@]}"
+}
+
+print_table() {
+  awk -F '\t' '
+    {
+      row_count++
+      if (NF > field_count) {
+        field_count = NF
+      }
+      for (i = 1; i <= NF; i++) {
+        cell[row_count, i] = $i
+        if (length($i) > width[i]) {
+          width[i] = length($i)
+        }
+      }
+    }
+    function border(left, middle, right,    i, j) {
+      printf "%s", left
+      for (i = 1; i <= field_count; i++) {
+        for (j = 0; j < width[i] + 2; j++) {
+          printf "─"
+        }
+        printf "%s", (i == field_count ? right : middle)
+      }
+      printf "\n"
+    }
+    END {
+      if (row_count == 0) {
+        exit
+      }
+      border("┌", "┬", "┐")
+      for (r = 1; r <= row_count; r++) {
+        printf "│"
+        for (i = 1; i <= field_count; i++) {
+          printf " %-*s │", width[i], cell[r, i]
+        }
+        printf "\n"
+        if (r == 1) {
+          border("├", "┼", "┤")
+        }
+      }
+      border("└", "┴", "┘")
+    }
+  '
+}
+
+configured_addresses() {
+  local chain_id=$1
+  jq -r --arg chain "$chain_id" '
+    . as $cfg
+    |
+    def core_fields: ["wm", "repermit", "cosigner", "reactor", "executor", "refinery"];
+    def core_value($field): ($cfg[$chain][$field] // $cfg["*"][$field] // "");
+    def merged_dex: (($cfg["*"].dex // {}) + ($cfg[$chain].dex // {}));
+    def required_address_fields($dex):
+      ($dex.value.type // "") as $type
+      | if $type == "default" or $type == "paraswap" then
+          ["router", "adapter", "fee"]
+        elif $type == "p2" then
+          ["router", "permit2", "adapter", "fee"]
+        elif $type == "dynamicp2" then
+          ["permit2", "adapter", "fee"]
+        elif $type == "universal" then
+          ["adapter", "fee"]
+        else
+          []
+        end;
+
+    (
+      core_fields[]
+      | . as $field
+      | (core_value($field)) as $addr
+      | select(($addr | tostring | length) > 0)
+      | ["core", $field, $addr]
+      | @tsv
+    ),
+    (
+      ($cfg[$chain].adapter // {})
+      | to_entries[]
+      | select(((.value // "") | tostring | length) > 0)
+      | ["adapter", .key, .value]
+      | @tsv
+    ),
+    (
+      merged_dex
+      | to_entries[]
+      | . as $dex
+      | required_address_fields($dex)[]
+      | . as $field
+      | ($dex.value[$field] // "") as $addr
+      | select(($addr | tostring | length) > 0)
+      | ["dex", ($dex.key + "." + $field), $addr]
+      | @tsv
+    )
+  ' "$config"
+}
+
+dex_configs() {
+  local chain_id=$1
+  jq -r --arg chain "$chain_id" '
+    . as $cfg
+    |
+    def merged_dex: (($cfg["*"].dex // {}) + ($cfg[$chain].dex // {}));
+    def required_fields($dex):
+      ($dex.value.type // "") as $type
+      | if $type == "default" or $type == "paraswap" then
+          ["solver", "router", "adapter", "fee"]
+        elif $type == "p2" then
+          ["solver", "router", "permit2", "adapter", "fee"]
+        elif $type == "dynamicp2" then
+          ["solver", "permit2", "adapter", "fee"]
+        elif $type == "universal" then
+          ["adapter", "fee"]
+        else
+          []
+        end;
+    def address_fields($dex):
+      ($dex.value.type // "") as $type
+      | if $type == "default" or $type == "paraswap" then
+          ["router", "adapter", "fee"]
+        elif $type == "p2" then
+          ["router", "permit2", "adapter", "fee"]
+        elif $type == "dynamicp2" then
+          ["permit2", "adapter", "fee"]
+        elif $type == "universal" then
+          ["adapter", "fee"]
+        else
+          []
+        end;
+    def known_types: ["default", "paraswap", "p2", "dynamicp2", "universal"];
+
+    merged_dex
+    | to_entries[]
+    | . as $dex
+    | ($dex.value.type // "") as $type
+    | if (known_types | index($type)) then
+        (required_fields($dex) | map(select((($dex.value[.] // "") | tostring | length) == 0))) as $missing
+        | [
+            $dex.key,
+            $type,
+            ($dex.value.solver // "-"),
+            (if ($missing | length) == 0 then "ok" else "missing " + ($missing | join(",")) end),
+            (address_fields($dex)
+              | map(select((($dex.value[.] // "") | tostring | length) > 0))
+              | map(. + "=" + ($dex.value[.] | tostring))
+              | join(";"))
+          ]
+      else
+        [$dex.key, ($type | tostring), ($dex.value.solver // "-"), ("bad type " + ($type | tostring)), ""]
+      end
+    | @tsv
+  ' "$config"
+}
+
+add_issue() {
+  local chain_id=$1 target=$2 detail=$3
+  issue_rows+=("${chain_id}"$'\t'"${target}"$'\t'"${detail}")
+}
+
+code_state() {
+  local chain_id=$1 address=$2
+  local cache_key="${chain_id}:${address:l}"
+  local code probe_result
+
+  if [[ -n ${code_cache[$cache_key]-} ]]; then
+    code_state_result=${code_cache[$cache_key]}
+    return 0
+  fi
+
+  if ! code=$(cast code "$address" 2>/dev/null); then
+    probe_result=rpc-error
+  elif [[ -z $code || $code == "0x" ]]; then
+    probe_result=missing
+  else
+    probe_result=ok
+  fi
+
+  code_cache[$cache_key]=$probe_result
+  code_state_result=$probe_result
+}
+
+probe_chain() {
+  local chain_id=$1
+  local group target address probe_result
+
+  if ! command -v cast >/dev/null 2>&1; then
+    add_issue "$chain_id" "onchain" "cast not found"
+    return 0
+  fi
+
+  if ! command -v chain >/dev/null 2>&1; then
+    add_issue "$chain_id" "onchain" "chain command not found"
+    return 0
+  fi
+
+  if ! chain "$chain_id" >/dev/null 2>&1; then
+    add_issue "$chain_id" "onchain" "chain context failed"
+    return 0
+  fi
+
+  while IFS=$'\t' read -r group target address; do
+    [[ -n $group && -n $address ]] || continue
+
+    case $group in
+      core|adapter|dex) ;;
+      *) continue ;;
+    esac
+
+    code_state "$chain_id" "$address"
+    probe_result=$code_state_result
+    if [[ $probe_result != ok ]]; then
+      add_issue "$chain_id" "$group:$target" "$probe_result at $address"
+    fi
+  done < <(configured_addresses "$chain_id")
+}
+
+dex_onchain_status() {
+  local chain_id=$1 pairs=$2
+  local pair field address probe_result
+  local -a bad=()
+
+  [[ -n $pairs ]] || { print -r -- "n/a"; return 0; }
+
+  for pair in "${(@s:;:)pairs}"; do
+    field=${pair%%=*}
+    address=${pair#*=}
+    [[ -n $field && -n $address ]] || continue
+    code_state "$chain_id" "$address"
+    probe_result=$code_state_result
+    [[ $probe_result == ok ]] || bad+=("${field}:${probe_result}")
+  done
+
+  if (( ${#bad[@]} == 0 )); then
+    print -r -- "ok"
+  else
+    print -r -- "${(j:, :)bad}"
+  fi
+}
+
+append_dex_rows() {
+  local chain_id=$1 dex dex_type solver config_state pairs onchain_state issue_text
+
+  while IFS=$'\t' read -r dex dex_type solver config_state pairs; do
+    [[ -n $dex ]] || continue
+    onchain_state=$(dex_onchain_status "$chain_id" "$pairs")
+    issue_text=""
+    [[ $config_state == ok ]] || issue_text="config $config_state"
+    if [[ $onchain_state != ok ]]; then
+      [[ -n $issue_text ]] && issue_text+="; "
+      issue_text+="onchain $onchain_state"
+    fi
+    [[ -n $issue_text ]] || issue_text="-"
+    dex_rows+=("${chain_id}"$'\t'"${dex}"$'\t'"${dex_type}"$'\t'"${solver}"$'\t'"${issue_text}")
+  done < <(dex_configs "$chain_id")
+}
+
+append_chain_data() {
+  local chain_id=$1
+
+  if [[ -z ${supported_names[$chain_id]-} ]]; then
+    add_issue "$chain_id" "skill" "not listed in skill/SKILL.md Supported Chains"
+  fi
+
+  if ! jq -e --arg chain "$chain_id" 'has($chain)' "$config" >/dev/null; then
+    add_issue "$chain_id" "config" "chain entry missing from config.json"
+  fi
+
+  probe_chain "$chain_id"
+  append_dex_rows "$chain_id"
+}
+
+emit_chain_record() {
+  local chain_id=$1 dex_row issue
+
+  append_chain_data "$chain_id"
+  for dex_row in "${dex_rows[@]}"; do
+    printf 'dex\t%s\n' "$dex_row"
+  done
+  for issue in "${issue_rows[@]}"; do
+    printf 'issue\t%s\n' "$issue"
+  done
+}
+
+collect_chain_records() {
+  local -a selected=("$@")
+
+  if (( ${#selected[@]} == 1 )); then
+    emit_chain_record "${selected[1]}"
+    return 0
+  fi
+
+  command -v parallel >/dev/null 2>&1 || die 'parallel is required'
+  SPOT_CONFIG_ROW_MODE=1 parallel --keep-order "$self" ::: "${selected[@]}"
+}
+
+collect_results() {
+  local -a selected=("$@")
+  local record kind payload
+
+  while IFS= read -r record; do
+    [[ -n $record ]] || continue
+    kind=${record%%$'\t'*}
+    payload=${record#*$'\t'}
+    case $kind in
+      dex) dex_rows+=("$payload") ;;
+      issue) issue_rows+=("$payload") ;;
+    esac
+  done < <(collect_chain_records "${selected[@]}")
+}
+
+print_integrations() {
+  printf '%s\n' "${dex_rows[@]}" | awk -F '\t' '
+    NF >= 5 {
+      key = $2 "\t" $3 "\t" $4
+      if (!(key in seen)) {
+        seen[key] = 1
+        order[++count] = key
+      }
+      chains[key] = chains[key] ? chains[key] "," $1 : $1
+      if ($5 != "-") {
+        issue = $1 ":" $5
+        issues[key] = issues[key] ? issues[key] "; " issue : issue
+      }
+    }
+    END {
+      print "integration\ttype\tsolver\tchains\tissues"
+      for (i = 1; i <= count; i++) {
+        key = order[i]
+        split(key, parts, "\t")
+        print parts[1] "\t" parts[2] "\t" parts[3] "\t" chains[key] "\t" (issues[key] ? issues[key] : "-")
+      }
+    }
+  ' | print_table
+}
+
+main() {
+  local -a selected=()
+
+  parse_args "$@"
+  [[ -f $config ]] || die "config file not found: $config"
+  [[ -f $skill_file ]] || die "skill file not found: $skill_file"
+  command -v jq >/dev/null 2>&1 || die 'jq is required'
+
+  load_supported_chains
+  selected=("${(@f)$(selected_chains)}")
+
+  if [[ ${SPOT_CONFIG_ROW_MODE:-} == 1 ]]; then
+    (( ${#selected[@]} == 1 )) || die 'internal row mode requires exactly one chain'
+    emit_chain_record "${selected[1]}"
+    return 0
+  fi
+
+  collect_results "${selected[@]}"
+
+  print "Integrations"
+  print_integrations
+
+  if (( ${#issue_rows[@]} > 0 )); then
+    print
+    print "Issues"
+    {
+      print "chain\ttarget\tdetail"
+      printf '%s\n' "${issue_rows[@]}"
+    } | print_table
+  fi
+}
+
+main "$@"
