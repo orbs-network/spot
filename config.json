@@ -88,7 +88,7 @@
             "Odos": "0x6c17cc2984A87BD8b002c6E3C08dBB8c8Eb89E48",
             "Orbs": "0xaf3532dca7b4a75cD06671614C093e9e8fb5b1F2",
             "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B",
-            "OpenOcean": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d"
+            "Topaz": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d"
         },
         "dex": {
             "thena": {
@@ -122,7 +122,7 @@
             },
             "topaz": {
                 "type": "default",
-                "solver": "OpenOcean",
+                "solver": "Topaz",
                 "router": "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64",
                 "adapter": "0x671c59dCbc8ee3a08D15e1D03a88032740869919",
                 "fee": "0xDbB17E23d12cd3C0AA856528F7177a68f98fFd5B"

@@ -9,7 +9,8 @@ chain_args=()
 dex_rows=()
 issue_rows=()
 supported_order=()
-typeset -A supported_names
+typeset -A supported_chains
+typeset -A chain_keys
 typeset -A code_cache
 code_state_result=""
 
@@ -51,11 +52,11 @@ parse_args() {
 }
 
 load_supported_chains() {
-  local chain_id chain_name
-  while IFS=$'\t' read -r chain_id chain_name; do
+  local chain_id
+  while IFS= read -r chain_id; do
     [[ -n $chain_id ]] || continue
     supported_order+=("$chain_id")
-    supported_names[$chain_id]=$chain_name
+    supported_chains[$chain_id]=1
   done < <(
     awk '
       /^## Supported Chains[[:space:]]*$/ {
@@ -69,13 +70,27 @@ load_supported_chains() {
         if (!match($0, /`[0-9]+`/)) {
           next
         }
-        id = substr($0, RSTART + 1, RLENGTH - 2)
-        name = $0
-        sub(/^[0-9]+[.][[:space:]]*/, "", name)
-        sub(/[[:space:]]*-[[:space:]]*`[0-9]+`.*/, "", name)
-        print id "\t" name
+        print substr($0, RSTART + 1, RLENGTH - 2)
       }
     ' "$skill_file"
+  )
+}
+
+load_chain_keys() {
+  local chain_id chain_key
+  command -v getchain >/dev/null 2>&1 || return 0
+
+  while IFS=$'\t' read -r chain_id chain_key; do
+    [[ -n $chain_id && -n $chain_key ]] || continue
+    [[ -n ${chain_keys[$chain_id]-} ]] && continue
+    chain_keys[$chain_id]=$chain_key
+  done < <(
+    getchain -a -j | jq -r '
+      to_entries[]
+      | select(.value.id != null)
+      | [(.value.id | tostring), .key]
+      | @tsv
+    '
   )
 }
 
@@ -258,7 +273,7 @@ dex_configs() {
 
 add_issue() {
   local chain_id=$1 target=$2 detail=$3
-  issue_rows+=("${chain_id}"$'\t'"${target}"$'\t'"${detail}")
+  issue_rows+=("${chain_keys[$chain_id]:-$chain_id}"$'\t'"${target}"$'\t'"${detail}")
 }
 
 code_state() {
@@ -343,6 +358,7 @@ dex_onchain_status() {
 
 append_dex_rows() {
   local chain_id=$1 dex dex_type solver config_state pairs onchain_state issue_text
+  local chain_label=${chain_keys[$chain_id]:-$chain_id}
 
   while IFS=$'\t' read -r dex dex_type solver config_state pairs; do
     [[ -n $dex ]] || continue
@@ -354,14 +370,14 @@ append_dex_rows() {
       issue_text+="onchain $onchain_state"
     fi
     [[ -n $issue_text ]] || issue_text="-"
-    dex_rows+=("${chain_id}"$'\t'"${dex}"$'\t'"${dex_type}"$'\t'"${solver}"$'\t'"${issue_text}")
+    dex_rows+=("${chain_label}"$'\t'"${dex}"$'\t'"${dex_type}"$'\t'"${solver}"$'\t'"${issue_text}")
   done < <(dex_configs "$chain_id")
 }
 
 append_chain_data() {
   local chain_id=$1
 
-  if [[ -z ${supported_names[$chain_id]-} ]]; then
+  if [[ -z ${supported_chains[$chain_id]-} ]]; then
     add_issue "$chain_id" "skill" "not listed in skill/SKILL.md Supported Chains"
   fi
 
@@ -446,6 +462,7 @@ main() {
   command -v jq >/dev/null 2>&1 || die 'jq is required'
 
   load_supported_chains
+  load_chain_keys
   selected=("${(@f)$(selected_chains)}")
 
   if [[ ${SPOT_CONFIG_ROW_MODE:-} == 1 ]]; then
