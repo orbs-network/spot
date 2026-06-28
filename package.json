@@ -17,10 +17,9 @@
     ],
     "scripts": {
         "fmt": "forge fmt",
-        "config": "./script/config",
         "sync": "./script/sync.zsh",
         "build": "npm run sync && forge build --extra-output-files abi",
-        "test": "forge test",
+        "test": "forge test && ./script/config",
         "prepublishOnly": "npm run fmt && npm run build && npm run test",
         "postpublish": "npm publish -w skill && npm pack -w skill"
     },

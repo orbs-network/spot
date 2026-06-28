@@ -31,6 +31,16 @@ This commonly includes `skill/SKILL.md`, `config.json`, `skill/`, `README.md`, `
 
 The canonical skill npm package name is `@orbs-network/spot-skill`.
 
+## Spot Notion Dashboard
+
+When asked to update the Spot Notion integrations dashboard:
+
+1. Use Notion database `TWAP/Spot Integrations` with id `***REMOVED***` and URL `https://app.notion.com/p/***REMOVED***/***REMOVED***?v=***REMOVED***`.
+2. Assume `NOTION_API_KEY` is already available in the shell environment; never print secrets.
+3. Represent every `config.json` configured DEX as a Notion row keyed by `Partner` + `Chain` + `Ver=SPOT`.
+4. This repo owns the dashboard `Contracts` column. Set it from this repo's config state only.
+5. Do not update the dashboard `Oracle` column from this repo; that column belongs to `/Users/z/code/offchain-oracle`.
+
 ## Build Requirement
 
 Run `npm run build` after every change made in the repo.
