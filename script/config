@@ -6,6 +6,7 @@ self="${0:A}"
 config="$root/config.json"
 skill_file="$root/skill/SKILL.md"
 chain_args=()
+adapter_rows=()
 dex_rows=()
 issue_rows=()
 supported_order=()
@@ -271,6 +272,17 @@ dex_configs() {
   ' "$config"
 }
 
+adapter_configs() {
+  local chain_id=$1
+  jq -r --arg chain "$chain_id" '
+    (.[$chain].adapter // {})
+    | to_entries[]
+    | select(((.value // "") | tostring | length) > 0)
+    | [.key, .value]
+    | @tsv
+  ' "$config"
+}
+
 add_issue() {
   local chain_id=$1 target=$2 detail=$3
   issue_rows+=("${chain_keys[$chain_id]:-$chain_id}"$'\t'"${target}"$'\t'"${detail}")
@@ -374,6 +386,23 @@ append_dex_rows() {
   done < <(dex_configs "$chain_id")
 }
 
+append_adapter_rows() {
+  local chain_id=$1 solver adapter adapter_state issue_text
+  local chain_label=${chain_keys[$chain_id]:-$chain_id}
+
+  while IFS=$'\t' read -r solver adapter; do
+    [[ -n $solver && -n $adapter ]] || continue
+    code_state "$chain_id" "$adapter"
+    adapter_state=$code_state_result
+    if [[ $adapter_state == ok ]]; then
+      issue_text="-"
+    else
+      issue_text="onchain $adapter_state"
+    fi
+    adapter_rows+=("${chain_label}"$'\t'"${solver}"$'\t'"${adapter}"$'\t'"${issue_text}")
+  done < <(adapter_configs "$chain_id")
+}
+
 append_chain_data() {
   local chain_id=$1
 
@@ -386,13 +415,17 @@ append_chain_data() {
   fi
 
   probe_chain "$chain_id"
+  append_adapter_rows "$chain_id"
   append_dex_rows "$chain_id"
 }
 
 emit_chain_record() {
-  local chain_id=$1 dex_row issue
+  local chain_id=$1 adapter_row dex_row issue
 
   append_chain_data "$chain_id"
+  for adapter_row in "${adapter_rows[@]}"; do
+    printf 'adapter\t%s\n' "$adapter_row"
+  done
   for dex_row in "${dex_rows[@]}"; do
     printf 'dex\t%s\n' "$dex_row"
   done
@@ -422,10 +455,38 @@ collect_results() {
     kind=${record%%$'\t'*}
     payload=${record#*$'\t'}
     case $kind in
+      adapter) adapter_rows+=("$payload") ;;
       dex) dex_rows+=("$payload") ;;
       issue) issue_rows+=("$payload") ;;
     esac
   done < <(collect_chain_records "${selected[@]}")
+}
+
+print_adapters() {
+  printf '%s\n' "${adapter_rows[@]}" | awk -F '\t' '
+    NF >= 4 {
+      solver = $2
+      if (!(solver in seen)) {
+        seen[solver] = 1
+        order[++count] = solver
+      }
+      if (!chain_seen[solver, $1]) {
+        chains[solver] = chains[solver] ? chains[solver] "," $1 : $1
+        chain_seen[solver, $1] = 1
+      }
+      if ($4 != "-") {
+        issue = $1 ":" $4
+        issues[solver] = issues[solver] ? issues[solver] "; " issue : issue
+      }
+    }
+    END {
+      print "solver\tchains\tissues"
+      for (i = 1; i <= count; i++) {
+        solver = order[i]
+        print solver "\t" chains[solver] "\t" (issues[solver] ? issues[solver] : "-")
+      }
+    }
+  ' | print_table
 }
 
 print_integrations() {
@@ -473,6 +534,10 @@ main() {
 
   collect_results "${selected[@]}"
 
+  print "Adapters"
+  print_adapters
+
+  print
   print "Integrations"
   print_integrations
 
