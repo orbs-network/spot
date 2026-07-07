@@ -49,7 +49,10 @@
         "adapter": {
             "Odos": "0x1ae80D14C52F82c09a54C423e6f9D5Fb737089C8",
             "Sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c",
-            "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B"
+            "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B",
+            "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA",
+            "OpenOcean": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d",
+            "Paraswap": "0x777A3e65a5473148D5d7abdFD2BB5bFB61b6432f"
         },
         "dex": {
             "sushiswap": {
@@ -71,7 +74,10 @@
     "10": {
         "adapter": {
             "Odos": "0xc7Ec90152fd5A6210570cb04C4Ab099Bdac352af",
-            "Sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c"
+            "Sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c",
+            "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA",
+            "OpenOcean": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d",
+            "Paraswap": "0x777A3e65a5473148D5d7abdFD2BB5bFB61b6432f"
         },
         "dex": {
             "sushiswap": {
@@ -88,7 +94,10 @@
             "Odos": "0x6c17cc2984A87BD8b002c6E3C08dBB8c8Eb89E48",
             "Orbs": "0xaf3532dca7b4a75cD06671614C093e9e8fb5b1F2",
             "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B",
-            "Topaz": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d"
+            "Topaz": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d",
+            "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA",
+            "OpenOcean": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d",
+            "Paraswap": "0x777A3e65a5473148D5d7abdFD2BB5bFB61b6432f"
         },
         "dex": {
             "thena": {
@@ -133,7 +142,8 @@
         "adapter": {
             "Odos": "0x0123695379045f9db515E6a77d8154959B94B599",
             "OpenOcean": "0xc7f07C830e22FCA94bF52F38C6707F9D396c6172",
-            "Magpie": "0x4914efb617fEa2Fd7529fdb365854Fd8f17bCBDE"
+            "Magpie": "0x4914efb617fEa2Fd7529fdb365854Fd8f17bCBDE",
+            "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA"
         },
         "dex": {
             "spooky": {
@@ -159,11 +169,17 @@
             }
         }
     },
-    "169": {},
+    "169": {
+        "adapter": {
+            "OpenOcean": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d"
+        }
+    },
     "137": {
         "adapter": {
             "Odos": "0x5628D7383b42E14E83DA310de3e7E04E6b025418",
-            "Paraswap": "0x179C4b8e982b5F1365d36CC8d0c1CEB621B7198D"
+            "Paraswap": "0x179C4b8e982b5F1365d36CC8d0c1CEB621B7198D",
+            "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA",
+            "OpenOcean": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d"
         },
         "dex": {
             "quick": {
@@ -184,7 +200,11 @@
     },
     "130": {
         "adapter": {
-            "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B"
+            "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B",
+            "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA",
+            "Odos": "0x846692eb2c72df007Cd92Ee69Da2a7B6a8Bf6710",
+            "OpenOcean": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d",
+            "Paraswap": "0x777A3e65a5473148D5d7abdFD2BB5bFB61b6432f"
         },
         "dex": {
             "ring": {
@@ -203,7 +223,9 @@
             "Kyber": "0x6f4e5b8d7F6b037c62277992c39E7834D7C04596",
             "TrebleSwap": "0x6f4938535879c668A797F2a6e9B912c54f9D43Cf",
             "Sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c",
-            "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B"
+            "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B",
+            "OpenOcean": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d",
+            "Paraswap": "0x777A3e65a5473148D5d7abdFD2BB5bFB61b6432f"
         },
         "dex": {
             "pancake": {
@@ -248,7 +270,8 @@
         "adapter": {
             "Odos": "0xA58A55AC39b47504A63993A91B78544158862e61",
             "Orbs": "0x917b492557957f5dD3e69c04c8E1Ac3d6948c022",
-            "OpenOcean": "0xd2e68b1d1C5DBB2D6cC396c10C55017e01309C37"
+            "OpenOcean": "0xd2e68b1d1C5DBB2D6cC396c10C55017e01309C37",
+            "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA"
         },
         "dex": {
             "pancake": {
@@ -274,7 +297,9 @@
             "Paraswap": "0x179C4b8e982b5F1365d36CC8d0c1CEB621B7198D",
             "Orbs": "0x917b492557957f5dD3e69c04c8E1Ac3d6948c022",
             "Sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c",
-            "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B"
+            "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B",
+            "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA",
+            "OpenOcean": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d"
         },
         "dex": {
             "arbidex": {
@@ -332,7 +357,9 @@
     "43114": {
         "adapter": {
             "Odos": "0x533dA659Ef4C2C1d4c98420e1dbe9C68D8538f50",
-            "Kyber": "0x6f4e5b8d7F6b037c62277992c39E7834D7C04596"
+            "Kyber": "0x6f4e5b8d7F6b037c62277992c39E7834D7C04596",
+            "OpenOcean": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d",
+            "Paraswap": "0x777A3e65a5473148D5d7abdFD2BB5bFB61b6432f"
         },
         "dex": {
             "blackhole": {
@@ -354,7 +381,8 @@
     "5000": {
         "adapter": {
             "Odos": "0x3a0fA0f95ea07026c5f84D8d3444Dd6E15AE1874",
-            "Sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c"
+            "Sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c",
+            "OpenOcean": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d"
         },
         "dex": {
             "sushiswap": {
@@ -368,7 +396,9 @@
     },
     "999": {
         "adapter": {
-            "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B"
+            "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B",
+            "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA",
+            "OpenOcean": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d"
         },
         "dex": {
             "ring": {
@@ -383,7 +413,8 @@
     "1284": {},
     "4326": {
         "adapter": {
-            "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B"
+            "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B",
+            "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA"
         },
         "dex": {
             "ring": {
@@ -397,7 +428,9 @@
     },
     "80094": {
         "adapter": {
-            "Kodiak": "0xcB16237c88A859d46Ae850B97d7D1bdECF482C06"
+            "Kodiak": "0xcB16237c88A859d46Ae850B97d7D1bdECF482C06",
+            "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA",
+            "OpenOcean": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d"
         },
         "dex": {
             "kodiak": {
@@ -433,7 +466,8 @@
     },
     "14": {
         "adapter": {
-            "SparkDex": "0x00c7617C471Ef69124464CEc318a3b8CC90aE9A7"
+            "SparkDex": "0x00c7617C471Ef69124464CEc318a3b8CC90aE9A7",
+            "OpenOcean": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d"
         },
         "dex": {
             "spark": {
