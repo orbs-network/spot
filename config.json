@@ -148,7 +148,8 @@
             "OpenOcean": "0xc7f07C830e22FCA94bF52F38C6707F9D396c6172",
             "Magpie": "0x217E9311396C8722b9eC98aFf865F067fe5E59c1",
             "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA",
-            "Sushi": "0xA985f801ea74321AdcC9Ef88B394858CbA3F71ba"
+            "Sushi": "0xA985f801ea74321AdcC9Ef88B394858CbA3F71ba",
+            "Paraswap": "0x777A3e65a5473148D5d7abdFD2BB5bFB61b6432f"
         },
         "dex": {
             "spooky": {
@@ -171,6 +172,13 @@
                 "router": "0x20f6ee51340adeed01a59b0e65cb3703f3dc860c",
                 "adapter": "0x39b024E187e5f35fea05953fECB9314a97de3d94",
                 "fee": "0xb9e3751fAF3187E1bC468E56a707a8A91754460e"
+            },
+            "paraswap": {
+                "type": "paraswap",
+                "solver": "Paraswap",
+                "router": "0x6a000f20005980200259b80c5102003040001068",
+                "adapter": "0x777A3e65a5473148D5d7abdFD2BB5bFB61b6432f",
+                "fee": "0x2e344D9C678aB8220018e1b43D2fa8F923a6FA64"
             }
         }
     },
@@ -416,7 +424,8 @@
             "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B",
             "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA",
             "OpenOcean": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d",
-            "Magpie": "0x6795A03Af6E1332BD931C0891D5C6AFF85550b54"
+            "Magpie": "0x6795A03Af6E1332BD931C0891D5C6AFF85550b54",
+            "Sushi": "0xA985f801ea74321AdcC9Ef88B394858CbA3F71ba"
         },
         "dex": {
             "ring": {
@@ -425,6 +434,13 @@
                 "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
                 "adapter": "0x028fa69049aB68EC42064Eb18896D587dD41Af2a",
                 "fee": "0xA04329696aAd1417c75Cf6d91342815001999B21"
+            },
+            "sushiswap": {
+                "type": "default",
+                "solver": "Sushi",
+                "router": "0xAC4c6e212A361c968F1725b4d055b47E63F80b75",
+                "adapter": "0xA985f801ea74321AdcC9Ef88B394858CbA3F71ba",
+                "fee": "0x28F6C9dBE21fFc146Af8d5D15c49Cf48F61140Dc"
             }
         }
     },
@@ -433,7 +449,8 @@
         "adapter": {
             "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B",
             "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA",
-            "Magpie": "0x6795A03Af6E1332BD931C0891D5C6AFF85550b54"
+            "Magpie": "0x6795A03Af6E1332BD931C0891D5C6AFF85550b54",
+            "Sushi": "0xA985f801ea74321AdcC9Ef88B394858CbA3F71ba"
         },
         "dex": {
             "ring": {
@@ -442,6 +459,13 @@
                 "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
                 "adapter": "0x028fa69049aB68EC42064Eb18896D587dD41Af2a",
                 "fee": "0xA04329696aAd1417c75Cf6d91342815001999B21"
+            },
+            "sushiswap": {
+                "type": "default",
+                "solver": "Sushi",
+                "router": "0xAC4c6e212A361c968F1725b4d055b47E63F80b75",
+                "adapter": "0xA985f801ea74321AdcC9Ef88B394858CbA3F71ba",
+                "fee": "0x28F6C9dBE21fFc146Af8d5D15c49Cf48F61140Dc"
             }
         }
     },
@@ -450,7 +474,8 @@
             "Kodiak": "0xcB16237c88A859d46Ae850B97d7D1bdECF482C06",
             "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA",
             "OpenOcean": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d",
-            "Magpie": "0xBcFd0eE2C44136526dcA007e41e4f3DDD32A0Bd2"
+            "Magpie": "0xBcFd0eE2C44136526dcA007e41e4f3DDD32A0Bd2",
+            "Sushi": "0xA985f801ea74321AdcC9Ef88B394858CbA3F71ba"
         },
         "dex": {
             "kodiak": {
@@ -459,6 +484,13 @@
                 "router": "0x43Dac637c4383f91B4368041E7A8687da3806Cae",
                 "adapter": "0xcB16237c88A859d46Ae850B97d7D1bdECF482C06",
                 "fee": "0xBA47Ec15aFbCF6e7e9F52900632049530bB6bAe4"
+            },
+            "sushiswap": {
+                "type": "default",
+                "solver": "Sushi",
+                "router": "0xAC4c6e212A361c968F1725b4d055b47E63F80b75",
+                "adapter": "0xA985f801ea74321AdcC9Ef88B394858CbA3F71ba",
+                "fee": "0x28F6C9dBE21fFc146Af8d5D15c49Cf48F61140Dc"
             }
         }
     },
@@ -503,7 +535,8 @@
         "adapter": {
             "OpenOcean": "0xc7f07C830e22FCA94bF52F38C6707F9D396c6172",
             "Kyber": "0x6f4e5b8d7F6b037c62277992c39E7834D7C04596",
-            "Magpie": "0x6795A03Af6E1332BD931C0891D5C6AFF85550b54"
+            "Magpie": "0x6795A03Af6E1332BD931C0891D5C6AFF85550b54",
+            "Sushi": "0xA985f801ea74321AdcC9Ef88B394858CbA3F71ba"
         },
         "dex": {
             "yowie": {
@@ -519,6 +552,13 @@
                 "router": "0x6131B5fae19EA4f9D964eAc0408E4408b66337b5",
                 "adapter": "0xf42106eBf985bF49b39eba0114F57FA05e7B52eD",
                 "fee": "0xde92da99D188Ceb54A11ec711EF52D808A6260B5"
+            },
+            "sushiswap": {
+                "type": "default",
+                "solver": "Sushi",
+                "router": "0xAC4c6e212A361c968F1725b4d055b47E63F80b75",
+                "adapter": "0xA985f801ea74321AdcC9Ef88B394858CbA3F71ba",
+                "fee": "0x28F6C9dBE21fFc146Af8d5D15c49Cf48F61140Dc"
             }
         }
     },
