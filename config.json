@@ -186,14 +186,6 @@
             }
         }
     },
-    "169": {
-        "adapter": {
-            "Nordstern": "0xd16A1849E86431872a87f476fa0DfB30eEb96cb3",
-            "OpenOcean": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d",
-            "Sushi": "0xA985f801ea74321AdcC9Ef88B394858CbA3F71ba",
-            "Magpie": "0x792C40b9983D66C8C8eB28aE7E7b1e4Fb6ee99c3"
-        }
-    },
     "137": {
         "adapter": {
             "Nordstern": "0xf065b4bFa073b5A0A3eb254D67cbc5118D8B0Ea7",
@@ -457,7 +449,6 @@
             }
         }
     },
-    "1284": {},
     "4326": {
         "adapter": {
             "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B",
