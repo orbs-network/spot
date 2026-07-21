@@ -118,12 +118,13 @@ Expected: all four tools exist. Activate the chain-managed signer before conclud
 ```zsh
 mkdir -p "$run_dir/preflight"
 export SPOT_NORDSTERN_REGISTRY="$run_dir/chains.json"
-parallel --tag zsh -lc '
+router_probe='
   chain "$1" >/dev/null
   router=$(jq -r --arg chain_id "$1" ".[\$chain_id].RouterAddress" "$SPOT_NORDSTERN_REGISTRY")
   code=$(cast code "$router")
   [[ -n $code && $code != 0x ]]
-' _ {} ::: "${selected[@]}" > "$run_dir/preflight/router-code.log"
+'
+parallel --tag zsh -lc "'$router_probe'" _ {} ::: "${selected[@]}" > "$run_dir/preflight/router-code.log"
 ```
 
 Expected: all 18 jobs exit `0`; no router returns empty bytecode.
@@ -133,14 +134,15 @@ Expected: all 18 jobs exit `0`; no router returns empty bytecode.
 ```zsh
 salt=$(cast keccak Nordstern)
 export SPOT_NORDSTERN_SALT="$salt"
-parallel --tag zsh -lc '
+dry_run='
   set -euo pipefail
   chain "$1" >/dev/null
   dev true >/dev/null
   router=$(jq -r --arg chain_id "$1" ".[\$chain_id].RouterAddress" "$SPOT_NORDSTERN_REGISTRY")
   load -u -c "$1" config.json env SALT="$SPOT_NORDSTERN_SALT" ROUTER="$router" \
     forge script DeployDefaultAdapter --json > "$SPOT_NORDSTERN_RUN_DIR/preflight/$1.json"
-' _ {} ::: "${selected[@]}"
+'
+parallel --tag zsh -lc "'$dry_run'" _ {} ::: "${selected[@]}"
 ```
 
 Expected: 18 successful simulations, each returning a nonzero adapter address. No transaction is broadcast.
@@ -162,7 +164,7 @@ Expected: exactly 18 bounded contract-creation actions with `SALT = keccak256("N
 
 ```zsh
 mkdir -p "$run_dir/deploy"
-parallel --tag zsh -lc '
+deploy_branch='
   set -euo pipefail
   chain "$1" >/dev/null
   dev true >/dev/null
@@ -170,7 +172,8 @@ parallel --tag zsh -lc '
   load -u -c "$1" config.json env SALT="$SPOT_NORDSTERN_SALT" ROUTER="$router" \
     forge script DeployDefaultAdapter --broadcast --json \
     > "$SPOT_NORDSTERN_RUN_DIR/deploy/$1.log" 2>&1
-' _ {} ::: "${selected[@]}"
+'
+parallel --tag zsh -lc "'$deploy_branch'" _ {} ::: "${selected[@]}"
 ```
 
 Expected: GNU parallel exits `0`. Foundry waits for each receipt; do not use `cast send --async` or detach any branch.
@@ -185,14 +188,15 @@ Expected: 18 unique chain IDs, 18 valid adapter addresses, and only successful o
 
 ```zsh
 export SPOT_NORDSTERN_RESULTS="$run_dir/results.tsv"
-parallel --colsep '\t' --tag zsh -lc '
+verify_branch='
   set -euo pipefail
   chain "$1" >/dev/null
   code=$(cast code "$3")
   configured_router=$(cast call "$3" "router()(address)")
   [[ -n $code && $code != 0x ]]
   [[ ${(L)configured_router} == ${(L)2} ]]
-' _ {1} {2} {3} :::: "$run_dir/results.tsv"
+'
+parallel --colsep '\t' --tag zsh -lc "'$verify_branch'" _ {1} {2} {3} :::: "$run_dir/results.tsv"
 ```
 
 Expected: all 18 adapters have bytecode and return the exact Nordstern router for their chain.
