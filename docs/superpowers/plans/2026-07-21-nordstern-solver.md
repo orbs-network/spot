@@ -291,7 +291,7 @@ Expected: Nordstern appears on all 18 selected chains. Flare and Sei improve fro
 
 - [ ] **Step 3: Re-run the 18-chain onchain verification**
 
-Repeat Task 3 Step 3 from the retained private result file.
+Repeat Task 3 Step 4 from the retained private result file.
 
 Expected: all 18 runtime-code and immutable-router checks still pass.
 
