@@ -6,7 +6,7 @@ author: Orbs Network
 license: MIT
 metadata:
   hermes:
-    tags: [DeFi, EVM, swaps, limit-orders, TWAP, stop-loss, Ethereum, Optimism, Polygon, Base, Arbitrum, Avalanche, BNB, Manta, Moonbeam, crypto, Web3]
+    tags: [DeFi, EVM, swaps, limit-orders, TWAP, stop-loss, Ethereum, Optimism, Polygon, Base, Arbitrum, Avalanche, BNB, crypto, Web3]
     category: blockchain
     related_skills: [evm]
 ---
@@ -28,19 +28,17 @@ Execution remains decentralized, non-custodial, oracle-protected, immutable, aud
 6. Polygon - `137`
 7. Monad - `143`
 8. Sonic - `146`
-9. Manta Pacific - `169`
-10. X Layer - `196`
-11. HyperEVM - `999`
-12. Moonbeam - `1284`
-13. Sei - `1329`
-14. MegaETH - `4326`
-15. Mantle - `5000`
-16. Base - `8453`
-17. Arbitrum One - `42161`
-18. Avalanche - `43114`
-19. Linea - `59144`
-20. Berachain - `80094`
-21. Katana - `747474`
+9. X Layer - `196`
+10. HyperEVM - `999`
+11. Sei - `1329`
+12. MegaETH - `4326`
+13. Mantle - `5000`
+14. Base - `8453`
+15. Arbitrum One - `42161`
+16. Avalanche - `43114`
+17. Linea - `59144`
+18. Berachain - `80094`
+19. Katana - `747474`
 
 The bundled JSON template hardcodes the shared agent adapter. Do not derive or replace the adapter per chain.
 

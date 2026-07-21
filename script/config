@@ -406,7 +406,7 @@ append_adapter_rows() {
 
 append_solver_coverage() {
   local chain_id=$1 chain_label=${chain_keys[$chain_id]:-$chain_id}
-  local adapter_row row_chain row_solver row_adapter row_issue valid_count=0 min_solvers=3
+  local adapter_row row_chain row_solver row_adapter row_issue valid_count=0 min_solvers=2
   local -a solvers=()
   local solver_list
 
