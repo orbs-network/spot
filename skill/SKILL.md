@@ -1,7 +1,7 @@
 ---
 name: spot-advanced-swap-orders
 description: Use for gasless non-custodial EVM market, limit, TWAP, stop-loss, take-profit, delayed-start swaps.
-version: 2.6.5
+version: 2.6.6
 author: Orbs Network
 license: MIT
 metadata:
