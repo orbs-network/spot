@@ -52,7 +52,7 @@ Expected: `chains.json` is a valid JSON object; it contains no signer material.
 
 ```zsh
 jq -n \
-  --argfile live "$run_dir/chains.json" \
+  --slurpfile live "$run_dir/chains.json" \
   --argjson expected '{
     "1":"0xa929c559E5e6537359680F39CB4E3708E1a14dd1",
     "10":"0xa575f37e869e6887564F87c07e2885e08D542C4a",
@@ -73,11 +73,12 @@ jq -n \
     "80094":"0x3FFc2315A992b01dc4B3f79C8EEa1921091Ee24f",
     "747474":"0xC87De04e2EC1F4282dFF2933A2D58199f688fC3d"
   }' '
-  all($expected | to_entries[];
-    $live[.key].ChainID == .key
-    and ($live[.key].RouterAddress | ascii_downcase) == (.value | ascii_downcase)
-  )
-  and all(["196", "1284", "4326"][]; $live[.] == null)
+  ($live[0]) as $registry
+  | all($expected | to_entries[];
+      $registry[.key].ChainID == .key
+      and ($registry[.key].RouterAddress | ascii_downcase) == (.value | ascii_downcase)
+    )
+    and all(["196", "1284", "4326"][]; $registry[.] == null)
 ' >/dev/null
 ```
 
