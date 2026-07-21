@@ -160,7 +160,11 @@ Expected: exactly 18 bounded contract-creation actions with `SALT = keccak256("N
 - Create: temporary files under `$SPOT_NORDSTERN_RUN_DIR/deploy/` only
 - Test: final receipts, bytecode, and immutable-router checks
 
-- [ ] **Step 1: Broadcast one deployment branch per chain with isolated logs**
+- [ ] **Step 1: Bypass the diagnosed Forge 1.7.1 CREATE2 inspector failure**
+
+The first concurrent `forge script --broadcast` attempt submitted no transactions: every branch failed before transaction construction with `missing CREATE2 deployer`, although `cast code` returned the canonical factory runtime at `0x4e59...` on all selected chains. Build the exact same init code (`DefaultDexAdapter` creation code plus its ABI-encoded router), prepend `SALT = keccak256("Nordstern")`, and require both `cast call` and `cast estimate` to succeed against the canonical factory on all 18 chains. Require each returned address to match the dry-run address before broadcasting.
+
+- [ ] **Step 2: Broadcast one canonical CREATE2 factory call per chain with isolated logs**
 
 ```zsh
 mkdir -p "$run_dir/deploy"
@@ -168,23 +172,24 @@ deploy_branch='
   set -euo pipefail
   chain "$1" >/dev/null
   dev true >/dev/null
-  router=$(jq -r --arg chain_id "$1" ".[\$chain_id].RouterAddress" "$SPOT_NORDSTERN_REGISTRY")
-  load -u -c "$1" config.json env SALT="$SPOT_NORDSTERN_SALT" ROUTER="$router" \
-    forge script DeployDefaultAdapter --broadcast --json \
+  constructor_args=$(cast abi-encode "f(address)" "$2")
+  init_code="0x${SPOT_NORDSTERN_BYTECODE#0x}${constructor_args#0x}"
+  calldata="0x${SPOT_NORDSTERN_SALT#0x}${init_code#0x}"
+  cast send "$SPOT_NORDSTERN_FACTORY" --data "$calldata" --json \
     > "$SPOT_NORDSTERN_RUN_DIR/deploy/$1.log" 2>&1
 '
-parallel --tag zsh -lc "'$deploy_branch'" _ {} ::: "${selected[@]}"
+parallel --colsep '\t' --tag zsh -lc "'$deploy_branch'" _ {1} {2} :::: "$run_dir/preflight-summary.tsv"
 ```
 
-Expected: GNU parallel exits `0`. Foundry waits for each receipt; do not use `cast send --async` or detach any branch.
+Expected: GNU parallel exits `0`. `cast send` waits for each receipt; do not use `--async` or detach any branch.
 
-- [ ] **Step 2: Extract one result record per chain**
+- [ ] **Step 3: Extract one result record per chain**
 
 Parse each isolated log into `$run_dir/results.tsv` with these columns: chain ID, router, adapter, transaction hash, receipt status. If the deterministic adapter already existed, record `preexisting` instead of inventing a transaction hash.
 
 Expected: 18 unique chain IDs, 18 valid adapter addresses, and only successful or preexisting statuses.
 
-- [ ] **Step 3: Verify runtime bytecode and immutable routers in parallel**
+- [ ] **Step 4: Verify runtime bytecode and immutable routers in parallel**
 
 ```zsh
 export SPOT_NORDSTERN_RESULTS="$run_dir/results.tsv"
@@ -201,7 +206,7 @@ parallel --colsep '\t' --tag zsh -lc "'$verify_branch'" _ {1} {2} {3} :::: "$run
 
 Expected: all 18 adapters have bytecode and return the exact Nordstern router for their chain.
 
-- [ ] **Step 4: Contain any failure before config mutation**
+- [ ] **Step 5: Contain any failure before config mutation**
 
 If a branch fails, inspect its own log and transaction hash. Retry only when no transaction was submitted or the submitted transaction has a final failed receipt. Do not replace an unknown or pending transaction. Do not edit `config.json` until all 18 result records are verified.
 
