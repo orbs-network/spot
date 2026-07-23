@@ -405,24 +405,6 @@
             }
         }
     },
-    "5000": {
-        "adapter": {
-            "Nordstern": "0x763Fb927d181bCE8be779794A030BCE45D4869fA",
-            "Odos": "0x3a0fA0f95ea07026c5f84D8d3444Dd6E15AE1874",
-            "Sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c",
-            "OpenOcean": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d",
-            "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA"
-        },
-        "dex": {
-            "sushiswap": {
-                "type": "default",
-                "solver": "Sushi",
-                "router": "0xAC4c6e212A361c968F1725b4d055b47E63F80b75",
-                "adapter": "0x2e43A28FAf083717CcD9B246d97C61E1Bc9914Df",
-                "fee": "0x28F6C9dBE21fFc146Af8d5D15c49Cf48F61140Dc"
-            }
-        }
-    },
     "999": {
         "adapter": {
             "Nordstern": "0xA9c6c1F14c1d0eF2ab6ec79E5dcF0ff3a3680F05",

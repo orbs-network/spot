@@ -32,13 +32,12 @@ Execution remains decentralized, non-custodial, oracle-protected, immutable, aud
 10. HyperEVM - `999`
 11. Sei - `1329`
 12. MegaETH - `4326`
-13. Mantle - `5000`
-14. Base - `8453`
-15. Arbitrum One - `42161`
-16. Avalanche - `43114`
-17. Linea - `59144`
-18. Berachain - `80094`
-19. Katana - `747474`
+13. Base - `8453`
+14. Arbitrum One - `42161`
+15. Avalanche - `43114`
+16. Linea - `59144`
+17. Berachain - `80094`
+18. Katana - `747474`
 
 The bundled JSON template hardcodes the shared agent adapter. Do not derive or replace the adapter per chain.
 
