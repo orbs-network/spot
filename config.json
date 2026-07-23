@@ -176,13 +176,6 @@
                 "router": "0x20f6ee51340adeed01a59b0e65cb3703f3dc860c",
                 "adapter": "0x39b024E187e5f35fea05953fECB9314a97de3d94",
                 "fee": "0xb9e3751fAF3187E1bC468E56a707a8A91754460e"
-            },
-            "paraswap": {
-                "type": "paraswap",
-                "solver": "Paraswap",
-                "router": "0x6a000f20005980200259b80c5102003040001068",
-                "adapter": "0x777A3e65a5473148D5d7abdFD2BB5bFB61b6432f",
-                "fee": "0x2e344D9C678aB8220018e1b43D2fa8F923a6FA64"
             }
         }
     },
@@ -421,13 +414,6 @@
                 "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
                 "adapter": "0x028fa69049aB68EC42064Eb18896D587dD41Af2a",
                 "fee": "0xA04329696aAd1417c75Cf6d91342815001999B21"
-            },
-            "sushiswap": {
-                "type": "default",
-                "solver": "Sushi",
-                "router": "0xAC4c6e212A361c968F1725b4d055b47E63F80b75",
-                "adapter": "0xA985f801ea74321AdcC9Ef88B394858CbA3F71ba",
-                "fee": "0x28F6C9dBE21fFc146Af8d5D15c49Cf48F61140Dc"
             }
         }
     },
@@ -445,13 +431,6 @@
                 "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
                 "adapter": "0x028fa69049aB68EC42064Eb18896D587dD41Af2a",
                 "fee": "0xA04329696aAd1417c75Cf6d91342815001999B21"
-            },
-            "sushiswap": {
-                "type": "default",
-                "solver": "Sushi",
-                "router": "0xAC4c6e212A361c968F1725b4d055b47E63F80b75",
-                "adapter": "0xA985f801ea74321AdcC9Ef88B394858CbA3F71ba",
-                "fee": "0x28F6C9dBE21fFc146Af8d5D15c49Cf48F61140Dc"
             }
         }
     },
@@ -471,13 +450,6 @@
                 "router": "0x43Dac637c4383f91B4368041E7A8687da3806Cae",
                 "adapter": "0xcB16237c88A859d46Ae850B97d7D1bdECF482C06",
                 "fee": "0xBA47Ec15aFbCF6e7e9F52900632049530bB6bAe4"
-            },
-            "sushiswap": {
-                "type": "default",
-                "solver": "Sushi",
-                "router": "0xAC4c6e212A361c968F1725b4d055b47E63F80b75",
-                "adapter": "0xA985f801ea74321AdcC9Ef88B394858CbA3F71ba",
-                "fee": "0x28F6C9dBE21fFc146Af8d5D15c49Cf48F61140Dc"
             }
         }
     },
@@ -542,13 +514,6 @@
                 "router": "0x6131B5fae19EA4f9D964eAc0408E4408b66337b5",
                 "adapter": "0xf42106eBf985bF49b39eba0114F57FA05e7B52eD",
                 "fee": "0xde92da99D188Ceb54A11ec711EF52D808A6260B5"
-            },
-            "sushiswap": {
-                "type": "default",
-                "solver": "Sushi",
-                "router": "0xAC4c6e212A361c968F1725b4d055b47E63F80b75",
-                "adapter": "0xA985f801ea74321AdcC9Ef88B394858CbA3F71ba",
-                "fee": "0x28F6C9dBE21fFc146Af8d5D15c49Cf48F61140Dc"
             }
         }
     },
