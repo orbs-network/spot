@@ -83,15 +83,7 @@
             "OpenOcean": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d",
             "Paraswap": "0x777A3e65a5473148D5d7abdFD2BB5bFB61b6432f"
         },
-        "dex": {
-            "sushiswap": {
-                "type": "default",
-                "solver": "Sushi",
-                "router": "0xAC4c6e212A361c968F1725b4d055b47E63F80b75",
-                "adapter": "0x2e43A28FAf083717CcD9B246d97C61E1Bc9914Df",
-                "fee": "0x28F6C9dBE21fFc146Af8d5D15c49Cf48F61140Dc"
-            }
-        }
+        "dex": {}
     },
     "56": {
         "adapter": {
