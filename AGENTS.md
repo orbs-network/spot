@@ -33,12 +33,7 @@ The canonical skill npm package name is `@orbs-network/spot-skill`.
 
 ## Spot Notion Dashboard
 
-When asked to update the Spot Notion integrations dashboard:
-
-1. Use Notion database `TWAP/Spot Integrations` with id `262312ca68a98089837bfaf4ac9ef209`.
-2. Assume `NOTION_API_KEY` is already available in the shell environment; never print secrets.
-3. This repo owns the dashboard `Contracts` column. Set it from this repo's config state only.
-4. Do not update the dashboard `Oracle` column from this repo; that column belongs to `offchain-oracle`.
+https://app.notion.com/p/orbs1/262312ca68a98089837bfaf4ac9ef209?v=262312ca68a981bb892f000c7195bebc
 
 ## Build Requirement
 
