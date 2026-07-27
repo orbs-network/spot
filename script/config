@@ -489,7 +489,7 @@ collect_results() {
 }
 
 print_adapters() {
-  printf '%s\n' "${adapter_rows[@]}" | awk -F '\t' '
+  printf '%s\n' "${adapter_rows[@]}" | awk -F '\t' -v supported_count=${#supported_order[@]} '
     NF >= 4 {
       solver = $2
       if (!(solver in seen)) {
@@ -499,13 +499,14 @@ print_adapters() {
       if (!chain_seen[solver, $1]) {
         chains[solver] = chains[solver] ? chains[solver] "," $1 : $1
         chain_seen[solver, $1] = 1
+        chain_count[solver]++
       }
     }
     END {
       print "solver\tchains"
       for (i = 1; i <= count; i++) {
         solver = order[i]
-        print solver "\t" chains[solver]
+        print solver "\t" (chain_count[solver] == supported_count ? "all" : chains[solver])
       }
     }
   ' | print_table
@@ -519,21 +520,25 @@ print_solver_coverage() {
 }
 
 print_integrations() {
-  printf '%s\n' "${dex_rows[@]}" | awk -F '\t' '
+  printf '%s\n' "${dex_rows[@]}" | awk -F '\t' -v supported_count=${#supported_order[@]} '
     NF >= 5 {
       key = $2 "\t" $3 "\t" $4
       if (!(key in seen)) {
         seen[key] = 1
         order[++count] = key
       }
-      chains[key] = chains[key] ? chains[key] "," $1 : $1
+      if (!chain_seen[key, $1]) {
+        chains[key] = chains[key] ? chains[key] "," $1 : $1
+        chain_seen[key, $1] = 1
+        chain_count[key]++
+      }
     }
     END {
       print "integration\ttype\tsolver\tchains"
       for (i = 1; i <= count; i++) {
         key = order[i]
         split(key, parts, "\t")
-        print parts[1] "\t" parts[2] "\t" parts[3] "\t" chains[key]
+        print parts[1] "\t" parts[2] "\t" parts[3] "\t" (chain_count[key] == supported_count ? "all" : chains[key])
       }
     }
   ' | print_table
