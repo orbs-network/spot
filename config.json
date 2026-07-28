@@ -42,6 +42,11 @@
                 "type": "universal",
                 "adapter": "0xA560a960C3b7784f5c335C33028D31596b91650b",
                 "fee": "0xE7a926C0cb01aCCE74e5d4FCeB7CA1699e200608"
+            },
+            "ginco": {
+                "type": "universal",
+                "adapter": "0x96604C3E846BBa75c43B5518bd076851e5484197",
+                "fee": "0xCf2eB80A89A69aB17e295aeF033Ffe9564736155"
             }
         }
     },
