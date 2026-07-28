@@ -77,6 +77,12 @@ Token decimals below are verified onchain snapshots for convenience. Use them fo
 | `dai` | `18` | `0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb` |
 | `cbbtc` | `8` | `0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf` |
 
+## MegaETH (`4326`)
+
+| Symbol | Decimals | Address |
+| --- | ---: | --- |
+| `usdm` | `18` | `0xFAfDdbb3FC7688494971a79cc65DCa3EF82079E7` |
+
 ## Linea (`59144`)
 
 | Symbol | Decimals | Address |
