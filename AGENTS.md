@@ -4,6 +4,8 @@
 
 These instructions apply to the whole repository.
 
+- Never open an issue on the Spot repository unless the user specifically asks for one.
+
 ## Canonical Surfaces
 
 The self-contained `skill/` package is the canonical AI-agent bundle.
