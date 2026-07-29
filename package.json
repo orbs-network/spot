@@ -18,6 +18,7 @@
     "scripts": {
         "config": "./script/config",
         "fmt": "forge fmt",
+        "test:qa": "./script/qa-security.zsh",
         "sync": "./script/sync.zsh",
         "build": "npm run sync && forge build --extra-output-files abi",
         "test": "forge test && ./script/config",
