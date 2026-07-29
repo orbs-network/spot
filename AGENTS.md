@@ -58,7 +58,7 @@ When the user asks for `qa`:
 4. For each default order, size `input.maxAmount` to about `$10` of that leg's input token, use exactly 2 equal chunks so `input.amount = input.maxAmount / 2` is about `$5` per chunk, and set `epoch = 60`.
 5. For the default stop-loss leg, set `output.triggerLower` to effectively infinite output-token units so the order is immediately eligible for QA, and set `output.triggerUpper = 0`.
 6. For the default take-profit leg, set `output.triggerUpper = 1` wei so the order is immediately eligible for QA, and set `output.triggerLower = 0`.
-7. Unless the user overrides tokens, use wrapped native input and USDC output on the first order, then USDC input and native output on the second order, on each supported chain.
+7. Unless the user overrides tokens, use wrapped native input and USDC output on the first order, then USDC input and native output on the second order, on each supported chain. If USDC is unavailable, use the chain's configured canonical USD stablecoin for both legs; on MegaETH, use USDM.
 8. Use the `$chain` skill and its environment for local EVM context, signer-managed Foundry execution, address resolution, balances, token metadata, wrapping, approvals, and transaction sending.
 9. Do not use helper surfaces unless the user explicitly asks to test those surfaces.
 10. If the skill bundle is insufficient, report the gap instead of falling back silently.
