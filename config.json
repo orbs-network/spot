@@ -502,6 +502,11 @@
             "Sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c"
         },
         "dex": {
+            "katana": {
+                "type": "universal",
+                "adapter": "0xe7505d43AdF7d44AB11d7eEAF353a85F8169bE6a",
+                "fee": "0x7a76704765D366ac2A559e1A1fc1273b834B2cA8"
+            },
             "sushiswap": {
                 "type": "default",
                 "solver": "Sushi",
