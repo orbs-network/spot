@@ -1,4 +1,4 @@
-name: Plugin artifact
+name: 📦 Plugin artifact
 
 on:
   workflow_dispatch:
