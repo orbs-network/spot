@@ -1,20 +1,32 @@
-# Spot API
+# Spot Integration Guide
 
-Gasless, non-custodial market, limit, TWAP, stop-loss, take-profit, and delayed-start orders on EVM chains.
+Create, query, and cancel gasless, non-custodial Spot orders on EVM chains. Spot supports market, limit, TWAP, stop-loss, take-profit, and delayed-start orders.
 
-## 🎯 Endpoints
+The integration has three operations:
 
-1. `POST https://agents-sink.orbs.network/orders/new` — submit a signed order.
-2. `GET https://agents-sink.orbs.network/orders?hash=<orderHash>` — query one order.
-3. `GET https://agents-sink.orbs.network/orders?swapper=<address>` — recover a missing hash.
+1. Create and sign an order locally, then submit it to the relay.
+2. Query the relay by order hash until the order is final.
+3. Cancel the exact order digest onchain when needed.
 
-No private key or API key is sent to the relay. Signing stays client-side.
+No private key or API key is sent to the relay. Signing and cancellation stay client-side.
+
+## 🚀 Quick start
+
+1. Choose the order fields and normalize token amounts to their smallest units.
+2. Approve the RePermit contract to spend the total input amount when allowance is insufficient.
+3. Build and sign the EIP-712 message below.
+4. Submit the signed message with `POST https://agents-sink.orbs.network/orders/new`.
+5. Save the returned order hash and the exact signed data.
+6. Poll `GET https://agents-sink.orbs.network/orders?hash=<orderHash>` every 5 seconds until final.
+7. To cancel, hash the saved EIP-712 data and submit its digest to RePermit onchain.
 
 ## 🌐 Networks
 
 Supported chain IDs: `1`, `10`, `14`, `56`, `130`, `137`, `143`, `146`, `196`, `999`, `1329`, `4326`, `8453`, `42161`, `43114`, `59144`, `80094`, `747474`.
 
-## 🧩 Order fields
+## 📤 Create an order
+
+### Order fields
 
 1. Required: `chainId`, `swapper`, `input.token`, `input.amount`, `output.token`.
 2. `input.amount`: amount per fill, in input-token units.
@@ -28,7 +40,7 @@ Supported chain IDs: `1`, `10`, `14`, `56`, `130`, `137`, `143`, `146`, `196`, `
 
 Profiles may be combined.
 
-## ⚙️ Defaults
+### Defaults and validation
 
 1. `nonce = now`, `start = now` in Unix seconds, `recipient = swapper`.
 2. `maxAmount = amount`.
@@ -39,7 +51,7 @@ Profiles may be combined.
 
 Validate `start != 0`, `amount > 0`, `amount <= maxAmount`, different input/output tokens, `triggerLower <= triggerUpper` when the upper trigger is set, `slippage <= 5000`, `freshness > 0`, and `freshness < epoch` when `epoch > 0`.
 
-## ✍️ Sign
+### Build and sign
 
 Use these fixed protocol values on every supported chain:
 
@@ -133,11 +145,11 @@ const signature = await signer.signTypedData(domain, types, message);
 
 Large integers should be decimal strings. The signer address must equal `swapper`.
 
-## 🔐 Approve
+### Approve
 
 Before signing, ensure `input.token` allowance to `REP` is at least `maxAmount`. Default to `approve(REP, maxAmount)`; use `maxUint256` only under an explicit standing-approval policy.
 
-## 📤 Submit
+### Submit
 
 ```js
 const response = await fetch("https://agents-sink.orbs.network/orders/new", {
@@ -146,19 +158,66 @@ const response = await fetch("https://agents-sink.orbs.network/orders/new", {
   body: JSON.stringify({ order: message, signature, status: "pending" }),
 });
 
+if (!response.ok) throw new Error(`Spot relay returned ${response.status}: ${await response.text()}`);
+
 const body = await response.json();
 const orderHash = body.orderHash ?? body.signedOrder?.hash;
+if (!orderHash) throw new Error("Spot relay response did not contain an order hash");
 ```
 
-The relay also accepts the exact `{ r, s, v }` signature object returned by a signer. Persist `domain`, `types`, `message`, and `signature`; reuse them unchanged after a timeout or `5xx`.
+The request body is:
 
-## 📡 Monitor
+```json
+{
+  "order": "<the signed EIP-712 message>",
+  "signature": "<the wallet signature>",
+  "status": "pending"
+}
+```
 
-Read `.orders[0].metadata.status`, falling back to `.orders[0].status`. Poll every 5 seconds while `pending` or `eligible`.
+The relay also accepts the exact `{ r, s, v }` signature object returned by a signer. A successful response contains the hash at `orderHash` or `signedOrder.hash`.
+
+Persist `domain`, `types`, `message`, `signature`, and `orderHash`. After a timeout or `5xx`, first query by the expected hash or swapper. If the result remains ambiguous, retry the exact same payload; never rebuild it with a new nonce or deadline while resolving the first submission.
+
+## 📡 Query an order
+
+Query one order by its hash:
+
+```sh
+curl -fsS 'https://agents-sink.orbs.network/orders?hash=<orderHash>'
+```
+
+The response is an envelope with an `orders` array. For a hash query, the matching order is `orders[0]`; an unknown hash returns an empty array. Read the canonical status as follows:
+
+```js
+const response = await fetch(`https://agents-sink.orbs.network/orders?hash=${orderHash}`);
+if (!response.ok) throw new Error(`Spot relay returned ${response.status}: ${await response.text()}`);
+
+const { orders } = await response.json();
+if (!orders?.length) throw new Error("Order not found");
+
+const order = orders[0];
+const status = order.metadata?.status ?? order.status ?? "pending";
+const chunks = order.metadata?.chunks ?? [];
+```
+
+Poll every 5 seconds while the status is `pending` or `eligible`.
 
 Terminal statuses: `filled`, `completed`, `partially_completed`, `cancelled`, `expired`, `failed`, `rejected`.
 
-## ❌ Cancel
+`partially_completed` means at least one chunk succeeded and at least one did not. Inspect each entry in `metadata.chunks` and report its status.
+
+If the submit response was lost, recover orders by swapper:
+
+```sh
+curl -fsS 'https://agents-sink.orbs.network/orders?swapper=<address>'
+```
+
+This query can return multiple orders. Match the intended order by hash before polling or reporting it.
+
+## ❌ Cancel an order
+
+Cancellation is an onchain RePermit call, not a relay HTTP request. It invalidates only the exact EIP-712 order digest supplied by the swapper.
 
 ```js
 import { Contract, TypedDataEncoder } from "ethers";
@@ -168,7 +227,7 @@ const repermit = new Contract(REP, ["function cancel(bytes32[] digests)"], signe
 await (await repermit.cancel([digest])).wait();
 ```
 
-Cancellation is exact-match and onchain. After confirmation, poll until the relay reports a terminal status.
+Use the same signer that created the order. The caller must equal `swapper`. After the cancellation transaction confirms, continue polling until the relay reports `cancelled`, or `failed` with cancellation details.
 
 ## 🔒 Safety
 
