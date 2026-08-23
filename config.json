@@ -56,7 +56,7 @@
             "Sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c",
             "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B",
             "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA",
-            "Magpie": "0x8622CBd71D8Aba76Ce1C2235510f2b2C6335C31E",
+            "Magpie": "0x370AC766279eCD03dc1D8eb0E5A632a24A255EAb",
             "OpenOcean": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d",
             "Paraswap": "0x777A3e65a5473148D5d7abdFD2BB5bFB61b6432f"
         },
@@ -82,7 +82,7 @@
             "Nordstern": "0x1D06d98D523F8B51AD693D4A22fb97fCf0838d83",
             "Sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c",
             "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA",
-            "Magpie": "0x8622CBd71D8Aba76Ce1C2235510f2b2C6335C31E",
+            "Magpie": "0x370AC766279eCD03dc1D8eb0E5A632a24A255EAb",
             "OpenOcean": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d",
             "Paraswap": "0x777A3e65a5473148D5d7abdFD2BB5bFB61b6432f"
         },
@@ -95,7 +95,7 @@
             "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B",
             "Topaz": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d",
             "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA",
-            "Magpie": "0xBB5f16d51cF0eEfcC894268a72a9cF42d9a6F4f0",
+            "Magpie": "0x370AC766279eCD03dc1D8eb0E5A632a24A255EAb",
             "OpenOcean": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d",
             "Paraswap": "0x777A3e65a5473148D5d7abdFD2BB5bFB61b6432f",
             "Sushi": "0xA985f801ea74321AdcC9Ef88B394858CbA3F71ba"
@@ -134,7 +134,7 @@
         "adapter": {
             "Nordstern": "0xEAEEdF2b8818970356212d5C2f449E2BE68D6800",
             "OpenOcean": "0xc7f07C830e22FCA94bF52F38C6707F9D396c6172",
-            "Magpie": "0x217E9311396C8722b9eC98aFf865F067fe5E59c1",
+            "Magpie": "0x370AC766279eCD03dc1D8eb0E5A632a24A255EAb",
             "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA",
             "Sushi": "0xA985f801ea74321AdcC9Ef88B394858CbA3F71ba",
             "Paraswap": "0x777A3e65a5473148D5d7abdFD2BB5bFB61b6432f"
@@ -168,7 +168,7 @@
             "Nordstern": "0xf065b4bFa073b5A0A3eb254D67cbc5118D8B0Ea7",
             "Paraswap": "0x179C4b8e982b5F1365d36CC8d0c1CEB621B7198D",
             "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA",
-            "Magpie": "0x8622CBd71D8Aba76Ce1C2235510f2b2C6335C31E",
+            "Magpie": "0x370AC766279eCD03dc1D8eb0E5A632a24A255EAb",
             "OpenOcean": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d",
             "Sushi": "0xA985f801ea74321AdcC9Ef88B394858CbA3F71ba"
         },
@@ -194,7 +194,7 @@
             "Nordstern": "0x763Fb927d181bCE8be779794A030BCE45D4869fA",
             "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B",
             "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA",
-            "Magpie": "0x6795A03Af6E1332BD931C0891D5C6AFF85550b54",
+            "Magpie": "0x370AC766279eCD03dc1D8eb0E5A632a24A255EAb",
             "OpenOcean": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d",
             "Paraswap": "0x777A3e65a5473148D5d7abdFD2BB5bFB61b6432f"
         },
@@ -216,7 +216,7 @@
             "TrebleSwap": "0x6f4938535879c668A797F2a6e9B912c54f9D43Cf",
             "Sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c",
             "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B",
-            "Magpie": "0x448Ab278aE53a518b181C01AEaFD397f049060E7",
+            "Magpie": "0x370AC766279eCD03dc1D8eb0E5A632a24A255EAb",
             "OpenOcean": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d",
             "Paraswap": "0x777A3e65a5473148D5d7abdFD2BB5bFB61b6432f"
         },
@@ -266,7 +266,7 @@
             "OpenOcean": "0xd2e68b1d1C5DBB2D6cC396c10C55017e01309C37",
             "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA",
             "Sushi": "0xA985f801ea74321AdcC9Ef88B394858CbA3F71ba",
-            "Magpie": "0xBcFd0eE2C44136526dcA007e41e4f3DDD32A0Bd2"
+            "Magpie": "0x370AC766279eCD03dc1D8eb0E5A632a24A255EAb"
         },
         "dex": {
             "pancake": {
@@ -294,7 +294,7 @@
             "Sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c",
             "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B",
             "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA",
-            "Magpie": "0xB844Fa943230A0ff3b7a0E9483dF2689D513d77d",
+            "Magpie": "0x370AC766279eCD03dc1D8eb0E5A632a24A255EAb",
             "OpenOcean": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d"
         },
         "dex": {
@@ -340,7 +340,7 @@
         "adapter": {
             "Nordstern": "0x1D06d98D523F8B51AD693D4A22fb97fCf0838d83",
             "Kyber": "0x6f4e5b8d7F6b037c62277992c39E7834D7C04596",
-            "Magpie": "0x0Fd65Dc22A3c3aa1501a6Bb509F66ff5C4585a5d",
+            "Magpie": "0x370AC766279eCD03dc1D8eb0E5A632a24A255EAb",
             "OpenOcean": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d",
             "Paraswap": "0x777A3e65a5473148D5d7abdFD2BB5bFB61b6432f",
             "Sushi": "0xA985f801ea74321AdcC9Ef88B394858CbA3F71ba"
@@ -368,7 +368,7 @@
             "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B",
             "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA",
             "OpenOcean": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d",
-            "Magpie": "0x6795A03Af6E1332BD931C0891D5C6AFF85550b54",
+            "Magpie": "0x370AC766279eCD03dc1D8eb0E5A632a24A255EAb",
             "Sushi": "0xA985f801ea74321AdcC9Ef88B394858CbA3F71ba"
         },
         "dex": {
@@ -385,7 +385,7 @@
         "adapter": {
             "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B",
             "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA",
-            "Magpie": "0x6795A03Af6E1332BD931C0891D5C6AFF85550b54",
+            "Magpie": "0x370AC766279eCD03dc1D8eb0E5A632a24A255EAb",
             "Sushi": "0xA985f801ea74321AdcC9Ef88B394858CbA3F71ba"
         },
         "dex": {
@@ -404,7 +404,7 @@
             "Kodiak": "0xcB16237c88A859d46Ae850B97d7D1bdECF482C06",
             "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA",
             "OpenOcean": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d",
-            "Magpie": "0xBcFd0eE2C44136526dcA007e41e4f3DDD32A0Bd2",
+            "Magpie": "0x370AC766279eCD03dc1D8eb0E5A632a24A255EAb",
             "Sushi": "0xA985f801ea74321AdcC9Ef88B394858CbA3F71ba"
         },
         "dex": {
@@ -461,7 +461,7 @@
             "Nordstern": "0xd16A1849E86431872a87f476fa0DfB30eEb96cb3",
             "OpenOcean": "0xc7f07C830e22FCA94bF52F38C6707F9D396c6172",
             "Kyber": "0x6f4e5b8d7F6b037c62277992c39E7834D7C04596",
-            "Magpie": "0x6795A03Af6E1332BD931C0891D5C6AFF85550b54",
+            "Magpie": "0x370AC766279eCD03dc1D8eb0E5A632a24A255EAb",
             "Sushi": "0xA985f801ea74321AdcC9Ef88B394858CbA3F71ba"
         },
         "dex": {
