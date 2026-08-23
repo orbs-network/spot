@@ -9,6 +9,9 @@ server="$root/server.json"
 skill="$root/skill/SKILL.md"
 skill_pkg="$root/skill/package.json"
 skill_readme="$root/skill/README.md"
+plugin="$root/spot"
+plugin_manifest="$plugin/.codex-plugin/plugin.json"
+plugin_skill="$plugin/skills/spot-advanced-swap-orders"
 template_skeleton="$root/script/input/repermit.skeleton.json"
 example_specs="$root/script/input/examples.json"
 template="$root/skill/assets/repermit.template.json"
@@ -187,5 +190,17 @@ render_example() {
     -e 's#]\(\./([^)]*)\)#]('"$repo"'/blob/'"$branch"'/\1)#g' \
     "$readme"
 } > "$skill_readme"
+
+rm -rf "$plugin_skill"
+mkdir -p "$plugin/.codex-plugin" "$plugin_skill/assets" "$plugin_skill/references"
+jq --indent 2 --arg version "$version" -n '{
+  name: "spot",
+  version: $version,
+  description: "Gasless non-custodial EVM market and advanced swap orders",
+  skills: "./skills/"
+}' > "$plugin_manifest"
+cp "$skill" "$skill_pkg" "$skill_readme" "$plugin_skill/"
+cp "$root/skill/assets/"* "$plugin_skill/assets/"
+cp "$root/skill/references/"* "$plugin_skill/references/"
 
 print "synced skill metadata"
