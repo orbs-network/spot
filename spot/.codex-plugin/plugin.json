@@ -1,6 +1,0 @@
-{
-  "name": "spot",
-  "version": "2.8.0",
-  "description": "Gasless non-custodial EVM market and advanced swap orders",
-  "skills": "./skills/"
-}

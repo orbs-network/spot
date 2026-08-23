@@ -1,0 +1,19 @@
+name: Plugin artifact
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: npm run plugin:build
+      - uses: actions/upload-artifact@v7
+        with:
+          name: spot-plugin
+          path: dist/spot/
+          include-hidden-files: true

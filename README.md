@@ -208,7 +208,7 @@ This repository ships these integration surfaces:
 
 1. Root package `@orbs-network/spot` for config, build orchestration, contracts, and published metadata inputs.
 2. Self-contained skill package [`skill/`](./skill/) published as `@orbs-network/spot-skill`.
-3. Skills-only OpenAI plugin bundle [`spot/`](./spot/) for marketplace testing and submission.
+3. Skills-only OpenAI plugin artifact generated with `npm run plugin:build` for marketplace testing and submission.
 4. Hosted MCP endpoint at [`https://agents-sink.orbs.network/mcp`](https://agents-sink.orbs.network/mcp).
 5. Hosted raw files at [`https://orbs-network.github.io/spot/`](https://orbs-network.github.io/spot/) for direct bundle consumption.
 6. Hosted skill distribution on [Clawhub](https://clawhub.ai/eranp-orbs/spot-advanced-swap-orders) for direct skill discovery.
@@ -225,7 +225,7 @@ npm run fmt
 Notes:
 
 1. `npm run build` runs `npm run sync` and then `forge build --extra-output-files abi`.
-2. Sync-generated skill metadata and the `spot/` plugin bundle should not be hand-maintained.
+2. `npm run plugin:build` generates the untracked plugin bundle at `dist/spot/`.
 3. Use `forge test` for the Foundry suite.
 
 ## Contributing
