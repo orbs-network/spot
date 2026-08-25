@@ -28,6 +28,11 @@
                 "adapter": "0x0002BeFB46587d460AcEA9B2792c4A4c67B9cADa",
                 "fee": "0x0006d9557Ac9Af4f31962896299ba4FaBDaB9fEE"
             },
+            "unknown": {
+                "type": "universal",
+                "adapter": "0x8BeD4aF60dFF88bc75eC1744eA50Cb3fB2A16824",
+                "fee": "0x5B9906Bf546896ac1Bb132BD98bd7eC4Ab4B9BA5"
+            },
             "utila": {
                 "type": "universal",
                 "adapter": "0x000ADa14B2ECF45Da6Cf1B33dE34e05231E9C76f",
