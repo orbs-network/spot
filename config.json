@@ -15,6 +15,8 @@
             "refinery": "0x9746de29f1dd31b2c8460d71e92a7aefa34911130e61f274f37776e598c48bec",
             "agentAdapter": "0xf6d54cf6a0619f1fb8e1ded91d4c23e7bb9f498c56735fb0c7669423c766219f",
             "agentFee": "0x151234279af18acc113f70463977058efa2e598b5bfc0c106c75fd638d344c0a",
+            "unknownAdapter": "0x1aa43154c4be61f2790f139ef440a68806cfbbb86d0dc5e2704937cd93cbafc4",
+            "unknownFee": "0x429599ae7495b3e6a93b88d653ac97772fb130b0b74e755d9d215912a252cb7e",
             "utilaAdapter": "0x7671291910b559d7a05ab73ee31dd714d9c6e7b065c9496338bf427182ae5145",
             "utilaFee": "0x46f797cddb221ecf6279b56f52e2f6360cd721ef95bd5a17dd0ffceffaaf7fd6",
             "efAdapter": "0xa5425e0f84a7cf12c4213f57396810d808d88e43a65210786bd0d9a98a314728",
@@ -30,8 +32,8 @@
             },
             "unknown": {
                 "type": "universal",
-                "adapter": "0x8BeD4aF60dFF88bc75eC1744eA50Cb3fB2A16824",
-                "fee": "0x5B9906Bf546896ac1Bb132BD98bd7eC4Ab4B9BA5"
+                "adapter": "0xada00982E8a888a6aa9BFb270591cb54cE7190d0",
+                "fee": "0xfEe00C84894160d582860D76cd7e896d96DBD3d5"
             },
             "utila": {
                 "type": "universal",
