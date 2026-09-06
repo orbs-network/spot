@@ -503,6 +503,22 @@
             }
         }
     },
+    "4663": {
+        "adapter": {
+            "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA",
+            "Orvex": "0x5fFfC46Fa73a1A0FE97847F8445d9c49C20DBB11"
+        },
+        "dex": {
+            "orvex": {
+                "type": "p2",
+                "solver": "Orvex",
+                "router": "0xBe71849c6bE231B89b4f006a5D8FCFdbb201D7cb",
+                "permit2": "0xf1419E6aBaf0a8f879080e62eb4E4DDEEf53a7f1",
+                "adapter": "0xB1b08EDf5D127fFd267A1639d5C72FB14a851a06",
+                "fee": "0xA31F236b8f9cb321258824d33472D7b06d98D648"
+            }
+        }
+    },
     "747474": {
         "adapter": {
             "Nordstern": "0xd16A1849E86431872a87f476fa0DfB30eEb96cb3",
