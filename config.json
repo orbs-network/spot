@@ -505,7 +505,10 @@
     },
     "4663": {
         "adapter": {
-            "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA"
+            "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA",
+            "Magpie": "0xe757b37EDbE768f487a8Fc66BB48bbdb85412570",
+            "OpenOcean": "0xF4087df1F43De3B8e84171c1434da5aE0355796C",
+            "LiFi": "0xA75eA4C3570Ec0ebCbe79176B8D6E06839C36c84"
         },
         "dex": {
             "orvex": {

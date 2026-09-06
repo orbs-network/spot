@@ -29,6 +29,8 @@ Spot supports multiple EVM chains. See [`config.json`](./config.json) as the can
 
 Orvex uses Spot's universal integration on Robinhood Chain (`4663`), with execution routing selected at fill time. No other Orvex mainnet deployment is listed in its [official contract directory](https://docs.orvex.fi/developer-resources/contract-addresses).
 
+Robinhood's solver adapters cover Kyber, Flytrade (`Magpie`), OpenOcean, and LI.FI (`LiFi`).
+
 ## How It Works
 
 Each Spot order combines timing, sizing, trigger, and settlement rules in a single signed payload.
