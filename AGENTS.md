@@ -5,6 +5,7 @@
 These instructions apply to the whole repository.
 
 - Never open an issue on the Spot repository unless the user specifically asks for one.
+- When adding a DEX integration, always use the universal adapter type unless the user explicitly specifies another type.
 
 ## Canonical Surfaces
 
