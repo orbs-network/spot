@@ -30,7 +30,7 @@ Spot provides non-custodial market, limit, TWAP, stop-loss, take-profit, and del
 
 Spot supports multiple EVM chains. See [`config.json`](https://github.com/orbs-network/spot/blob/master/config.json) as the canonical source for supported chains and runtime addresses.
 
-Orvex is configured on Robinhood Chain (`4663`) using its [official UniversalRouter](https://docs.orvex.fi/developer-resources/contract-addresses) and the router's onchain Permit2 dependency. No other Orvex mainnet deployment is listed in its official contract directory.
+Orvex uses Spot's universal integration on Robinhood Chain (`4663`), with execution routing selected at fill time. No other Orvex mainnet deployment is listed in its [official contract directory](https://docs.orvex.fi/developer-resources/contract-addresses).
 
 ## How It Works
 
