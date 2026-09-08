@@ -83,6 +83,12 @@ Token decimals below are verified onchain snapshots for convenience. Use them fo
 | --- | ---: | --- |
 | `usdm` | `18` | `0xFAfDdbb3FC7688494971a79cc65DCa3EF82079E7` |
 
+## Robinhood Chain (`4663`)
+
+`usdg` (USDG), 6 decimals: `0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168`.
+
+Issuer reference: [Paxos USDG mainnet addresses](https://docs.paxos.com/guides/stablecoin/usdg/mainnet).
+
 ## Linea (`59144`)
 
 | Symbol | Decimals | Address |
