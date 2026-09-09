@@ -54,6 +54,11 @@
                 "type": "universal",
                 "adapter": "0x96604C3E846BBa75c43B5518bd076851e5484197",
                 "fee": "0xCf2eB80A89A69aB17e295aeF033Ffe9564736155"
+            },
+            "nami": {
+                "type": "universal",
+                "adapter": "0x1b836918e5a623807897a4A095AF9eaC8b3f5DB8",
+                "fee": "0xeB58450e23632003f013568703F54446070E2E80"
             }
         }
     },
@@ -437,13 +442,6 @@
                 "router": "0x11DA6463D6Cb5a03411Dbf5ab6f6bc3997Ac7428",
                 "adapter": "0x1e84A9f30607959d2d8b1a04171ef7D9522Ef502",
                 "fee": "0x0dc1E0525202b32e89bA78ed55b1e5cEdB751334"
-            },
-            "nami": {
-                "type": "default",
-                "solver": "OpenOcean",
-                "router": "0x6352a56caadC4F1E25CD6c75970Fa768A3304e64",
-                "adapter": "0xba56F9A7865d430c8293851D576b5728Ca711ff5",
-                "fee": "0xeB58450e23632003f013568703F54446070E2E80"
             }
         }
     },
