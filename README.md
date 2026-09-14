@@ -25,7 +25,7 @@ Spot provides non-custodial market, limit, TWAP, stop-loss, take-profit, and del
 
 ## Supported Chains
 
-Spot supports multiple EVM chains. See [`config.json`](./config.json) for explicit core deployment entries and runtime addresses, and [`skill/SKILL.md`](./skill/SKILL.md#supported-chains) for chains supporting order execution. Mantle (`5000`) and Manta Pacific (`169`) have all six core contracts deployed but are not advertised for order execution; their empty adapter and DEX maps do not establish execution readiness.
+Spot supports multiple EVM chains. See [`config.json`](./config.json) for supported chain configurations and runtime addresses, and [`skill/SKILL.md`](./skill/SKILL.md#supported-chains) for chains supporting order execution.
 
 Run `t` before local order QA. `npm test` includes `npm run test:e2e`, a read-only live dependency check using `chain`, `cast`, `jq`, `curl`, and GNU `parallel`. It fetches the current production [offchain oracle config](https://github.com/orbs-network/offchain-oracle/blob/master/config.json) once per run and reports the union of Spot config, skill chains, and oracle chains in a coverage table. `npm run test:e2e -- 1` scopes the report to Ethereum.
 

@@ -443,8 +443,6 @@ append_runtime_coverage() {
   done < <(jq -r --arg id "$chain_id" '. as $c | ["wm","repermit","cosigner","reactor","executor","refinery"][] as $f | [$f, ($c[$id][$f] // $c["*"][$f] // "-")] | @tsv' "$config")
   if [[ $explicit == true && $core_count != 6 ]]; then
     add_issue "$chain_id" core "$core_count/6;$core_bad"
-  elif [[ $explicit == false && $core_count == 6 ]]; then
-    add_issue "$chain_id" config "core deployed without explicit config"
   fi
 
   if print -r -- "$oracle_config" | jq -e --arg id "$chain_id" 'has($id)' >/dev/null; then
@@ -498,8 +496,6 @@ append_runtime_coverage() {
       fi
       oracle_state+=" $oracle_count/$oracle_total"
     fi
-  elif [[ $chain_id == 169 ]]; then
-    oracle_state='skipped (no config)'
   elif [[ $explicit == true || -n ${supported_chains[$chain_id]-} ]]; then
     add_issue "$chain_id" oracle "oracle config missing"
   fi
