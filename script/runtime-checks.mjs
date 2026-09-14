@@ -42,6 +42,7 @@ export async function readNotion(fetcher, token) {
 
 export function evaluate({ config, skill, records, relayHealth, relayStatus, takers, notionPages, now = Date.now() }) {
   const failures = [];
+  const warnings = [];
   const runtime = new Map(records.filter(r => r[0] === 'runtime').map(r => [r[2], r]));
   const idsByLabel = new Map([...runtime].map(([id, row]) => [row[1], id]));
   const rpcErrors = records.filter(r => r[0] === 'issue' && /rpc-error|RPC failure|chain context failed/.test(r[3]));
@@ -110,7 +111,7 @@ export function evaluate({ config, skill, records, relayHealth, relayStatus, tak
   }
 
   const boardRows = [];
-  if (!notionPages) failures.push('Notion: board unavailable; sync could not be checked');
+  if (!notionPages) warnings.push('Notion: board unavailable; sync could not be checked');
   else {
     const seen = new Set();
     for (const page of notionPages) {
@@ -118,33 +119,33 @@ export function evaluate({ config, skill, records, relayHealth, relayStatus, tak
       if (normalize(p?.Module?.select?.name) !== 'spot') continue;
       const title = (p.Partner?.title ?? []).map(t => t.plain_text ?? t.text?.content ?? '').join('');
       const name = integrationKey(title);
-      if (seen.has(name)) failures.push(`Notion ${title}: duplicate SPOT row`);
+      if (seen.has(name)) warnings.push(`Notion ${title}: duplicate SPOT row`);
       seen.add(name);
       const checks = integrations.get(name);
       if (!checks) {
-        failures.push(`Notion ${title}: stale SPOT row, integration is unconfigured`);
+        warnings.push(`Notion ${title}: stale SPOT row, integration is unconfigured`);
         boardRows.push([title, 'unconfigured', '-', '-', '-', '-']);
         continue;
       }
       const expectedChains = checks.map(c => c.id).sort();
       const actualChains = (p.Chain?.multi_select ?? []).map(c => chainIds.get(normalize(c.name)) ?? `unknown:${c.name}`).sort();
       const chainsMatch = JSON.stringify(expectedChains) === JSON.stringify(actualChains);
-      if (!chainsMatch) failures.push(`Notion ${title}: Chain mismatch; expected ${expectedChains.join(',')}, found ${actualChains.join(',')}`);
+      if (!chainsMatch) warnings.push(`Notion ${title}: Chain mismatch; expected ${expectedChains.join(',')}, found ${actualChains.join(',')}`);
       const row = [title, chainsMatch ? 'ok' : 'mismatch'];
       for (const [key, column] of Object.entries(columns)) {
         const expected = progress(checks.map(c => c[key]));
         const actual = p[column]?.status?.name ?? 'unset';
         row.push(expected === null ? `${actual} / unchecked` : normalize(actual) === normalize(expected) ? actual : `${actual} -> ${expected}`);
-        if (expected !== null && normalize(actual) !== normalize(expected)) failures.push(`Notion ${title}: ${column} is ${actual}; expected ${expected}`);
+        if (expected !== null && normalize(actual) !== normalize(expected)) warnings.push(`Notion ${title}: ${key[0].toUpperCase() + key.slice(1)} is ${actual}; expected ${expected}`);
       }
       const solvers = [...new Set(checks.map(c => c.solver))];
       const expectedSolver = solvers.length === 1 ? normalize(solvers[0]) : '';
-      if (normalize(p.Solver?.select?.name) !== expectedSolver) failures.push(`Notion ${title}: Solver mismatch; expected ${expectedSolver || 'unset (multiple solvers)'}`);
+      if (normalize(p.Solver?.select?.name) !== expectedSolver) warnings.push(`Notion ${title}: Solver mismatch; expected ${expectedSolver || 'unset (multiple solvers)'}`);
       boardRows.push(row);
     }
-    for (const name of integrations.keys()) if (!seen.has(name)) failures.push(`Notion: missing SPOT row for ${name}`);
+    for (const name of integrations.keys()) if (!seen.has(name)) warnings.push(`Notion: missing SPOT row for ${name}`);
   }
-  return { dependencyRows, boardRows, failures };
+  return { dependencyRows, boardRows, failures, warnings };
 }
 
 async function main() {
@@ -164,19 +165,23 @@ async function main() {
   const result = evaluate({ config: JSON.parse(readFileSync(resolve(root, 'config.json'), 'utf8')), skill, records,
     relayHealth: values[0], relayStatus: values[1], takers: values[2], notionPages: values[3] });
   sources.forEach((source, i) => {
-    if (source.status === 'rejected') result.failures.push(`${['Relay health', 'Relay status', 'Taker health', 'Notion'][i]}: request failed (${source.reason.name})`);
+    if (source.status === 'rejected') (i === 3 ? result.warnings : result.failures).push(`${['Relay health', 'Relay status', 'Taker health', 'Notion'][i]}: request failed (${source.reason.name})`);
   });
   console.log('\n🔎 Live runtime coverage (active integrations; taker polling/loops; relay registration/listeners)');
   printTable(['chain', 'Spot active/configured', 'Oracle', 'Takers', 'Relay'], result.dependencyRows);
-  console.log('\n🔎 Notion SPOT sync (actual -> expected; ***REMOVED*** = relay)');
+  console.log('\n🔎 Notion SPOT sync (actual -> expected)');
   printTable(['integration', 'Chains', 'Contracts', 'Oracle', 'Takers', 'Relay'], result.boardRows);
+  if (result.warnings.length) {
+    console.log('\n⚠️ Notion sync warnings');
+    printTable(['detail'], result.warnings.map(detail => [detail]));
+  }
   if (result.failures.length) {
-    console.log('\n❌ Runtime / Notion failures');
+    console.log('\n❌ Runtime failures');
     printTable(['detail'], result.failures.map(detail => [detail]));
     process.exitCode = 1;
-  } else console.log('✅ Runtime dependencies and Notion SPOT rows match.');
+  } else console.log('✅ Runtime dependencies match.');
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  main().catch(() => { console.error('❌ Runtime/Notion check failed: invalid input or unavailable dependency'); process.exitCode = 1; });
+  main().catch(() => { console.error('❌ Runtime check failed: invalid input or unavailable dependency'); process.exitCode = 1; });
 }

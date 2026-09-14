@@ -39,7 +39,7 @@ The canonical skill npm package name is `@orbs-network/spot-skill`.
 
 https://app.notion.com/p/***REMOVED***/***REMOVED***?v=***REMOVED***
 
-For SPOT rows, compare `Contracts` with Spot deployment coverage, `Oracle` with offchain-oracle coverage, `***REMOVED***` with observed taker coverage, and `***REMOVED***` with relay coverage. Tests query the board using `NOTION_API_KEY` and report drift; never update statuses as a side effect of testing. TWAP/LH rows and the other team readiness columns are outside this check.
+For SPOT rows, compare the board’s component readiness with Spot deployments, offchain-oracle coverage, observed taker coverage, and relay coverage. Tests query the board using `NOTION_API_KEY` and report drift or board unavailability as non-fatal warnings; never update statuses as a side effect of testing. TWAP/LH rows and the other team readiness columns are outside this check.
 
 ## Build Requirement
 

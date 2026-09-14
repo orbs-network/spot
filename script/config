@@ -615,7 +615,7 @@ main() {
     printf 'dex\t%s\n' "${dex_rows[@]}"
     printf 'issue\t%s\n' "${issue_rows[@]}"
   } | node "$root/script/runtime-checks.mjs"; then
-    add_issue "-" "runtime/notion" "dependency or board mismatch; see report above"
+    add_issue "-" "runtime" "dependency mismatch; see report above"
   fi
 
   if (( ${#issue_rows[@]} > 0 )); then

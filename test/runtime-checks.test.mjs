@@ -51,45 +51,46 @@ test('taker solver adapter addresses match Spot', () => {
   assert.match(evaluate(data).failures.join('\n'), /taker.*Solver/i);
 });
 test('Notion compares all four columns and chain membership', () => {
-  for (const column of ['Contracts', 'Oracle', '***REMOVED***', '***REMOVED***']) {
+  for (const [column, label] of [['Contracts', 'Contracts'], ['Oracle', 'Oracle'], ['***REMOVED***', 'Takers'], ['***REMOVED***', 'Relay']]) {
     const data = fixture(); data.notionPages[0].properties[column] = status('Not started');
-    assert.match(evaluate(data).failures.join('\n'), new RegExp(column.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+    assert.deepEqual(evaluate(data).failures, []);
+    assert.match(evaluate(data).warnings.join('\n'), new RegExp(label));
   }
   const data = fixture(); data.notionPages[0].properties.Chain.multi_select = [{ name: 'Mantle' }];
-  assert.match(evaluate(data).failures.join('\n'), /Notion.*Chain/);
+  assert.match(evaluate(data).warnings.join('\n'), /Notion.*Chain/);
 });
-test('missing, duplicate, and stale SPOT rows fail; other modules are ignored', () => {
+test('missing, duplicate, and stale SPOT rows warn; other modules are ignored', () => {
   const missing = fixture(); missing.notionPages = [];
-  assert.match(evaluate(missing).failures.join('\n'), /missing.*Notion|Notion.*missing/i);
+  assert.match(evaluate(missing).warnings.join('\n'), /missing.*Notion|Notion.*missing/i);
   const duplicate = fixture(); duplicate.notionPages.push(page());
-  assert.match(evaluate(duplicate).failures.join('\n'), /duplicate/i);
+  assert.match(evaluate(duplicate).warnings.join('\n'), /duplicate/i);
   const stale = fixture(); stale.notionPages[0].properties.Partner.title[0].plain_text = 'Removed';
-  assert.match(evaluate(stale).failures.join('\n'), /unconfigured|stale/i);
+  assert.match(evaluate(stale).warnings.join('\n'), /unconfigured|stale/i);
   const unrelated = fixture(); const row = page(); row.properties.Module.select.name = 'TWAP'; unrelated.notionPages.push(row);
-  assert.deepEqual(evaluate(unrelated).failures, []);
+  assert.deepEqual(evaluate(unrelated).warnings, []);
 });
 test('oracle failures are reflected in Notion, without changing the board', () => {
   const data = fixture(); data.records[0][6] = 'failed 2/3';
-  assert.match(evaluate(data).failures.join('\n'), /Notion.*Oracle/);
+  assert.match(evaluate(data).warnings.join('\n'), /Notion.*Oracle/);
   assert.equal(data.notionPages[0].properties.Oracle.status.name, 'Done');
 });
 test('source outages remain unknown rather than inventing Notion statuses', () => {
   const data = fixture(); data.relayHealth = null; data.relayStatus = null; data.takers = null;
   const result = evaluate(data);
   assert.match(result.failures.join('\n'), /relay|taker/i);
-  assert.doesNotMatch(result.failures.join('\n'), /Notion.****REMOVED***/);
+  assert.doesNotMatch(result.warnings.join('\n'), /Notion.*Relay/);
 });
 test('onchain RPC failures do not invent board deployment statuses', () => {
   const data = fixture(); data.records[0][3] = 'unsupported';
   data.records.push(['issue', 'eth', 'core', '5/6; wm:rpc-error']);
-  assert.doesNotMatch(evaluate(data).failures.join('\n'), /Notion.*Contracts/);
+  assert.doesNotMatch(evaluate(data).warnings.join('\n'), /Notion.*Contracts/);
 });
 test('partial and scoped coverage produce distinct board expectations', () => {
   const data = fixture(); data.config['10'] = {}; data.skill += '\n2. Optimism - `10`';
   data.notionPages[0].properties.Chain.multi_select.push({ name: 'Optimism' });
-  assert.doesNotMatch(evaluate(data).failures.join('\n'), /Notion.*Contracts/);
+  assert.doesNotMatch(evaluate(data).warnings.join('\n'), /Notion.*Contracts/);
   data.records.push(['runtime', 'op', '10', 'unsupported', '0/6', '0/1', 'failed 0/3', '-']);
-  assert.match(evaluate(data).failures.join('\n'), /Contracts is Done; expected In progress/);
+  assert.match(evaluate(data).warnings.join('\n'), /Contracts is Done; expected In progress/);
 });
 test('additional relay chains do not restore removed Spot support', () => {
   const data = fixture(); data.relayStatus.chains.push({ chainId: 5000, exchanges: [{ address }] });
@@ -112,4 +113,12 @@ test('Notion pagination reads every page without mutation', async () => {
   assert.equal(pages.length, 2);
   assert.ok(requests.every(r => r.method === 'POST' && r.url.endsWith('/query')));
   assert.equal(JSON.parse(requests[1].body).start_cursor, 'next');
+});
+
+test('Notion unavailability is a warning, while runtime failures still fail', () => {
+  const data = fixture(); data.notionPages = null;
+  assert.deepEqual(evaluate(data).failures, []);
+  assert.match(evaluate(data).warnings.join('\n'), /Notion.*unavailable/);
+  data.relayHealth = null;
+  assert.match(evaluate(data).failures.join('\n'), /Relay/);
 });
