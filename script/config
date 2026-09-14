@@ -9,6 +9,8 @@ chain_args=()
 adapter_rows=()
 dex_rows=()
 coverage_rows=()
+runtime_rows=()
+oracle_config="${SPOT_ORACLE_CONFIG_JSON:-}"
 issue_rows=()
 supported_order=()
 typeset -A supported_chains
@@ -22,7 +24,7 @@ usage() {
   print 'Options:'
   print '  -h, --help     Show this help message.'
   print
-  print 'CHAIN_ID defaults to *; quote "*" in shells so it expands to all Spot-supported chains.'
+  print 'CHAIN_ID defaults to *; quote "*" to check the union of Spot config, skill, and oracle chains.'
 }
 
 die() {
@@ -105,7 +107,7 @@ selected_chains() {
 
   for arg in "${chain_args[@]}"; do
     if [[ $arg == "*" ]]; then
-      for chain_id in "${supported_order[@]}"; do
+      for chain_id in "${supported_order[@]}" "${(@f)$(jq -r 'keys[] | select(. != "*")' "$config")}" "${(@f)$(print -r -- "$oracle_config" | jq -r 'keys[]')}"; do
         [[ -z ${seen[$chain_id]-} ]] || continue
         selected+=("$chain_id")
         seen[$chain_id]=1
@@ -170,8 +172,6 @@ configured_addresses() {
   jq -r --arg chain "$chain_id" '
     . as $cfg
     |
-    def core_fields: ["wm", "repermit", "cosigner", "reactor", "executor", "refinery"];
-    def core_value($field): ($cfg[$chain][$field] // $cfg["*"][$field] // "");
     def merged_dex: (($cfg["*"].dex // {}) + ($cfg[$chain].dex // {}));
     def required_address_fields($dex):
       ($dex.value.type // "") as $type
@@ -187,14 +187,6 @@ configured_addresses() {
           []
         end;
 
-    (
-      core_fields[]
-      | . as $field
-      | (core_value($field)) as $addr
-      | select(($addr | tostring | length) > 0)
-      | ["core", $field, $addr]
-      | @tsv
-    ),
     (
       ($cfg[$chain].adapter // {})
       | to_entries[]
@@ -299,7 +291,9 @@ code_state() {
     return 0
   fi
 
-  if ! code=$(cast code "$address" 2>/dev/null); then
+  if [[ ! $address =~ ^0x[[:xdigit:]]{40}$ || $address == 0x0000000000000000000000000000000000000000 ]]; then
+    probe_result=invalid
+  elif ! code=$(cast code "$address" --rpc-timeout 15 2>/dev/null); then
     probe_result=rpc-error
   elif [[ -z $code || $code == "0x" ]]; then
     probe_result=missing
@@ -315,26 +309,11 @@ probe_chain() {
   local chain_id=$1
   local group target address probe_result
 
-  if ! command -v cast >/dev/null 2>&1; then
-    add_issue "$chain_id" "onchain" "cast not found"
-    return 0
-  fi
-
-  if ! command -v chain >/dev/null 2>&1; then
-    add_issue "$chain_id" "onchain" "chain command not found"
-    return 0
-  fi
-
-  if ! chain "$chain_id" >/dev/null 2>&1; then
-    add_issue "$chain_id" "onchain" "chain context failed"
-    return 0
-  fi
-
   while IFS=$'\t' read -r group target address; do
     [[ -n $group && -n $address ]] || continue
 
     case $group in
-      core|adapter|dex) ;;
+      adapter|dex) ;;
       *) continue ;;
     esac
 
@@ -427,13 +406,14 @@ append_solver_coverage() {
 append_chain_data() {
   local chain_id=$1
 
-  if [[ -z ${supported_chains[$chain_id]-} ]]; then
-    add_issue "$chain_id" "skill" "not listed in skill/SKILL.md Supported Chains"
+  if ! chain "$chain_id" >/dev/null 2>&1; then
+    add_issue "$chain_id" "onchain" "chain context failed"
+    runtime_rows+=("${chain_keys[$chain_id]:-$chain_id}"$'\t'"$chain_id"$'\tunknown\tunknown\tunknown\tunknown')
+    return 0
   fi
 
-  if ! jq -e --arg chain "$chain_id" 'has($chain)' "$config" >/dev/null; then
-    add_issue "$chain_id" "config" "chain entry missing from config.json"
-  fi
+  append_runtime_coverage "$chain_id"
+  [[ -n ${supported_chains[$chain_id]-} ]] || return 0
 
   probe_chain "$chain_id"
   append_adapter_rows "$chain_id"
@@ -441,10 +421,96 @@ append_chain_data() {
   append_dex_rows "$chain_id"
 }
 
+append_runtime_coverage() {
+  local chain_id=$1 field address oracle aggregator bound registered token quote
+  local explicit=false core_count=0 oracle_count=0 oracle_total=0 price_count=0 price_total=0
+  local spot_state=absent oracle_state=absent price_state=- core_bad=""
+  jq -e --arg id "$chain_id" 'has($id)' "$config" >/dev/null && explicit=true
+  if [[ $explicit == true ]]; then
+    spot_state=core-only
+    [[ -z ${supported_chains[$chain_id]-} ]] || spot_state=execution
+  elif [[ -n ${supported_chains[$chain_id]-} ]]; then
+    add_issue "$chain_id" config "skill chain missing explicit config"
+  fi
+
+  while IFS=$'\t' read -r field address; do
+    code_state "$chain_id" "$address"
+    if [[ $code_state_result == ok ]]; then
+      (( ++core_count ))
+    else
+      core_bad+=" $field:$code_state_result"
+    fi
+  done < <(jq -r --arg id "$chain_id" '. as $c | ["wm","repermit","cosigner","reactor","executor","refinery"][] as $f | [$f, ($c[$id][$f] // $c["*"][$f] // "-")] | @tsv' "$config")
+  if [[ $explicit == true && $core_count != 6 ]]; then
+    add_issue "$chain_id" core "$core_count/6;$core_bad"
+  elif [[ $explicit == false && $core_count == 6 ]]; then
+    add_issue "$chain_id" config "core deployed without explicit config"
+  fi
+
+  if print -r -- "$oracle_config" | jq -e --arg id "$chain_id" 'has($id)' >/dev/null; then
+    oracle_state=configured
+    if [[ $explicit == true || -n ${supported_chains[$chain_id]-} ]]; then
+      oracle_state=ok
+      while IFS=$'\t' read -r field address; do
+        (( ++oracle_total ))
+        code_state "$chain_id" "$address"
+        if [[ $code_state_result == ok ]]; then
+          (( ++oracle_count ))
+        else
+          oracle_state=failed
+          add_issue "$chain_id" "oracle:$field" "$code_state_result at $address"
+        fi
+      done < <(print -r -- "$oracle_config" | jq -r --arg id "$chain_id" '.[$id] | (["oracle", (.oracle // "-")], ["aggregator", (.aggregator // "-")], (.adapters[]? | [(.label // .name), (.env.address // "-")])) | @tsv')
+      if (( oracle_total < 3 )); then
+        oracle_state=failed
+        add_issue "$chain_id" oracle "no oracle adapters configured"
+      fi
+      if ! print -r -- "$oracle_config" | jq -e --arg id "$chain_id" '.[$id].connectors | type == "array" and all(.[]; type == "string" and test("^0x[0-9a-fA-F]{40}$"))' >/dev/null 2>&1; then
+        oracle_state=failed
+        add_issue "$chain_id" oracle "invalid connector list"
+      fi
+      oracle=$(print -r -- "$oracle_config" | jq -r --arg id "$chain_id" '.[$id].oracle // "-"')
+      aggregator=$(print -r -- "$oracle_config" | jq -r --arg id "$chain_id" '.[$id].aggregator // "-"')
+      if [[ $oracle_state == ok ]]; then
+        bound=$(cast call "$oracle" 'aggregator()(address)' --rpc-timeout 15 2>/dev/null) || bound=""
+        if [[ ${bound:l} != ${aggregator:l} ]]; then
+          oracle_state=failed
+          add_issue "$chain_id" oracle "aggregator binding mismatch or RPC failure"
+        fi
+        registered=$(cast call "$aggregator" 'oracles()(address[],uint8[])' --json --rpc-timeout 15 2>/dev/null) || registered='[]'
+        while IFS= read -r address; do
+          if ! print -r -- "$registered" | jq -e --arg addr "${address:l}" '.[0] | type == "array" and any(.[]; ascii_downcase == $addr)' >/dev/null 2>&1; then
+            oracle_state=failed
+            add_issue "$chain_id" oracle "adapter not registered: $address"
+          fi
+        done < <(print -r -- "$oracle_config" | jq -r --arg id "$chain_id" '.[$id].adapters[]?.env.address')
+        while IFS= read -r token; do
+          (( ++price_total ))
+          quote=$(cast call "$oracle" 'usd(address)(uint256,uint8)' "$token" --json --rpc-timeout 15 2>/dev/null) || quote='[]'
+          if print -r -- "$quote" | jq -e '.[0] | tostring | test("^[0-9]+$") and test("[1-9]")' >/dev/null 2>&1; then
+            (( ++price_count ))
+          else
+            oracle_state=failed
+            add_issue "$chain_id" oracle "USD quote failed or zero: $token"
+          fi
+        done < <(print -r -- "$oracle_config" | jq -r --arg id "$chain_id" --arg wrapped "${WETH:-}" '["0x0000000000000000000000000000000000000000", $wrapped, .[$id].connectors[]?] | unique[]')
+        price_state="$price_count/$price_total"
+      fi
+      oracle_state+=" $oracle_count/$oracle_total"
+    fi
+  elif [[ $explicit == true || -n ${supported_chains[$chain_id]-} ]]; then
+    add_issue "$chain_id" oracle "oracle config missing"
+  fi
+  runtime_rows+=("${chain_keys[$chain_id]:-$chain_id}"$'\t'"$chain_id"$'\t'"$spot_state"$'\t'"$core_count/6"$'\t'"$oracle_state"$'\t'"$price_state")
+}
+
 emit_chain_record() {
-  local chain_id=$1 adapter_row dex_row coverage_row issue
+  local chain_id=$1 adapter_row dex_row coverage_row runtime_row issue
 
   append_chain_data "$chain_id"
+  for runtime_row in "${runtime_rows[@]}"; do
+    printf 'runtime\t%s\n' "$runtime_row"
+  done
   for adapter_row in "${adapter_rows[@]}"; do
     printf 'adapter\t%s\n' "$adapter_row"
   done
@@ -474,6 +540,8 @@ collect_chain_records() {
 collect_results() {
   local -a selected=("$@")
   local record kind payload
+  local records
+  records=$(collect_chain_records "${selected[@]}") || die 'chain checks failed to run'
 
   while IFS= read -r record; do
     [[ -n $record ]] || continue
@@ -483,9 +551,10 @@ collect_results() {
       adapter) adapter_rows+=("$payload") ;;
       dex) dex_rows+=("$payload") ;;
       coverage) coverage_rows+=("$payload") ;;
+      runtime) runtime_rows+=("$payload") ;;
       issue) issue_rows+=("$payload") ;;
     esac
-  done < <(collect_chain_records "${selected[@]}")
+  done <<< "$records"
 }
 
 print_solver_coverage() {
@@ -527,6 +596,13 @@ main() {
   [[ -f $config ]] || die "config file not found: $config"
   [[ -f $skill_file ]] || die "skill file not found: $skill_file"
   command -v jq >/dev/null 2>&1 || die 'jq is required'
+  command -v cast >/dev/null 2>&1 || die 'cast is required'
+  command -v chain >/dev/null 2>&1 || die 'chain is required'
+  if [[ -z $oracle_config ]]; then
+    oracle_config=$(curl --fail --silent --show-error --max-time 30 https://raw.githubusercontent.com/orbs-network/offchain-oracle/master/config.json) || die 'cannot fetch production oracle config'
+  fi
+  print -r -- "$oracle_config" | jq -e 'type == "object" and length > 0 and all(keys[]; test("^[0-9]+$"))' >/dev/null || die 'invalid oracle config'
+  export SPOT_ORACLE_CONFIG_JSON="$oracle_config"
 
   load_supported_chains
   load_chain_keys
@@ -540,16 +616,24 @@ main() {
 
   collect_results "${selected[@]}"
 
-  print "Solver Coverage"
+  print "🔎 Spot / Oracle Coverage (core bytecode; oracle bytecode, registration, binding, USD quotes)"
+  { print 'chain\tid\tSpot\tcore\toracle contracts\tUSD quotes'; printf '%s\n' "${runtime_rows[@]}" | sort -t $'\t' -k2,2n; } | print_table
+  print 'Oracle-only chains are configuration references; live oracle checks apply to Spot chains.'
+  print
+  print "🔎 Solver Coverage"
   print_solver_coverage
 
   print
-  print "Integrations"
+  print "🔎 Integrations"
   print_integrations
 
   if (( ${#issue_rows[@]} > 0 )); then
+    print
+    print "❌ Coverage failures"
+    { print 'chain\tcheck\tdetail'; printf '%s\n' "${issue_rows[@]}"; } | print_table
     return 1
   fi
+  print '✅ Spot core, execution, and oracle dependency checks passed.'
 }
 
 main "$@"

@@ -25,7 +25,11 @@ Spot provides non-custodial market, limit, TWAP, stop-loss, take-profit, and del
 
 ## Supported Chains
 
-Spot supports multiple EVM chains. See [`config.json`](./config.json) as the canonical source for supported chains and runtime addresses.
+Spot supports multiple EVM chains. See [`config.json`](./config.json) for explicit core deployment entries and runtime addresses, and [`skill/SKILL.md`](./skill/SKILL.md#supported-chains) for chains supporting order execution. Mantle (`5000`) and Manta Pacific (`169`) have all six core contracts deployed but are not advertised for order execution; their empty adapter and DEX maps do not establish execution readiness.
+
+Run `t` before local order QA. `npm test` includes `npm run test:e2e`, a read-only live dependency check using `chain`, `cast`, `jq`, `curl`, and GNU `parallel`. It fetches the current production [offchain oracle config](https://github.com/orbs-network/offchain-oracle/blob/master/config.json) once per run and reports the union of Spot config, skill chains, and oracle chains in a coverage table. `npm run test:e2e -- 1` scopes the report to Ethereum.
+
+Every explicit Spot chain must have all six core contracts, a deployed USD oracle and aggregator, deployed and registered oracle adapters, the correct oracle-to-aggregator binding, and positive USD quotes for native, wrapped native, and all configured oracle connectors. Execution chains additionally require the existing solver and integration checks. Missing config, contracts, quotes, or RPC access fail the test with visible details. Oracle-only chains show core discovery and configured oracle coverage; a complete Spot core deployment without an explicit Spot entry also fails. Discovery is limited to the selected config/skill/oracle chain set, not every EVM network. `SPOT_ORACLE_CONFIG_JSON` can supply an explicit oracle config snapshot for reproducible diagnostics; normal tests fetch production directly.
 
 Orvex uses Spot's universal integration on Robinhood Chain (`4663`), with execution routing selected at fill time. No other Orvex mainnet deployment is listed in its [official contract directory](https://docs.orvex.fi/developer-resources/contract-addresses).
 

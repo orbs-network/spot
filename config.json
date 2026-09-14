@@ -62,6 +62,14 @@
             }
         }
     },
+    "169": {
+        "adapter": {},
+        "dex": {}
+    },
+    "5000": {
+        "adapter": {},
+        "dex": {}
+    },
     "1": {
         "adapter": {
             "Nordstern": "0x6603629C8d4b683fdc51c7F810D1799cfEAcEAe3",

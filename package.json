@@ -22,7 +22,8 @@
         "sync": "./script/sync.zsh",
         "plugin:build": "npm run sync && ./script/plugin.zsh",
         "build": "npm run sync && forge build --extra-output-files abi",
-        "test": "forge test && ./script/config",
+        "test:e2e": "./script/config",
+        "test": "forge test && npm run test:e2e",
         "prepublishOnly": "npm run fmt && npm run build && npm run test",
         "postpublish": "npm publish -w skill && npm pack -w skill"
     },

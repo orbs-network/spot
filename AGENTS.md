@@ -53,6 +53,8 @@ When the user asks for `skill qa`:
 
 When the user asks for `qa`:
 
+Before any onchain QA action, run `t` from this repository. It builds and runs all tests, including live Spot/oracle dependency coverage. Stop if any test fails; report the failures before placing orders.
+
 1. Treat `qa` as a local E2E dev task.
 2. The default `qa` flow is two sequential TWAP orders, not one mixed order or a single-shot market order.
 3. Unless the user overrides scope or shape, place a first order that is a 2-chunk stop-loss from wrapped native to USDC, wait for that order to reach a final state, then place a second order that is a 2-chunk take-profit from USDC back to native.

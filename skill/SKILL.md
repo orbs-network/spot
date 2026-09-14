@@ -40,6 +40,8 @@ Execution remains decentralized, non-custodial, oracle-protected, immutable, aud
 18. Berachain - `80094`
 19. Katana - `747474`
 
+Core-only deployment entries in the repository config do not extend this order-execution chain list.
+
 The bundled JSON template hardcodes the shared agent adapter. Do not derive or replace the adapter per chain.
 
 ## Relay
