@@ -28,21 +28,19 @@ Execution remains decentralized, non-custodial, oracle-protected, immutable, aud
 6. Polygon - `137`
 7. Monad - `143`
 8. Sonic - `146`
-9. Manta Pacific - `169`
-10. X Layer - `196`
-11. HyperEVM - `999`
-12. Sei - `1329`
-13. MegaETH - `4326`
-14. Robinhood Chain - `4663`
-15. Mantle - `5000`
-16. Base - `8453`
-17. Arbitrum One - `42161`
-18. Avalanche - `43114`
-19. Linea - `59144`
-20. Berachain - `80094`
-21. Katana - `747474`
+9. X Layer - `196`
+10. HyperEVM - `999`
+11. Sei - `1329`
+12. MegaETH - `4326`
+13. Robinhood Chain - `4663`
+14. Base - `8453`
+15. Arbitrum One - `42161`
+16. Avalanche - `43114`
+17. Linea - `59144`
+18. Berachain - `80094`
+19. Katana - `747474`
 
-A supported chain has all six core contracts and at least one deployed adapter from the shared `*` or chain-specific config. Empty chain-specific adapter maps still inherit shared adapters. Oracle dependency health is checked separately.
+A supported chain is explicitly included in config and has all six core contracts plus at least one deployed adapter from the shared `*` or chain-specific config. Existing deployments do not extend this list. Empty chain-specific adapter maps still inherit shared adapters. Oracle dependency health is checked separately.
 
 The bundled JSON template hardcodes the shared agent adapter. Do not derive or replace the adapter per chain.
 

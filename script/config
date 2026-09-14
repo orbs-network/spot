@@ -463,9 +463,8 @@ append_runtime_coverage() {
     code_state "$chain_id" "$address"
     [[ $code_state_result != ok ]] || (( ++adapter_count ))
   done < <(configured_addresses "$chain_id" | awk -F '\t' '$1 == "adapter" || ($1 == "dex" && $2 ~ /[.]adapter$/) { print tolower($3) }' | sort -u)
-  if (( core_count == 6 && adapter_count > 0 )); then
+  if [[ $explicit == true ]] && (( core_count == 6 && adapter_count > 0 )); then
     spot_state=supported
-    [[ $explicit == true ]] || add_issue "$chain_id" config "supported deployment missing explicit config"
     [[ -n ${supported_chains[$chain_id]-} ]] || add_issue "$chain_id" skill "supported deployment missing from skill chains"
   elif [[ $explicit == true || -n ${supported_chains[$chain_id]-} ]]; then
     (( adapter_count > 0 )) || add_issue "$chain_id" adapter-coverage "no deployed adapter (shared or chain-specific)"
