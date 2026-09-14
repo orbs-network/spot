@@ -6,6 +6,7 @@ These instructions apply to the whole repository.
 
 - Never open an issue on the Spot repository unless the user specifically asks for one.
 - When adding a DEX integration, always use the universal adapter type unless the user explicitly specifies another type.
+- A chain is supported when all six core contracts and at least one adapter from the shared `*` or chain-specific config are deployed. Keep its explicit config entry and skill chain list in sync; named solver count is not a support prerequisite.
 
 ## Canonical Surfaces
 

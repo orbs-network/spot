@@ -188,7 +188,7 @@ configured_addresses() {
         end;
 
     (
-      ($cfg[$chain].adapter // {})
+      (($cfg["*"].adapter // {}) + ($cfg[$chain].adapter // {}))
       | to_entries[]
       | select(((.value // "") | tostring | length) > 0)
       | ["adapter", .key, .value]
@@ -268,7 +268,7 @@ dex_configs() {
 adapter_configs() {
   local chain_id=$1
   jq -r --arg chain "$chain_id" '
-    (.[$chain].adapter // {})
+    ((.["*"].adapter // {}) + (.[$chain].adapter // {}))
     | to_entries[]
     | select(((.value // "") | tostring | length) > 0)
     | [.key, .value]
@@ -305,6 +305,14 @@ code_state() {
   code_state_result=$probe_result
 }
 
+shared_dex_missing() {
+  local chain_id=$1 dex=$2 address
+  jq -e --arg id "$chain_id" --arg dex "$dex" '.[$id].dex // {} | has($dex)' "$config" >/dev/null && return 1
+  address=$(jq -r --arg dex "$dex" '.["*"].dex[$dex].adapter // "-"' "$config")
+  code_state "$chain_id" "$address"
+  [[ $code_state_result == missing ]]
+}
+
 probe_chain() {
   local chain_id=$1
   local group target address probe_result
@@ -317,8 +325,15 @@ probe_chain() {
       *) continue ;;
     esac
 
+    if [[ $group == dex ]] && shared_dex_missing "$chain_id" "${target%%.*}"; then
+      continue
+    fi
+
     code_state "$chain_id" "$address"
     probe_result=$code_state_result
+    if [[ $group == adapter && $probe_result == missing ]] && ! jq -e --arg id "$chain_id" --arg name "$target" '.[$id].adapter // {} | has($name)' "$config" >/dev/null; then
+      continue
+    fi
     if [[ $probe_result != ok ]]; then
       add_issue "$chain_id" "$group:$target" "$probe_result at $address"
     fi
@@ -354,6 +369,7 @@ append_dex_rows() {
 
   while IFS=$'\t' read -r dex dex_type solver config_state pairs; do
     [[ -n $dex ]] || continue
+    shared_dex_missing "$chain_id" "$dex" && continue
     onchain_state=$(dex_onchain_status "$chain_id" "$pairs")
     issue_text=""
     [[ $config_state == ok ]] || issue_text="config $config_state"
@@ -385,22 +401,21 @@ append_adapter_rows() {
 
 append_solver_coverage() {
   local chain_id=$1 chain_label=${chain_keys[$chain_id]:-$chain_id}
-  local adapter_row row_chain row_solver row_adapter row_issue valid_count=0 min_solvers=2
+  local adapter_row row_chain row_solver row_adapter row_issue valid_count=0
   local -a solvers=()
   local solver_list
 
   for adapter_row in "${adapter_rows[@]}"; do
     IFS=$'\t' read -r row_chain row_solver row_adapter row_issue <<< "$adapter_row"
     [[ $row_chain == "$chain_label" ]] || continue
-    solvers+=("$row_solver")
     [[ $row_issue == "-" ]] || continue
+    solvers+=("$row_solver")
     (( ++valid_count ))
   done
 
   solver_list=${(j:,:)solvers}
   [[ -n $solver_list ]] || solver_list="-"
-  coverage_rows+=("${chain_label}"$'\t'"${valid_count}/${min_solvers}"$'\t'"${solver_list}")
-  (( valid_count >= min_solvers )) || add_issue "$chain_id" "solver-coverage" "only ${valid_count}/${min_solvers} valid adapters configured"
+  coverage_rows+=("${chain_label}"$'\t'"${valid_count}"$'\t'"${solver_list}")
 }
 
 append_chain_data() {
@@ -408,12 +423,12 @@ append_chain_data() {
 
   if ! chain "$chain_id" >/dev/null 2>&1; then
     add_issue "$chain_id" "onchain" "chain context failed"
-    runtime_rows+=("${chain_keys[$chain_id]:-$chain_id}"$'\t'"$chain_id"$'\tunknown\tunknown\tunknown\tunknown')
+    runtime_rows+=("${chain_keys[$chain_id]:-$chain_id}"$'\t'"$chain_id"$'\tunknown\tunknown\tunknown\tunknown\tunknown')
     return 0
   fi
 
   append_runtime_coverage "$chain_id"
-  [[ -n ${supported_chains[$chain_id]-} ]] || return 0
+  jq -e --arg id "$chain_id" 'has($id)' "$config" >/dev/null || return 0
 
   probe_chain "$chain_id"
   append_adapter_rows "$chain_id"
@@ -423,13 +438,10 @@ append_chain_data() {
 
 append_runtime_coverage() {
   local chain_id=$1 field address oracle aggregator bound registered token quote
-  local explicit=false core_count=0 oracle_count=0 oracle_total=0 price_count=0 price_total=0
-  local spot_state=absent oracle_state=absent price_state=- core_bad=""
+  local explicit=false core_count=0 adapter_count=0 adapter_total=0 oracle_count=0 oracle_total=0 price_count=0 price_total=0
+  local spot_state=unsupported oracle_state=absent price_state=- core_bad=""
   jq -e --arg id "$chain_id" 'has($id)' "$config" >/dev/null && explicit=true
-  if [[ $explicit == true ]]; then
-    spot_state=core-only
-    [[ -z ${supported_chains[$chain_id]-} ]] || spot_state=execution
-  elif [[ -n ${supported_chains[$chain_id]-} ]]; then
+  if [[ $explicit == false && -n ${supported_chains[$chain_id]-} ]]; then
     add_issue "$chain_id" config "skill chain missing explicit config"
   fi
 
@@ -443,6 +455,20 @@ append_runtime_coverage() {
   done < <(jq -r --arg id "$chain_id" '. as $c | ["wm","repermit","cosigner","reactor","executor","refinery"][] as $f | [$f, ($c[$id][$f] // $c["*"][$f] // "-")] | @tsv' "$config")
   if [[ $explicit == true && $core_count != 6 ]]; then
     add_issue "$chain_id" core "$core_count/6;$core_bad"
+  fi
+
+  while IFS= read -r address; do
+    [[ -n $address ]] || continue
+    (( ++adapter_total ))
+    code_state "$chain_id" "$address"
+    [[ $code_state_result != ok ]] || (( ++adapter_count ))
+  done < <(configured_addresses "$chain_id" | awk -F '\t' '$1 == "adapter" || ($1 == "dex" && $2 ~ /[.]adapter$/) { print tolower($3) }' | sort -u)
+  if (( core_count == 6 && adapter_count > 0 )); then
+    spot_state=supported
+    [[ $explicit == true ]] || add_issue "$chain_id" config "supported deployment missing explicit config"
+    [[ -n ${supported_chains[$chain_id]-} ]] || add_issue "$chain_id" skill "supported deployment missing from skill chains"
+  elif [[ $explicit == true || -n ${supported_chains[$chain_id]-} ]]; then
+    (( adapter_count > 0 )) || add_issue "$chain_id" adapter-coverage "no deployed adapter (shared or chain-specific)"
   fi
 
   if print -r -- "$oracle_config" | jq -e --arg id "$chain_id" 'has($id)' >/dev/null; then
@@ -499,7 +525,7 @@ append_runtime_coverage() {
   elif [[ $explicit == true || -n ${supported_chains[$chain_id]-} ]]; then
     add_issue "$chain_id" oracle "oracle config missing"
   fi
-  runtime_rows+=("${chain_keys[$chain_id]:-$chain_id}"$'\t'"$chain_id"$'\t'"$spot_state"$'\t'"$core_count/6"$'\t'"$oracle_state"$'\t'"$price_state")
+  runtime_rows+=("${chain_keys[$chain_id]:-$chain_id}"$'\t'"$chain_id"$'\t'"$spot_state"$'\t'"$core_count/6"$'\t'"$adapter_count/$adapter_total"$'\t'"$oracle_state"$'\t'"$price_state")
 }
 
 emit_chain_record() {
@@ -615,7 +641,7 @@ main() {
   collect_results "${selected[@]}"
 
   print "🔎 Spot / Oracle Coverage (core bytecode; oracle bytecode, registration, binding, USD quotes)"
-  { print 'chain\tid\tSpot\tcore\toracle contracts\tUSD quotes'; printf '%s\n' "${runtime_rows[@]}" | sort -t $'\t' -k2,2n; } | print_table
+  { print 'chain\tid\tSpot\tcore\tadapters deployed/known\toracle contracts\tUSD quotes'; printf '%s\n' "${runtime_rows[@]}" | sort -t $'\t' -k2,2n; } | print_table
   print 'Oracle-only chains are configuration references; live oracle checks apply to Spot chains.'
   print
   print "🔎 Solver Coverage"
