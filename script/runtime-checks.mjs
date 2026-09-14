@@ -4,6 +4,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const database = '262312ca68a98089837bfaf4ac9ef209';
 const columns = { contracts: 'Contracts', oracle: 'Oracle', takers: 'Takers', relay: 'Relay' };
 const aliases = { quick: 'quickswap', pancake: 'pancakeswap', spooky: 'spookyswap', spark: 'sparkdex', dragon: 'dragonswap', externalapi: 'external' };
 const normalize = value => String(value ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -16,9 +17,8 @@ const fresh = (value, now, age = 120_000) => {
 };
 const progress = flags => flags.includes(null) ? null : flags.every(Boolean) ? 'Done' : flags.some(Boolean) ? 'In progress' : 'Not started';
 
-export async function readNotion(fetcher, { token, database }) {
+export async function readNotion(fetcher, token) {
   if (!token) throw new Error('NOTION_API_KEY is required');
-  if (!database) throw new Error('SPOT_NOTION_DATABASE_ID is required');
   const pages = [];
   const cursors = new Set();
   let cursor;
@@ -160,7 +160,7 @@ async function main() {
     return response.json();
   };
   const sources = await Promise.allSettled([getJson(`${relay}/health`), getJson(`${relay}/status`),
-    Promise.all(urls.map(getJson)), readNotion(fetch, { token: process.env.NOTION_API_KEY, database: process.env.SPOT_NOTION_DATABASE_ID })]);
+    Promise.all(urls.map(getJson)), readNotion(fetch, process.env.NOTION_API_KEY)]);
   const values = sources.map(result => result.status === 'fulfilled' ? result.value : null);
   const result = evaluate({ config: JSON.parse(readFileSync(resolve(root, 'config.json'), 'utf8')), skill, records,
     relayHealth: values[0], relayStatus: values[1], takers: values[2], notionPages: values[3] });
