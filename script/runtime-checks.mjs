@@ -1,3 +1,4 @@
+import { printTable } from './table.mjs';
 import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -144,20 +145,6 @@ export function evaluate({ config, skill, records, relayHealth, relayStatus, tak
     for (const name of integrations.keys()) if (!seen.has(name)) failures.push(`Notion: missing SPOT row for ${name}`);
   }
   return { dependencyRows, boardRows, failures };
-}
-
-function printTable(headers, rows) {
-  const cells = [headers, ...rows].map(row => row.map(value => String(value).replace(/[\r\n\t]/g, ' ').match(/.{1,90}/gu) ?? ['']));
-  const widths = headers.map((_, i) => Math.max(...cells.flatMap(row => row[i].map(line => line.length))));
-  const border = (left, middle, right) => console.log(left + widths.map(w => '─'.repeat(w + 2)).join(middle) + right);
-  border('┌', '┬', '┐');
-  cells.forEach((row, i) => {
-    for (let line = 0; line < Math.max(...row.map(cell => cell.length)); line++) {
-      console.log('│ ' + row.map((cell, j) => (cell[line] ?? '').padEnd(widths[j])).join(' │ ') + ' │');
-    }
-    if (i === 0) border('├', '┼', '┤');
-  });
-  border('└', '┴', '┘');
 }
 
 async function main() {

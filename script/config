@@ -124,47 +124,7 @@ selected_chains() {
 }
 
 print_table() {
-  awk -F '\t' '
-    {
-      row_count++
-      if (NF > field_count) {
-        field_count = NF
-      }
-      for (i = 1; i <= NF; i++) {
-        cell[row_count, i] = $i
-        if (length($i) > width[i]) {
-          width[i] = length($i)
-        }
-      }
-    }
-    function border(left, middle, right,    i, j) {
-      printf "%s", left
-      for (i = 1; i <= field_count; i++) {
-        for (j = 0; j < width[i] + 2; j++) {
-          printf "─"
-        }
-        printf "%s", (i == field_count ? right : middle)
-      }
-      printf "\n"
-    }
-    END {
-      if (row_count == 0) {
-        exit
-      }
-      border("┌", "┬", "┐")
-      for (r = 1; r <= row_count; r++) {
-        printf "│"
-        for (i = 1; i <= field_count; i++) {
-          printf " %-*s │", width[i], cell[r, i]
-        }
-        printf "\n"
-        if (r == 1) {
-          border("├", "┼", "┤")
-        }
-      }
-      border("└", "┴", "┘")
-    }
-  '
+  node "$root/script/table.mjs"
 }
 
 configured_addresses() {
