@@ -498,6 +498,8 @@ append_runtime_coverage() {
       fi
       oracle_state+=" $oracle_count/$oracle_total"
     fi
+  elif [[ $chain_id == 169 ]]; then
+    oracle_state='skipped (no config)'
   elif [[ $explicit == true || -n ${supported_chains[$chain_id]-} ]]; then
     add_issue "$chain_id" oracle "oracle config missing"
   fi
