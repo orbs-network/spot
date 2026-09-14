@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluate, readNotion } from '../script/runtime-checks.mjs';
 
+const notionSettings = { token: 'test-token', database: 'test-board', takersColumn: 'Takers', relayColumn: 'Relay' };
 const address = '0x1111111111111111111111111111111111111111';
 const now = Date.parse('2026-09-14T12:00:00Z');
 const timestamp = new Date(now).toISOString();
@@ -10,7 +11,7 @@ const page = () => ({ properties: {
   Partner: { title: [{ plain_text: 'Agent' }] }, Module: { select: { name: 'SPOT' } },
   Chain: { multi_select: [{ name: 'Ethereum' }] }, Solver: { select: { name: 'universal' } },
   Contracts: status('Done'), Oracle: status('Done'),
-  '***REMOVED***': status('Done'), ***REMOVED***: status('Done'),
+  'Takers': status('Done'), Relay: status('Done'),
 } });
 function fixture() {
   return {
@@ -51,7 +52,7 @@ test('taker solver adapter addresses match Spot', () => {
   assert.match(evaluate(data).failures.join('\n'), /taker.*Solver/i);
 });
 test('Notion compares all four columns and chain membership', () => {
-  for (const [column, label] of [['Contracts', 'Contracts'], ['Oracle', 'Oracle'], ['***REMOVED***', 'Takers'], ['***REMOVED***', 'Relay']]) {
+  for (const [column, label] of [['Contracts', 'Contracts'], ['Oracle', 'Oracle'], ['Takers', 'Takers'], ['Relay', 'Relay']]) {
     const data = fixture(); data.notionPages[0].properties[column] = status('Not started');
     assert.deepEqual(evaluate(data).failures, []);
     assert.match(evaluate(data).warnings.join('\n'), new RegExp(label));
@@ -99,9 +100,9 @@ test('additional relay chains do not restore removed Spot support', () => {
   assert.equal(result.dependencyRows.length, 1);
 });
 test('Notion auth and broken pagination fail closed', async () => {
-  await assert.rejects(readNotion(() => assert.fail('must not request without a token'), ''), /NOTION_API_KEY/);
-  await assert.rejects(readNotion(async () => ({ ok: false, status: 401 }), 'test'), /HTTP 401/);
-  await assert.rejects(readNotion(async () => ({ ok: true, json: async () => ({ results: [], has_more: true, next_cursor: 'same' }) }), 'test'), /cursor/);
+  await assert.rejects(readNotion(() => assert.fail('must not request without a token'), { ...notionSettings, token: '' }), /NOTION_API_KEY/);
+  await assert.rejects(readNotion(async () => ({ ok: false, status: 401 }), notionSettings), /HTTP 401/);
+  await assert.rejects(readNotion(async () => ({ ok: true, json: async () => ({ results: [], has_more: true, next_cursor: 'same' }) }), notionSettings), /cursor/);
 });
 test('Notion pagination reads every page without mutation', async () => {
   const requests = [];
@@ -109,7 +110,7 @@ test('Notion pagination reads every page without mutation', async () => {
     requests.push({ url, ...options });
     return { ok: true, json: async () => ({ results: [page()], has_more: requests.length === 1, next_cursor: 'next' }) };
   };
-  const pages = await readNotion(fetcher, 'test-token');
+  const pages = await readNotion(fetcher, notionSettings);
   assert.equal(pages.length, 2);
   assert.ok(requests.every(r => r.method === 'POST' && r.url.endsWith('/query')));
   assert.equal(JSON.parse(requests[1].body).start_cursor, 'next');
@@ -121,4 +122,16 @@ test('Notion unavailability is a warning, while runtime failures still fail', ()
   assert.match(evaluate(data).warnings.join('\n'), /Notion.*unavailable/);
   data.relayHealth = null;
   assert.match(evaluate(data).failures.join('\n'), /Relay/);
+});
+
+test('Notion uses supplied private settings and normalizes component columns', async () => {
+  const pages = await readNotion(async (url) => {
+    assert.ok(url.includes('/test-board/query'));
+    return { ok: true, json: async () => ({ results: [{ properties: { TeamA: status('Done'), TeamB: status('Not started') } }] }) };
+  }, { ...notionSettings, takersColumn: 'TeamA', relayColumn: 'TeamB' });
+  assert.equal(pages[0].properties.Takers.status.name, 'Done');
+  assert.equal(pages[0].properties.Relay.status.name, 'Not started');
+  for (const key of ['database', 'takersColumn', 'relayColumn']) {
+    await assert.rejects(readNotion(() => assert.fail('must not request with missing configuration'), { ...notionSettings, [key]: '' }));
+  }
 });
