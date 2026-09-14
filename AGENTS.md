@@ -37,7 +37,7 @@ The canonical skill npm package name is `@orbs-network/spot-skill`.
 
 ## Spot Notion Dashboard
 
-For SPOT rows, compare the board’s component readiness with Spot deployments, offchain-oracle coverage, observed taker coverage, and relay coverage. Keep board identifiers, personal column names, and taker endpoints in private environment variables; never commit their values. Tests query the board using `NOTION_API_KEY`, `SPOT_NOTION_DATABASE_ID`, `SPOT_NOTION_TAKERS_COLUMN`, and `SPOT_NOTION_RELAY_COLUMN` and report drift or board unavailability as non-fatal warnings; never update statuses as a side effect of testing. TWAP/LH rows and the other team readiness columns are outside this check.
+For SPOT rows, compare the board’s component readiness with Spot deployments, offchain-oracle coverage, observed taker coverage, and relay coverage. Keep API tokens and private taker endpoints in environment variables; never commit their values. Notion uses the standard status columns `Contracts`, `Oracle`, `Takers`, and `Relay`. The database ID identifies the board and does not grant access; it is currently configured through the environment. Tests query the board using `NOTION_API_KEY` and `SPOT_NOTION_DATABASE_ID` and report drift or board unavailability as non-fatal warnings; never update statuses as a side effect of testing. TWAP/LH rows and the other team readiness columns are outside this check.
 
 ## Build Requirement
 

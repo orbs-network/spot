@@ -16,9 +16,9 @@ const fresh = (value, now, age = 120_000) => {
 };
 const progress = flags => flags.includes(null) ? null : flags.every(Boolean) ? 'Done' : flags.some(Boolean) ? 'In progress' : 'Not started';
 
-export async function readNotion(fetcher, { token, database, takersColumn, relayColumn }) {
+export async function readNotion(fetcher, { token, database }) {
   if (!token) throw new Error('NOTION_API_KEY is required');
-  if (!database || !takersColumn || !relayColumn) throw new Error('Private Notion settings are required');
+  if (!database) throw new Error('SPOT_NOTION_DATABASE_ID is required');
   const pages = [];
   const cursors = new Set();
   let cursor;
@@ -31,8 +31,7 @@ export async function readNotion(fetcher, { token, database, takersColumn, relay
     if (!response.ok) throw new Error(`Notion HTTP ${response.status}`);
     const data = await response.json();
     if (!Array.isArray(data.results)) throw new Error('Invalid Notion query response');
-    pages.push(...data.results.map(page => ({ ...page, properties: { ...page.properties,
-      Takers: page.properties?.[takersColumn], Relay: page.properties?.[relayColumn] } })));
+    pages.push(...data.results);
     if (!data.has_more) break;
     cursor = data.next_cursor;
     if (!cursor || cursors.has(cursor)) throw new Error('Invalid Notion pagination cursor');
@@ -161,8 +160,7 @@ async function main() {
     return response.json();
   };
   const sources = await Promise.allSettled([getJson(`${relay}/health`), getJson(`${relay}/status`),
-    Promise.all(urls.map(getJson)), readNotion(fetch, { token: process.env.NOTION_API_KEY, database: process.env.SPOT_NOTION_DATABASE_ID,
-      takersColumn: process.env.SPOT_NOTION_TAKERS_COLUMN, relayColumn: process.env.SPOT_NOTION_RELAY_COLUMN })]);
+    Promise.all(urls.map(getJson)), readNotion(fetch, { token: process.env.NOTION_API_KEY, database: process.env.SPOT_NOTION_DATABASE_ID })]);
   const values = sources.map(result => result.status === 'fulfilled' ? result.value : null);
   const result = evaluate({ config: JSON.parse(readFileSync(resolve(root, 'config.json'), 'utf8')), skill, records,
     relayHealth: values[0], relayStatus: values[1], takers: values[2], notionPages: values[3] });
