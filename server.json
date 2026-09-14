@@ -7,7 +7,7 @@
     "url": "https://github.com/orbs-network/spot",
     "source": "github"
   },
-  "version": "2.10.0",
+  "version": "2.11.0",
   "remotes": [
     {
       "type": "streamable-http",
