@@ -35,9 +35,19 @@ This commonly includes `skill/SKILL.md`, `config.json`, `skill/`, `README.md`, `
 
 The canonical skill npm package name is `@orbs-network/spot-skill`.
 
+## Spot Runtime QA
+
+Live relay and taker coverage is a manual AI check during `qa`, or when explicitly requested. Normal testing (`t`, `npm test`, and `test:e2e`) checks contracts, deployments, and oracle coverage; it must not query relay/taker health or require their integration coverage.
+
+1. Use the relay URL from `skill/SKILL.md` to inspect `/health` and `/status`: service health, enabled and fresh block listeners, and registered adapter addresses for the QA chains and integrations.
+2. Read the comma-separated `SPOT_TAKER_HEALTH_URLS` from the private environment. If missing or empty, report taker health checking as skipped. Never expose private URLs or invent endpoints.
+3. Inspect active takers, recent relay polling, fresh integration loops, and matching chain/refinery/solver-adapter metadata. Use 120 seconds for health, polling, and listener freshness, and 180 seconds for loop freshness; distinguish current errors from historical ones.
+4. Before interpreting gaps, compare the live library versions and adapter addresses with current config and remote code in `orbs-network/twap-bidder` and `orbs-network/order-sink`. Account for SAFO/backup/L3 assignments and the health endpoints actually observed. An unobserved loop is not proof that an integration is unsupported or broken.
+5. Include a concise runtime diagnosis in the QA report, separating confirmed mismatches, unavailable evidence, and the results of this run's orders. Health checks alone do not prove successful swaps.
+
 ## Spot Notion Dashboard
 
-Notion checking is a manual AI task during `qa`, or when explicitly requested. Normal testing (`t`, `npm test`, `test:e2e`, and `test:runtime`) must not query Notion or evaluate board readiness.
+Notion checking is a manual AI task during `qa`, or when explicitly requested. Normal testing (`t`, `npm test`, and `test:e2e`) must not query Notion or evaluate board readiness.
 
 1. Read all pages of the integrations board (`262312ca68a98089837bfaf4ac9ef209`) using `NOTION_API_KEY` from the environment. Keep tokens and private taker endpoints out of committed files and output.
 2. Review only SPOT rows and the `Contracts`, `Oracle`, `Takers`, and `Relay` status columns, plus chain membership and solver labels. Compare with current Spot config, deployments, oracle coverage, and live relay/taker observations. TWAP/LH rows and other team readiness columns are outside this review.
@@ -61,7 +71,7 @@ When the user asks for `skill qa`:
 
 When the user asks for `qa`:
 
-Manually review Notion using the Spot Notion Dashboard instructions above and include the concise findings in the QA report. This is an AI review, not a test command or automated test side effect.
+Manually review relay/taker coverage and Notion using the Spot Runtime QA and Spot Notion Dashboard instructions above and include the concise findings in the QA report. These are AI reviews, not test commands or automated test side effects.
 
 Before any onchain QA action, run `t` from this repository. It builds and runs all tests, including live Spot/oracle dependency coverage. Stop if any test fails; report the failures before placing orders.
 
