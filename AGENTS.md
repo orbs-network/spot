@@ -37,7 +37,14 @@ The canonical skill npm package name is `@orbs-network/spot-skill`.
 
 ## Spot Notion Dashboard
 
-For SPOT rows, compare the board’s component readiness with Spot deployments, offchain-oracle coverage, observed taker coverage, and relay coverage. Keep API tokens and private taker endpoints in environment variables; never commit their values. Notion uses the standard status columns `Contracts`, `Oracle`, `Takers`, and `Relay`. The database ID identifies the board and does not grant access; it is committed in the check. Tests query the board using `NOTION_API_KEY` and report drift or board unavailability as non-fatal warnings; never update statuses as a side effect of testing. TWAP/LH rows and the other team readiness columns are outside this check.
+Notion checking is a manual AI task during `qa`, or when explicitly requested. Normal testing (`t`, `npm test`, `test:e2e`, and `test:runtime`) must not query Notion or evaluate board readiness.
+
+1. Read all pages of the integrations board (`262312ca68a98089837bfaf4ac9ef209`) using `NOTION_API_KEY` from the environment. Keep tokens and private taker endpoints out of committed files and output.
+2. Review only SPOT rows and the `Contracts`, `Oracle`, `Takers`, and `Relay` status columns, plus chain membership and solver labels. Compare with current Spot config, deployments, oracle coverage, and live relay/taker observations. TWAP/LH rows and other team readiness columns are outside this review.
+3. Distinguish implementation readiness from observed runtime coverage. Check deployed library versions, adapter addresses, and SAFO/backup/L3 taker assignments before interpreting missing loops. Missing health access or partial observations mean unknown coverage, not an automatic downgrade. Honor user-confirmed readiness.
+4. Treat integrations absent from config and already marked `Takers: Dead` as resolved. For other stale SPOT rows, propose marking Takers Dead; do not restore removed integrations to config.
+5. Report only an ultra-concise numbered fix list: group partners by target status, combine identical column changes, and group stale rows. If access is unavailable, state that the manual review could not be completed. Do not produce a full board table.
+6. Review is read-only unless the user has authorized board updates. After authorized updates, read the affected rows again to verify them.
 
 ## Build Requirement
 
@@ -53,6 +60,8 @@ When the user asks for `skill qa`:
 2. Include the result as a single emoji-prefixed line in the final report with verdict, confidence, and summary.
 
 When the user asks for `qa`:
+
+Manually review Notion using the Spot Notion Dashboard instructions above and include the concise findings in the QA report. This is an AI review, not a test command or automated test side effect.
 
 Before any onchain QA action, run `t` from this repository. It builds and runs all tests, including live Spot/oracle dependency coverage. Stop if any test fails; report the failures before placing orders.
 

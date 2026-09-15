@@ -4,8 +4,6 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const database = '262312ca68a98089837bfaf4ac9ef209';
-const columns = { contracts: 'Contracts', oracle: 'Oracle', takers: 'Takers', relay: 'Relay' };
 const aliases = { quick: 'quickswap', pancake: 'pancakeswap', spooky: 'spookyswap', spark: 'sparkdex', dragon: 'dragonswap', externalapi: 'external' };
 const normalize = value => String(value ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
 const integrationKey = value => aliases[normalize(value)] ?? normalize(value);
@@ -15,44 +13,14 @@ const fresh = (value, now, age = 120_000) => {
   const time = typeof value === 'number' ? value : Date.parse(value);
   return Number.isFinite(time) && now - time >= -30_000 && now - time <= age;
 };
-const progress = flags => flags.includes(null) ? null : flags.every(Boolean) ? 'Done' : flags.some(Boolean) ? 'In progress' : 'Not started';
-
-export async function readNotion(fetcher, token) {
-  if (!token) throw new Error('NOTION_API_KEY is required');
-  const pages = [];
-  const cursors = new Set();
-  let cursor;
-  do {
-    const response = await fetcher(`https://api.notion.com/v1/databases/${database}/query`, {
-      method: 'POST', signal: AbortSignal.timeout(20_000),
-      headers: { Authorization: `Bearer ${token}`, 'Notion-Version': '2022-06-28', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ page_size: 100, ...(cursor ? { start_cursor: cursor } : {}) }),
-    });
-    if (!response.ok) throw new Error(`Notion HTTP ${response.status}`);
-    const data = await response.json();
-    if (!Array.isArray(data.results)) throw new Error('Invalid Notion query response');
-    pages.push(...data.results);
-    if (!data.has_more) break;
-    cursor = data.next_cursor;
-    if (!cursor || cursors.has(cursor)) throw new Error('Invalid Notion pagination cursor');
-    cursors.add(cursor);
-  } while (true);
-  return pages;
-}
-
-export function evaluate({ config, skill, records, relayHealth, relayStatus, takers, notionPages, now = Date.now() }) {
+export function evaluate({ config, skill, records, relayHealth, relayStatus, takers, now = Date.now() }) {
   const failures = [];
-  const warnings = [];
   const checkTakers = takers !== undefined;
   const runtime = new Map(records.filter(r => r[0] === 'runtime').map(r => [r[2], r]));
   const idsByLabel = new Map([...runtime].map(([id, row]) => [row[1], id]));
   const rpcErrors = records.filter(r => r[0] === 'issue' && /rpc-error|RPC failure|chain context failed/.test(r[3]));
   const deployed = new Map(records.filter(r => r[0] === 'dex').map(r => [`${idsByLabel.get(r[1])}:${integrationKey(r[2])}`, r[5] === '-']));
   const chainNames = new Map([...skill.matchAll(/^\d+\. (.+) - `(\d+)`/gm)].map(([, name, id]) => [id, name]));
-  const chainIds = new Map([...chainNames].map(([id, name]) => [normalize(name), id]));
-  for (const [alias, name] of Object.entries({ avax: 'Avalanche', bnb: 'BNB Chain', arbitrum: 'Arbitrum One' })) {
-    if (chainIds.has(normalize(name))) chainIds.set(alias, chainIds.get(normalize(name)));
-  }
   const relayAvailable = relayHealth && relayStatus && Array.isArray(relayStatus.chains) && Array.isArray(relayStatus.blockFetchStatus);
   const relayHealthy = relayAvailable && relayHealth.status === 'healthy' && relayStatus.service === 'order-sink'
     && fresh(relayHealth.timestamp, now) && fresh(relayStatus.timestamp, now);
@@ -62,7 +30,6 @@ export function evaluate({ config, skill, records, relayHealth, relayStatus, tak
     && fresh(t.Timestamp, now) && polled.has(t.nodeAddress));
   if (checkTakers && !activeTakers.length) failures.push('Takers: no fresh active SAFO taker with recent relay polling');
 
-  const integrations = new Map();
   const dependencyRows = [];
   for (const [id, chainConfig] of Object.entries(config)) {
     if (id === '*') continue;
@@ -70,7 +37,6 @@ export function evaluate({ config, skill, records, relayHealth, relayStatus, tak
     const chain = chainNames.get(id) ?? id;
     const chainErrors = rpcErrors.filter(r => idsByLabel.get(r[1]) === id);
     const contractsUnknown = chainErrors.some(r => !r[2].startsWith('oracle'));
-    const oracleUnknown = chainErrors.some(r => r[2].startsWith('oracle') || r[2] === 'onchain');
     const relayChain = relayStatus?.chains?.find(c => String(c.chainId) === id);
     const listener = relayStatus?.blockFetchStatus?.find(c => String(c.chainId) === id);
     const listenerReady = relayHealthy && relayChain && listener?.eventsFetchingEnabled === true
@@ -90,7 +56,6 @@ export function evaluate({ config, skill, records, relayHealth, relayStatus, tak
     for (const [key, dex] of dexes) {
       const name = integrationKey(key);
       const contracts = live && !contractsUnknown ? live[3] === 'supported' && deployed.get(`${id}:${name}`) === true : null;
-      const oracle = live && !oracleUnknown ? live[6].startsWith('ok ') : null;
       const relay = !live || !relayAvailable ? null : Boolean(listenerReady
         && relayChain.exchanges?.some(e => sameAddress(e.address, dex.adapter)));
       const taker = !live || !takers || !relayStatus ? null : readyNetworks.some(n => Object.entries(n.running?.dexes ?? {})
@@ -98,10 +63,7 @@ export function evaluate({ config, skill, records, relayHealth, relayStatus, tak
           && (metrics.lastScannedBlockAge ?? 0) <= 120_000 && Object.keys(metrics.errors ?? {}).length === 0));
       if (contracts && relay !== true) failures.push(`${chain}/${key}: relay adapter unregistered or listener unavailable`);
       if (checkTakers && contracts && taker !== true) failures.push(`${chain}/${key}: taker loop missing, stale, unhealthy, or metadata mismatched`);
-      const checks = { id, contracts, oracle, takers: taker, relay, solver: dex.solver ?? (dex.type === 'universal' ? 'universal' : '') };
-      if (!integrations.has(name)) integrations.set(name, []);
-      integrations.get(name).push(checks);
-      chainChecks.push(checks);
+      chainChecks.push({ contracts, takers: taker, relay });
     }
     if (live) {
       const active = chainChecks.filter(c => c.contracts);
@@ -111,61 +73,7 @@ export function evaluate({ config, skill, records, relayHealth, relayStatus, tak
     }
   }
 
-  if (!notionPages) warnings.push('Notion: board unavailable; sync could not be checked');
-  else {
-    const seen = new Set();
-    for (const page of notionPages) {
-      const p = page.properties;
-      if (normalize(p?.Module?.select?.name) !== 'spot') continue;
-      const title = (p.Partner?.title ?? []).map(t => t.plain_text ?? t.text?.content ?? '').join('');
-      const name = integrationKey(title);
-      if (seen.has(name)) warnings.push(`Notion ${title}: duplicate SPOT row`);
-      seen.add(name);
-      const checks = integrations.get(name);
-      if (!checks) {
-        if (normalize(p.Takers?.status?.name) !== 'dead') warnings.push(`Notion ${title}: stale SPOT row, integration is unconfigured`);
-        continue;
-      }
-      const expectedChains = checks.map(c => c.id).sort();
-      const actualChains = (p.Chain?.multi_select ?? []).map(c => chainIds.get(normalize(c.name)) ?? `unknown:${c.name}`).sort();
-      const chainsMatch = JSON.stringify(expectedChains) === JSON.stringify(actualChains);
-      if (!chainsMatch) warnings.push(`Notion ${title}: Chain mismatch; expected ${expectedChains.join(',')}, found ${actualChains.join(',')}`);
-      for (const [key, column] of Object.entries(columns)) {
-        const expected = progress(checks.map(c => c[key]));
-        const actual = p[column]?.status?.name ?? 'unset';
-        if (expected !== null && normalize(actual) !== normalize(expected)) warnings.push(`Notion ${title}: ${key[0].toUpperCase() + key.slice(1)} is ${actual}; expected ${expected}`);
-      }
-      const solvers = [...new Set(checks.map(c => c.solver))];
-      const expectedSolver = solvers.length === 1 ? normalize(solvers[0]) : '';
-      if (normalize(p.Solver?.select?.name) !== expectedSolver) warnings.push(`Notion ${title}: Solver mismatch; expected ${expectedSolver || 'unset (multiple solvers)'}`);
-    }
-    for (const name of integrations.keys()) if (!seen.has(name)) warnings.push(`Notion: missing SPOT row for ${name}`);
-  }
-  return { dependencyRows, failures, warnings };
-}
-
-export function formatNotion(warnings) {
-  if (!warnings.length) return '✅ Notion SPOT: no fixes detected.';
-  const groups = new Map();
-  const other = [];
-  for (const warning of warnings) {
-    const match = warning.match(/^Notion (.+): (Contracts|Oracle|Takers|Relay) is .+; expected (.+)$/)
-      ?? warning.match(/^Notion (.+): (stale) SPOT row, integration is unconfigured$/);
-    if (!match) { other.push(warning); continue; }
-    const [, title, column, expected = ''] = match;
-    const key = `${column}:${expected}`;
-    if (!groups.has(key)) groups.set(key, { columns: [column], expected, names: new Set() });
-    groups.get(key).names.add(title);
-  }
-  const combined = new Map();
-  for (const group of groups.values()) {
-    const key = JSON.stringify([group.expected, [...group.names].sort()]);
-    if (combined.has(key)) combined.get(key).columns.push(...group.columns);
-    else combined.set(key, group);
-  }
-  const fixes = [...combined.values()].map(({ columns, expected, names }) =>
-    `${columns[0] === 'stale' ? 'Review stale rows' : `${columns.join(' + ')} → ${expected}`}: ${[...names].join(', ')}`);
-  return `⚠️ Notion SPOT fixes\n\n${[...fixes, ...other].map((fix, i) => `${i + 1}. ${fix}`).join('\n')}`;
+  return { dependencyRows, failures };
 }
 
 async function main() {
@@ -180,17 +88,16 @@ async function main() {
     return response.json();
   };
   const sources = await Promise.allSettled([getJson(`${relay}/health`), getJson(`${relay}/status`),
-    urls.length ? Promise.all(urls.map(getJson)) : undefined, readNotion(fetch, process.env.NOTION_API_KEY)]);
+    urls.length ? Promise.all(urls.map(getJson)) : undefined]);
   const values = sources.map(result => result.status === 'fulfilled' ? result.value : null);
   const result = evaluate({ config: JSON.parse(readFileSync(resolve(root, 'config.json'), 'utf8')), skill, records,
-    relayHealth: values[0], relayStatus: values[1], takers: values[2], notionPages: values[3] });
+    relayHealth: values[0], relayStatus: values[1], takers: values[2] });
   sources.forEach((source, i) => {
-    if (source.status === 'rejected') (i === 3 ? result.warnings : result.failures).push(`${['Relay health', 'Relay status', 'Taker health', 'Notion'][i]}: request failed (${source.reason.name})`);
+    if (source.status === 'rejected') result.failures.push(`${['Relay health', 'Relay status', 'Taker health'][i]}: request failed (${source.reason.name})`);
   });
   console.log('\n🔎 Live runtime coverage (active integrations; taker polling/loops; relay registration/listeners)');
   if (!urls.length) console.log('⏭️ Taker health checks skipped: SPOT_TAKER_HEALTH_URLS is not configured.');
   printTable(['chain', 'Spot active/configured', 'Oracle', 'Takers', 'Relay'], result.dependencyRows);
-  console.log(`\n${formatNotion(result.warnings)}`);
   if (result.failures.length) {
     console.log('\n❌ Runtime failures');
     printTable(['detail'], result.failures.map(detail => [detail]));
