@@ -42,7 +42,19 @@ Notion checking is a manual AI review during `qa`, following the repository’s 
 
 Orvex uses Spot's universal integration on Robinhood Chain (`4663`), with execution routing selected at fill time. No other Orvex mainnet deployment is listed in its [official contract directory](https://docs.orvex.fi/developer-resources/contract-addresses).
 
-Robinhood's solver adapters cover Kyber, Flytrade (`Magpie`), OpenOcean, and LI.FI (`LiFi`).
+Robinhood's solver adapters cover Kyber, OpenOcean, LI.FI (`LiFi`), 0x (`ZeroX`), and OKX. Orders use the universal integration to select a solver adapter at fill time. 0x uses `DefaultDexAdapter` with its [AllowanceHolder](https://github.com/0xProject/0x-settler/blob/master/chain_config.json); OKX uses `ApprovalDexAdapter` with separate [router and approval contracts](https://web3.okx.com/onchainos/dev-docs/trade/dex-smart-contract).
+
+Deploy the Robinhood solver adapters with the chain-managed signer:
+
+```sh
+chain robinhood
+dev true
+ADAPTER_TYPE=default ROUTER=0x0000000000001fF3684f28c67538d4D072C22734 script/deploy --adapter ZeroX --broadcast --sender "$ETH_FROM"
+ADAPTER_TYPE=approval ROUTER=0x6e2a35a7ad683cf634d91492d73bb7ff774c6919 SPENDER=0x42170295F1173c9e5874ea9d00c6d137E1a4f53d script/deploy --adapter OKX --broadcast --sender "$ETH_FROM"
+npm run build
+```
+
+Omit `--broadcast` to simulate. Successful broadcasts write the adapter addresses to `config.json`; configured adapters are skipped on subsequent runs.
 
 ## How It Works
 

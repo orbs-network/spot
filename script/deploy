@@ -27,6 +27,10 @@ Options:
                     Deploy and configure the generic adapter for a solver on the active chain.
   -v, --verify       Verify configured core contracts.
   -h, --help         Show this help message.
+
+For --adapter, set ADAPTER_TYPE and its constructor variables (ROUTER,
+PERMIT2, or SPENDER) to deploy without a matching dex config. The approval
+type requires ROUTER and SPENDER; default requires ROUTER.
 EOF
 }
 
@@ -214,6 +218,7 @@ deploy_script_for_adapter_type() {
   local adapter_type=$1
   case $adapter_type in
     default) printf 'DeployDefaultAdapter' ;;
+    approval) printf 'DeployApprovalAdapter' ;;
     p2) printf 'DeployP2Adapter' ;;
     dynamicp2) printf 'DeployDynamicP2Adapter' ;;
     paraswap) printf 'DeployParaswapAdapter' ;;
@@ -450,13 +455,20 @@ deploy_adapter() {
     return 0
   fi
 
-  local adapter_config adapter_type router permit2
-  if ! adapter_config=$(adapter_config_for_solver "$chain_id" "$solver"); then
-    exit 1
+  local adapter_config adapter_type router permit2 spender
+  if [[ -n ${ADAPTER_TYPE:-} ]]; then
+    adapter_type=$ADAPTER_TYPE
+    router=${ROUTER:-}
+    permit2=${PERMIT2:-}
+    spender=${SPENDER:-}
+  else
+    if ! adapter_config=$(adapter_config_for_solver "$chain_id" "$solver"); then
+      exit 1
+    fi
+    adapter_type=$(jq -r '.type' <<< "$adapter_config")
+    router=$(jq -r '.router' <<< "$adapter_config")
+    permit2=$(jq -r '.permit2' <<< "$adapter_config")
   fi
-  adapter_type=$(jq -r '.type' <<< "$adapter_config")
-  router=$(jq -r '.router' <<< "$adapter_config")
-  permit2=$(jq -r '.permit2' <<< "$adapter_config")
 
   local script
   if ! script=$(deploy_script_for_adapter_type "$adapter_type"); then
@@ -466,6 +478,13 @@ deploy_adapter() {
 
   local -a adapter_env=()
   case $adapter_type in
+    approval)
+      if [[ -z $router || -z $spender ]]; then
+        printf 'error: ROUTER and SPENDER are required for approval solver %s on chain %s\n' "$solver" "$chain_id" >&2
+        exit 1
+      fi
+      adapter_env=("ROUTER=$router" "SPENDER=$spender")
+      ;;
     default|paraswap)
       if [[ -z $router ]]; then
         printf 'error: ROUTER is required for solver %s on chain %s\n' "$solver" "$chain_id" >&2

@@ -505,7 +505,9 @@
         "adapter": {
             "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA",
             "OpenOcean": "0xF4087df1F43De3B8e84171c1434da5aE0355796C",
-            "LiFi": "0xA75eA4C3570Ec0ebCbe79176B8D6E06839C36c84"
+            "LiFi": "0xA75eA4C3570Ec0ebCbe79176B8D6E06839C36c84",
+            "ZeroX": "0x196F49fafBC3A5B6BB3661660892978Ca3679927",
+            "OKX": "0x98Ccd2a85bdA82b628d4E043faA44C10ffa3de04"
         },
         "dex": {
             "orvex": {
