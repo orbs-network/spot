@@ -28,6 +28,22 @@ function fixture() {
   };
 }
 test('healthy runtime and matching board pass', () => assert.deepEqual(evaluate(fixture()).failures, []));
+test('unconfigured taker health is skipped without masking relay failures or changing board readiness', () => {
+  const data = fixture(); delete data.takers;
+  const result = evaluate(data);
+  assert.deepEqual(result.failures, []);
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.dependencyRows[0][3], 'skipped');
+  assert.equal(result.boardRows[0][4], 'Done / unchecked');
+  data.relayHealth = null;
+  assert.match(evaluate(data).failures.join('\n'), /Relay/);
+});
+test('configured taker health with unavailable or empty responses still fails', () => {
+  for (const takers of [null, []]) {
+    const data = fixture(); data.takers = takers;
+    assert.match(evaluate(data).failures.join('\n'), /Takers:/);
+  }
+});
 test('relay adapter registration is checked by address', () => {
   const data = fixture(); data.relayStatus.chains[0].exchanges[0].address = '0x2222222222222222222222222222222222222222';
   assert.match(evaluate(data).failures.join('\n'), /relay.*adapter/i);

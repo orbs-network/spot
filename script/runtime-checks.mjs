@@ -43,6 +43,7 @@ export async function readNotion(fetcher, token) {
 export function evaluate({ config, skill, records, relayHealth, relayStatus, takers, notionPages, now = Date.now() }) {
   const failures = [];
   const warnings = [];
+  const checkTakers = takers !== undefined;
   const runtime = new Map(records.filter(r => r[0] === 'runtime').map(r => [r[2], r]));
   const idsByLabel = new Map([...runtime].map(([id, row]) => [row[1], id]));
   const rpcErrors = records.filter(r => r[0] === 'issue' && /rpc-error|RPC failure|chain context failed/.test(r[3]));
@@ -59,7 +60,7 @@ export function evaluate({ config, skill, records, relayHealth, relayStatus, tak
   const polled = new Set((relayStatus?.takerFetchStats ?? []).filter(s => s.requestCount > 0 && fresh(s.lastFetchAt, now)).map(s => s.serverId));
   const activeTakers = (takers ?? []).filter(t => t.takerType === 'safo_taker' && t.failoverActive === true
     && fresh(t.Timestamp, now) && polled.has(t.nodeAddress));
-  if (!activeTakers.length) failures.push('Takers: no fresh active SAFO taker with recent relay polling');
+  if (checkTakers && !activeTakers.length) failures.push('Takers: no fresh active SAFO taker with recent relay polling');
 
   const integrations = new Map();
   const dependencyRows = [];
@@ -81,7 +82,7 @@ export function evaluate({ config, skill, records, relayHealth, relayStatus, tak
     const refinery = chainConfig.refinery ?? config['*']?.refinery;
     const readyNetworks = networks.filter(n => sameAddress(n.metadata.addresses?.refinery, refinery)
       && Object.entries(expectedSolvers).every(([solver, address]) => sameAddress(n.metadata.addresses?.spot?.routerAdapters?.[solver], address)));
-    if (live && !readyNetworks.length) {
+    if (checkTakers && live && !readyNetworks.length) {
       failures.push(`${chain}: taker network/refinery/solver adapters unavailable or mismatched (${Object.keys(expectedSolvers).join(',') || 'shared'})`);
     }
     const dexes = Object.entries({ ...config['*']?.dex, ...chainConfig.dex });
@@ -96,7 +97,7 @@ export function evaluate({ config, skill, records, relayHealth, relayStatus, tak
         .some(([key, metrics]) => integrationKey(key) === name && fresh(metrics.lastOnBlocksExecution, now, 180_000)
           && (metrics.lastScannedBlockAge ?? 0) <= 120_000 && Object.keys(metrics.errors ?? {}).length === 0));
       if (contracts && relay !== true) failures.push(`${chain}/${key}: relay adapter unregistered or listener unavailable`);
-      if (contracts && taker !== true) failures.push(`${chain}/${key}: taker loop missing, stale, unhealthy, or metadata mismatched`);
+      if (checkTakers && contracts && taker !== true) failures.push(`${chain}/${key}: taker loop missing, stale, unhealthy, or metadata mismatched`);
       const checks = { id, contracts, oracle, takers: taker, relay, solver: dex.solver ?? (dex.type === 'universal' ? 'universal' : '') };
       if (!integrations.has(name)) integrations.set(name, []);
       integrations.get(name).push(checks);
@@ -105,7 +106,7 @@ export function evaluate({ config, skill, records, relayHealth, relayStatus, tak
     if (live) {
       const active = chainChecks.filter(c => c.contracts);
       dependencyRows.push([chain, `${active.length}/${dexes.length}`, live[6],
-        takers && relayStatus ? `${active.filter(c => c.takers).length}/${active.length}` : 'unknown',
+        !checkTakers ? 'skipped' : takers && relayStatus ? `${active.filter(c => c.takers).length}/${active.length}` : 'unknown',
         relayAvailable ? `${active.filter(c => c.relay).length}/${active.length}` : 'unknown']);
     }
   }
@@ -160,15 +161,15 @@ async function main() {
     return response.json();
   };
   const sources = await Promise.allSettled([getJson(`${relay}/health`), getJson(`${relay}/status`),
-    Promise.all(urls.map(getJson)), readNotion(fetch, process.env.NOTION_API_KEY)]);
+    urls.length ? Promise.all(urls.map(getJson)) : undefined, readNotion(fetch, process.env.NOTION_API_KEY)]);
   const values = sources.map(result => result.status === 'fulfilled' ? result.value : null);
   const result = evaluate({ config: JSON.parse(readFileSync(resolve(root, 'config.json'), 'utf8')), skill, records,
     relayHealth: values[0], relayStatus: values[1], takers: values[2], notionPages: values[3] });
-  if (!urls.length) result.failures.push('Takers: SPOT_TAKER_HEALTH_URLS is required');
   sources.forEach((source, i) => {
     if (source.status === 'rejected') (i === 3 ? result.warnings : result.failures).push(`${['Relay health', 'Relay status', 'Taker health', 'Notion'][i]}: request failed (${source.reason.name})`);
   });
   console.log('\n🔎 Live runtime coverage (active integrations; taker polling/loops; relay registration/listeners)');
+  if (!urls.length) console.log('⏭️ Taker health checks skipped: SPOT_TAKER_HEALTH_URLS is not configured.');
   printTable(['chain', 'Spot active/configured', 'Oracle', 'Takers', 'Relay'], result.dependencyRows);
   console.log('\n🔎 Notion SPOT sync (actual -> expected)');
   printTable(['integration', 'Chains', 'Contracts', 'Oracle', 'Takers', 'Relay'], result.boardRows);
