@@ -112,6 +112,14 @@ test('oracle failures are reflected in Notion, without changing the board', () =
   assert.match(evaluate(data).warnings.join('\n'), /Notion.*Oracle/);
   assert.equal(data.notionPages[0].properties.Oracle.status.name, 'Done');
 });
+test('unconfigured SPOT rows marked Dead need no stale-row fix; configured Dead rows still get checked', () => {
+  const data = fixture();
+  const dead = page(); dead.properties.Partner.title[0].plain_text = 'Chronos';
+  dead.properties.Takers = status('Dead'); data.notionPages.push(dead);
+  assert.deepEqual(evaluate(data).warnings, []);
+  data.notionPages[0].properties.Takers = status('Dead');
+  assert.match(evaluate(data).warnings.join('\n'), /Notion Agent: Takers is Dead; expected Done/);
+});
 test('source outages remain unknown rather than inventing Notion statuses', () => {
   const data = fixture(); data.relayHealth = null; data.relayStatus = null; data.takers = null;
   const result = evaluate(data);

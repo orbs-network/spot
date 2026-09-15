@@ -123,7 +123,7 @@ export function evaluate({ config, skill, records, relayHealth, relayStatus, tak
       seen.add(name);
       const checks = integrations.get(name);
       if (!checks) {
-        warnings.push(`Notion ${title}: stale SPOT row, integration is unconfigured`);
+        if (normalize(p.Takers?.status?.name) !== 'dead') warnings.push(`Notion ${title}: stale SPOT row, integration is unconfigured`);
         continue;
       }
       const expectedChains = checks.map(c => c.id).sort();
