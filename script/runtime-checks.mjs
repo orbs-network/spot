@@ -111,7 +111,6 @@ export function evaluate({ config, skill, records, relayHealth, relayStatus, tak
     }
   }
 
-  const boardRows = [];
   if (!notionPages) warnings.push('Notion: board unavailable; sync could not be checked');
   else {
     const seen = new Set();
@@ -125,28 +124,48 @@ export function evaluate({ config, skill, records, relayHealth, relayStatus, tak
       const checks = integrations.get(name);
       if (!checks) {
         warnings.push(`Notion ${title}: stale SPOT row, integration is unconfigured`);
-        boardRows.push([title, 'unconfigured', '-', '-', '-', '-']);
         continue;
       }
       const expectedChains = checks.map(c => c.id).sort();
       const actualChains = (p.Chain?.multi_select ?? []).map(c => chainIds.get(normalize(c.name)) ?? `unknown:${c.name}`).sort();
       const chainsMatch = JSON.stringify(expectedChains) === JSON.stringify(actualChains);
       if (!chainsMatch) warnings.push(`Notion ${title}: Chain mismatch; expected ${expectedChains.join(',')}, found ${actualChains.join(',')}`);
-      const row = [title, chainsMatch ? 'ok' : 'mismatch'];
       for (const [key, column] of Object.entries(columns)) {
         const expected = progress(checks.map(c => c[key]));
         const actual = p[column]?.status?.name ?? 'unset';
-        row.push(expected === null ? `${actual} / unchecked` : normalize(actual) === normalize(expected) ? actual : `${actual} -> ${expected}`);
         if (expected !== null && normalize(actual) !== normalize(expected)) warnings.push(`Notion ${title}: ${key[0].toUpperCase() + key.slice(1)} is ${actual}; expected ${expected}`);
       }
       const solvers = [...new Set(checks.map(c => c.solver))];
       const expectedSolver = solvers.length === 1 ? normalize(solvers[0]) : '';
       if (normalize(p.Solver?.select?.name) !== expectedSolver) warnings.push(`Notion ${title}: Solver mismatch; expected ${expectedSolver || 'unset (multiple solvers)'}`);
-      boardRows.push(row);
     }
     for (const name of integrations.keys()) if (!seen.has(name)) warnings.push(`Notion: missing SPOT row for ${name}`);
   }
-  return { dependencyRows, boardRows, failures, warnings };
+  return { dependencyRows, failures, warnings };
+}
+
+export function formatNotion(warnings) {
+  if (!warnings.length) return '✅ Notion SPOT: no fixes detected.';
+  const groups = new Map();
+  const other = [];
+  for (const warning of warnings) {
+    const match = warning.match(/^Notion (.+): (Contracts|Oracle|Takers|Relay) is .+; expected (.+)$/)
+      ?? warning.match(/^Notion (.+): (stale) SPOT row, integration is unconfigured$/);
+    if (!match) { other.push(warning); continue; }
+    const [, title, column, expected = ''] = match;
+    const key = `${column}:${expected}`;
+    if (!groups.has(key)) groups.set(key, { columns: [column], expected, names: new Set() });
+    groups.get(key).names.add(title);
+  }
+  const combined = new Map();
+  for (const group of groups.values()) {
+    const key = JSON.stringify([group.expected, [...group.names].sort()]);
+    if (combined.has(key)) combined.get(key).columns.push(...group.columns);
+    else combined.set(key, group);
+  }
+  const fixes = [...combined.values()].map(({ columns, expected, names }) =>
+    `${columns[0] === 'stale' ? 'Review stale rows' : `${columns.join(' + ')} → ${expected}`}: ${[...names].join(', ')}`);
+  return `⚠️ Notion SPOT fixes\n\n${[...fixes, ...other].map((fix, i) => `${i + 1}. ${fix}`).join('\n')}`;
 }
 
 async function main() {
@@ -171,12 +190,7 @@ async function main() {
   console.log('\n🔎 Live runtime coverage (active integrations; taker polling/loops; relay registration/listeners)');
   if (!urls.length) console.log('⏭️ Taker health checks skipped: SPOT_TAKER_HEALTH_URLS is not configured.');
   printTable(['chain', 'Spot active/configured', 'Oracle', 'Takers', 'Relay'], result.dependencyRows);
-  console.log('\n🔎 Notion SPOT sync (actual -> expected)');
-  printTable(['integration', 'Chains', 'Contracts', 'Oracle', 'Takers', 'Relay'], result.boardRows);
-  if (result.warnings.length) {
-    console.log('\n⚠️ Notion sync warnings');
-    printTable(['detail'], result.warnings.map(detail => [detail]));
-  }
+  console.log(`\n${formatNotion(result.warnings)}`);
   if (result.failures.length) {
     console.log('\n❌ Runtime failures');
     printTable(['detail'], result.failures.map(detail => [detail]));

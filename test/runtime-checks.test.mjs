@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluate, readNotion } from '../script/runtime-checks.mjs';
+import { evaluate, readNotion, formatNotion } from '../script/runtime-checks.mjs';
 
 const address = '0x1111111111111111111111111111111111111111';
 const now = Date.parse('2026-09-14T12:00:00Z');
@@ -28,13 +28,35 @@ function fixture() {
   };
 }
 test('healthy runtime and matching board pass', () => assert.deepEqual(evaluate(fixture()).failures, []));
+test('Notion output groups fixes by column and target status, combining identical groups', () => {
+  assert.equal(formatNotion([
+    'Notion Katana: Contracts is Not started; expected Done',
+    'Notion Katana: Oracle is Not started; expected Done',
+    'Notion Ginco: Contracts is Not started; expected Done',
+    'Notion Ginco: Oracle is Not started; expected Done',
+    'Notion Katana: Takers is Not started; expected Done',
+    'Notion Ginco: Takers is Not started; expected In progress',
+    'Notion Chronos: stale SPOT row, integration is unconfigured',
+    'Notion Arbidex: stale SPOT row, integration is unconfigured',
+  ]), '⚠️ Notion SPOT fixes\n\n1. Contracts + Oracle → Done: Katana, Ginco\n2. Takers → Done: Katana\n3. Takers → In progress: Ginco\n4. Review stale rows: Chronos, Arbidex');
+});
+test('Notion output retains other diagnostics and has a concise clean result', () => {
+  assert.equal(formatNotion([]), '✅ Notion SPOT: no fixes detected.');
+  const warnings = ['Notion: board unavailable; sync could not be checked',
+    'Notion: request failed (Error)', 'Notion Agent: duplicate SPOT row',
+    'Notion: missing SPOT row for ring', 'Notion Agent: Chain mismatch; expected 1, found 10',
+    'Notion Agent: Solver mismatch; expected universal'];
+  const output = formatNotion(warnings);
+  for (const warning of warnings) assert.ok(output.includes(warning));
+  assert.doesNotMatch(output, /no fixes detected/);
+});
 test('unconfigured taker health is skipped without masking relay failures or changing board readiness', () => {
   const data = fixture(); delete data.takers;
   const result = evaluate(data);
   assert.deepEqual(result.failures, []);
   assert.deepEqual(result.warnings, []);
   assert.equal(result.dependencyRows[0][3], 'skipped');
-  assert.equal(result.boardRows[0][4], 'Done / unchecked');
+  assert.equal(data.notionPages[0].properties.Takers.status.name, 'Done');
   data.relayHealth = null;
   assert.match(evaluate(data).failures.join('\n'), /Relay/);
 });
