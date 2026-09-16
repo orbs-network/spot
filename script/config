@@ -600,7 +600,7 @@ main() {
   collect_results "${selected[@]}"
 
   print "🔎 Spot / Oracle Coverage (core bytecode; oracle bytecode, registration, binding, USD quotes)"
-  { print 'chain\tid\tSpot\tcore\tadapters deployed/known\toracle contracts\tUSD quotes'; printf '%s\n' "${runtime_rows[@]}" | sort -t $'\t' -k2,2n; } | print_table
+  { print '#\tchain\tid\tSpot\tcore\tadapters deployed/known\toracle contracts\tUSD quotes'; printf '%s\n' "${runtime_rows[@]}" | sort -t $'\t' -k2,2n | awk '{ print NR "\t" $0 }'; } | print_table
   print 'Oracle-only chains are configuration references; live oracle checks apply to Spot chains.'
   print
   print "🔎 Solver Coverage"
