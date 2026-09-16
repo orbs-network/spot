@@ -109,3 +109,36 @@ Issuer reference: [Paxos USDG mainnet addresses](https://docs.paxos.com/guides/s
 | `usdc` | `6` | `0x29219dd400f2Bf60E5a23d13Be72B486D4038894` |
 | `usdt` | `6` | `0x6047828dc181963ba44974801FF68e538dA5eaF9` |
 | `sfc` | `18` | `0xFC00FACE00000000000000000000000000000000` |
+
+## Rootstock (`30`)
+
+| Symbol | Decimals | Address |
+| --- | ---: | --- |
+| `wrbtc` | `18` | `0x542fDA317318eBF1d3DEAf76E0b632741A7e677d` |
+| `usdt0` | `6` | `0x779Ded0c9e1022225f8E0630b35a9b54bE713736` |
+| `rif` | `18` | `0x2AcC95758f8b5F583470ba265EB685a8F45fC9D5` |
+
+## Mantle (`5000`)
+
+| Symbol | Decimals | Address |
+| --- | ---: | --- |
+| `wmnt` | `18` | `0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8` |
+| `usdc` | `6` | `0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9` |
+| `usdt` | `6` | `0x201EBa5CC46D216Ce6DC03F6a759e8E766e956aE` |
+| `weth` | `18` | `0xdEAddEaDdeadDEadDEADDEAddEADDEAddead1111` |
+
+## Plasma (`9745`)
+
+| Symbol | Decimals | Address |
+| --- | ---: | --- |
+| `wxpl` | `18` | `0x6100E367285b01F48D07953803A2d8dCA5D19873` |
+| `usdt0` | `6` | `0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb` |
+| `susde` | `18` | `0x211Cc4DD073734dA055fbF44a2b4667d5E5fE5d2` |
+
+## Ink (`57073`)
+
+| Symbol | Decimals | Address |
+| --- | ---: | --- |
+| `weth` | `18` | `0x4200000000000000000000000000000000000006` |
+| `usdt0` | `6` | `0x0200C29006150606B650577BBE7B6248F58470c1` |
+| `usdc` | `6` | `0x2D270e6886d130D724215A266106e6832161EAEd` |

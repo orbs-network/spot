@@ -23,22 +23,26 @@ Execution remains decentralized, non-custodial, oracle-protected, immutable, aud
 1. Ethereum - `1`
 2. Optimism - `10`
 3. Flare - `14`
-4. BNB Chain - `56`
-5. Unichain - `130`
-6. Polygon - `137`
-7. Monad - `143`
-8. Sonic - `146`
-9. X Layer - `196`
-10. HyperEVM - `999`
-11. Sei - `1329`
-12. MegaETH - `4326`
-13. Robinhood Chain - `4663`
-14. Base - `8453`
-15. Arbitrum One - `42161`
-16. Avalanche - `43114`
-17. Linea - `59144`
-18. Berachain - `80094`
-19. Katana - `747474`
+4. Rootstock - `30`
+5. BNB Chain - `56`
+6. Unichain - `130`
+7. Polygon - `137`
+8. Monad - `143`
+9. Sonic - `146`
+10. X Layer - `196`
+11. HyperEVM - `999`
+12. Sei - `1329`
+13. MegaETH - `4326`
+14. Robinhood Chain - `4663`
+15. Mantle - `5000`
+16. Base - `8453`
+17. Plasma - `9745`
+18. Arbitrum One - `42161`
+19. Avalanche - `43114`
+20. Ink - `57073`
+21. Linea - `59144`
+22. Berachain - `80094`
+23. Katana - `747474`
 
 A supported chain is explicitly included in config and has all six core contracts plus at least one deployed adapter from the shared `*` or chain-specific config. Existing deployments do not extend this list. Empty chain-specific adapter maps still inherit shared adapters. Oracle dependency health is checked separately.
 

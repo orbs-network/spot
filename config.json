@@ -536,5 +536,41 @@
                 "fee": "0x28F6C9dBE21fFc146Af8d5D15c49Cf48F61140Dc"
             }
         }
+    },
+    "9745": {
+        "adapter": {
+            "Sushi": "0xA985f801ea74321AdcC9Ef88B394858CbA3F71ba",
+            "LiFi": "0xB75B57A3e99ADb78A3Be05ba235146F6bea6EA75",
+            "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA",
+            "ZeroX": "0x196F49fafBC3A5B6BB3661660892978Ca3679927",
+            "OpenOcean": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d",
+            "OKX": "0x31461FaE1a11723b1176Adb03A2e74477Df58785"
+        },
+        "dex": {}
+    },
+    "5000": {
+        "adapter": {
+            "Sushi": "0xA985f801ea74321AdcC9Ef88B394858CbA3F71ba",
+            "LiFi": "0xe8CD820d5bb34141C4bfd92544Ba9246fc6e8380",
+            "ZeroX": "0x9DB46f6359e06b2cBfeFEA61C9171221025f827e",
+            "OKX": "0xDD535A91c8166159FA08C4fcd5959c623A472B71"
+        },
+        "dex": {}
+    },
+    "57073": {
+        "adapter": {
+            "LiFi": "0xb9E1a6265dF9a860690A74C1482537061b1E3e28",
+            "ZeroX": "0x196F49fafBC3A5B6BB3661660892978Ca3679927",
+            "OKX": "0xCdb7F258DE544c4E2a40ed0092A5188B06f09318"
+        },
+        "dex": {}
+    },
+    "30": {
+        "adapter": {
+            "Sushi": "0xA985f801ea74321AdcC9Ef88B394858CbA3F71ba",
+            "LiFi": "0xe8CD820d5bb34141C4bfd92544Ba9246fc6e8380",
+            "OpenOcean": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d"
+        },
+        "dex": {}
     }
 }
