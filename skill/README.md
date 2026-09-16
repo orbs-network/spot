@@ -233,6 +233,10 @@ The protocol is designed for deployment across EVM-compatible chains with determ
 
 ## For Integrators
 
+Start with the external [Spot integration documentation](https://spot-integration-docs.vercel.app/). For advanced orders, read the [shared reference](https://spot-integration-docs.vercel.app/advanced-orders/shared), then choose [API Only](https://spot-integration-docs.vercel.app/advanced-orders/direct), [TypeScript SDK](https://spot-integration-docs.vercel.app/advanced-orders/typescript), or [React SDK](https://spot-integration-docs.vercel.app/advanced-orders/react). The site also documents [Liquidity Hub swap routing](https://spot-integration-docs.vercel.app/liquidity-hub/shared), which has its own API and chain coverage.
+
+The external advanced-order API uses `https://order-sink-v2.orbs.network` and fetches configuration for the selected partner and chain (`external` when no partner ID is supplied). Agent execution follows the self-contained [Spot Advanced Swap Orders skill](https://github.com/orbs-network/spot/blob/master/skill/SKILL.md), its bundled signing template, and its `https://agents-sink.orbs.network` relay. Follow the configuration and lifecycle instructions for the chosen integration. Check current [protocol configuration](https://github.com/orbs-network/spot/blob/master/config.json) and partner availability before enabling a chain; the external guide's chain table is a dated snapshot.
+
 This repository ships these integration surfaces:
 
 1. Root package `@orbs-network/spot` for config, build orchestration, contracts, and published metadata inputs.
