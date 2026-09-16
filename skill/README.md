@@ -28,7 +28,7 @@ Spot provides non-custodial market, limit, TWAP, stop-loss, take-profit, and del
 
 ## Supported Chains
 
-Spot supports explicitly included chains with all six core contracts and at least one deployed shared (`*`) or chain-specific adapter. See [`config.json`](https://github.com/orbs-network/spot/blob/master/config.json) for the supported chain configurations and [`skill/SKILL.md`](https://github.com/orbs-network/spot/blob/master/skill/SKILL.md#supported-chains) for the matching chain list. Existing deployments do not add a chain to the supported set; Manta remains excluded. Contract and oracle readiness does not imply that relay listeners and takers are active on a chain.
+See [supported chains](https://github.com/orbs-network/spot/blob/master/skill/SKILL.md#supported-chains) and [deployed contract addresses](https://github.com/orbs-network/spot/blob/master/config.json).
 
 Run `t` before local order QA. `npm test` includes `npm run test:e2e`, a read-only live dependency check using `chain`, `cast`, `jq`, `curl`, and GNU `parallel`. It fetches the current production [offchain oracle config](https://github.com/orbs-network/offchain-oracle/blob/master/config.json) once per run and reports the union of Spot config, skill chains, and oracle chains in a coverage table. `npm run test:e2e -- 1` scopes the report to Ethereum.
 
