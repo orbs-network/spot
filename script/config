@@ -494,16 +494,22 @@ collect_results() {
 
 print_runtime_coverage() {
   {
-    print 'chain\tSpot\tcore\tSpot adapters\toracle'
-    printf '%s\n' "${runtime_rows[@]}" | sort -t $'\t' -k2,2n | awk -F '\t' '
+    print 'chain\tcore\tadapter'
+    printf '%s\n' "${runtime_rows[@]}" | sort -t $'\t' -k2,2n | awk -F '\t' \
+      -v spot_ids="$(jq -r 'keys | join(" ")' "$config")" \
+      -v oracle_ids="$(print -r -- "$oracle_config" | jq -r 'keys | join(" ")')" '
+      BEGIN {
+        split(spot_ids, ids, " "); for (i in ids) spot[ids[i]] = 1
+        split(oracle_ids, ids, " "); for (i in ids) oracle[ids[i]] = 1
+      }
       function icon(value, expected) { return value == "unknown" ? "?" : (value == expected ? "✓" : "✗") }
       {
         split($5, adapters, "/")
-        print $1 "\t" icon($3, "supported") "\t" icon($4, "6/6") "\t" \
-          ($5 == "unknown" ? "?" : adapters[1] (adapters[1] == adapters[2] && adapters[2] > 0 ? " ✓" : "")) "\t" icon($6, "configured")
+        print $1 (!($2 in spot) ? " (missing Spot config)" : "") (!($2 in oracle) ? " (missing oracle config)" : "") "\t" icon($4, "6/6") "\t" \
+          ($5 == "unknown" ? "?" : adapters[1] (adapters[1] == adapters[2] && adapters[2] > 0 ? " ✓" : ""))
       }
     '
-  } | print_table
+  } | node "$root/script/table.mjs"
 }
 
 print_solver_coverage() {
