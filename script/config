@@ -125,7 +125,7 @@ selected_chains() {
 }
 
 print_table() {
-  node "$root/script/table.mjs"
+  awk '{ print (NR == 1 ? "#" : NR - 1) "\t" $0 }' | node "$root/script/table.mjs"
 }
 
 configured_addresses() {
@@ -492,6 +492,20 @@ collect_results() {
   done <<< "$records"
 }
 
+print_runtime_coverage() {
+  {
+    print 'chain\tSpot\tcore\tadapters\toracle'
+    printf '%s\n' "${runtime_rows[@]}" | sort -t $'\t' -k2,2n | awk -F '\t' '
+      function icon(value, expected) { return value == "unknown" ? "?" : (value == expected ? "✓" : "✗") }
+      {
+        split($5, adapters, "/")
+        print $1 "\t" icon($3, "supported") "\t" icon($4, "6/6") "\t" \
+          ($5 == "unknown" ? "?" : adapters[1] (adapters[1] == adapters[2] && adapters[2] > 0 ? " ✓" : "")) "\t" icon($6, "configured")
+      }
+    '
+  } | print_table
+}
+
 print_solver_coverage() {
   {
     print "chain\tsolvers"
@@ -554,7 +568,7 @@ main() {
   collect_results "${selected[@]}"
 
   print "🔎 Spot / Oracle Coverage (Spot deployments; oracle chain overlap)"
-  { print '#\tchain\tid\tSpot\tcore\tadapters deployed/known\toracle coverage'; printf '%s\n' "${runtime_rows[@]}" | sort -t $'\t' -k2,2n | awk '{ print NR "\t" $0 }'; } | print_table
+  print_runtime_coverage
   print 'Oracle checks run in offchain-oracle; this table shows chain coverage.'
   print
   print "🔎 Solver Coverage"
