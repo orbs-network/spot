@@ -27,31 +27,9 @@ Spot provides non-custodial market, limit, TWAP, stop-loss, take-profit, and del
 
 See [supported chains](./skill/SKILL.md#supported-chains) and [deployed contract addresses](./config.json).
 
-Run `t` before local order QA. `npm test` includes `npm run test:e2e`, which runs `t` in the sibling `../offchain-oracle` checkout, then checks Spot deployments and oracle chain coverage. Set `OFFCHAIN_ORACLE_DIR` to use another oracle checkout. The coverage table includes the union of Spot config, skill chains, and that oracle checkout’s config. `npm run test:e2e -- 1` scopes the Spot report to Ethereum; the oracle suite still runs in full.
-
-The E2E table shows core deployment, deployed/known adapter counts, support status, and oracle configuration coverage separately. Every explicit Spot chain requires all six core contracts and at least one deployed adapter; named solver counts are informational. Shared integrations whose adapters are undeployed are omitted from that chain's active integrations, while missing chain-specific integrations remain failures. Configured chains missing a skill listing also fail. Unlisted chains remain unsupported even when contracts and adapters are deployed.
-
-The offchain-oracle suite owns oracle bytecode, aggregator binding, adapter registration, feed configuration, and price checks. Spot requires every supported chain to exist in the tested oracle configuration. A failed oracle suite stops the Spot dependency check.
-
-Live relay and taker coverage is reviewed manually by the AI during `qa`, following `AGENTS.md`. Normal tests do not query relay/taker health or require their integration coverage. The QA review checks relay health, listeners, registered adapters, active taker polling and loops, and chain/refinery/solver metadata, accounting for deployed versions and SAFO/backup/L3 assignments. Private taker health URLs come from `SPOT_TAKER_HEALTH_URLS`; missing configuration skips that check. Observed health is distinct from successful order execution.
-
-Notion checking is a manual AI review during `qa`, following the repository’s `AGENTS.md`; normal tests do not access Notion or check board readiness. The AI uses `NOTION_API_KEY` from the private environment to review SPOT contracts, oracle, taker, and relay readiness, chain membership, and solver labels. It accounts for runtime versions, taker assignments, user-confirmed readiness, and integrations already marked Dead, then reports only a concise grouped fix list. Board updates require user authorization and are verified afterward.
-
 Orvex uses Spot's universal integration on Robinhood Chain (`4663`), with execution routing selected at fill time. No other Orvex mainnet deployment is listed in its [official contract directory](https://docs.orvex.fi/developer-resources/contract-addresses).
 
 Robinhood's solver adapters cover Kyber, OpenOcean, LI.FI (`LiFi`), 0x (`ZeroX`), and OKX. Orders use the universal integration to select a solver adapter at fill time. 0x uses `DefaultDexAdapter` with its [AllowanceHolder](https://github.com/0xProject/0x-settler/blob/master/chain_config.json); OKX uses `ApprovalDexAdapter` with separate [router and approval contracts](https://web3.okx.com/onchainos/dev-docs/trade/dex-smart-contract).
-
-Deploy the Robinhood solver adapters with the chain-managed signer:
-
-```sh
-chain robinhood
-dev true
-ADAPTER_TYPE=default ROUTER=0x0000000000001fF3684f28c67538d4D072C22734 script/deploy --adapter ZeroX --broadcast --sender "$ETH_FROM"
-ADAPTER_TYPE=approval ROUTER=0x6e2a35a7ad683cf634d91492d73bb7ff774c6919 SPENDER=0x42170295F1173c9e5874ea9d00c6d137E1a4f53d script/deploy --adapter OKX --broadcast --sender "$ETH_FROM"
-npm run build
-```
-
-Omit `--broadcast` to simulate. Successful broadcasts write the adapter addresses to `config.json`; configured adapters are skipped on subsequent runs.
 
 ## How It Works
 
@@ -222,7 +200,6 @@ struct Output {
 2. **Basis Points**: 10,000 BPS equals 100%.
 3. **Freshness Requirements**: Must be greater than 0 seconds and less than epoch duration when `epoch != 0`.
 4. **Epoch Behavior**: `0` means single execution; values above `0` mean recurring execution with that interval.
-5. **Gas Optimization**: Foundry optimizer runs are set to `1,000,000`.
 
 ### Multi-Chain Deployment
 
@@ -234,34 +211,12 @@ See the [external Spot integration docs](https://spot-integration-docs.vercel.ap
 
 This repository ships these integration surfaces:
 
-1. Root package `@orbs-network/spot` for config, build orchestration, contracts, and published metadata inputs.
+1. Root package `@orbs-network/spot` for config, contracts, and published metadata.
 2. Self-contained skill package [`skill/`](./skill/) published as `@orbs-network/spot-skill`.
-3. Skills-only OpenAI plugin artifact generated with `npm run plugin:build` for marketplace testing and submission.
+3. Skills-only OpenAI plugin for skill discovery and installation.
 4. Hosted MCP endpoint at [`https://agents-sink.orbs.network/mcp`](https://agents-sink.orbs.network/mcp).
 5. Hosted raw files at [`https://orbs-network.github.io/spot/`](https://orbs-network.github.io/spot/) for direct bundle consumption.
 6. Hosted skill distribution on [Clawhub](https://clawhub.ai/eranp-orbs/spot-advanced-swap-orders) for direct skill discovery.
-
-## Development
-
-```bash
-npm install
-npm run build
-npm test
-npm run fmt
-```
-
-Notes:
-
-1. `npm run build` runs `npm run sync` and then `forge build --extra-output-files abi`.
-2. `npm run plugin:build` generates the untracked plugin bundle at `dist/spot/`.
-3. Use `forge test` for the Foundry suite.
-
-## Contributing
-
-1. Make the smallest coherent change.
-2. Keep `skill/`, hosted MCP references, and any affected published surfaces in sync.
-3. Run `npm run build` after changes.
-4. Run tests when behavior changes or when explicitly requested.
 
 ## Operational Notes
 

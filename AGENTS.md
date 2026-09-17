@@ -21,7 +21,7 @@ Keep the canonical skill slug stable as `spot-advanced-swap-orders`.
 
 Use `Spot Advanced Swap Orders` as the human-facing display title for the skill and hosted distribution surfaces.
 
-The repository `README.md` is the exception and may use broader protocol-level branding.
+The repository `README.md` is the exception and may use broader protocol-level branding. Keep it focused on protocol users and integrators; development, deployment, testing, and QA instructions belong only in `AGENTS.md`.
 
 Keep `skill/SKILL.md` and `config.json` as the sync inputs for the inline metadata consumed by the self-contained skill package.
 
@@ -55,6 +55,48 @@ Notion checking is a manual AI task during `qa`, or when explicitly requested. N
 4. Treat integrations absent from config and already marked `Takers: Dead` as resolved. For other stale SPOT rows, propose marking Takers Dead; do not restore removed integrations to config.
 5. Report only an ultra-concise numbered fix list: group partners by target status, combine identical column changes, and group stale rows. If access is unavailable, state that the manual review could not be completed. Do not produce a full board table.
 6. Review is read-only unless the user has authorized board updates. After authorized updates, read the affected rows again to verify them.
+
+## Development
+
+```bash
+npm install
+npm run build
+npm test
+npm run fmt
+```
+
+Notes:
+
+1. `npm run build` runs `npm run sync` and then `forge build --extra-output-files abi`.
+2. `npm run plugin:build` generates the untracked plugin bundle at `dist/spot/`.
+3. Use `forge test` for the Foundry suite. Foundry optimizer runs are set to `1,000,000`.
+
+## Contributing
+
+1. Make the smallest coherent change.
+2. Run tests when behavior changes or when explicitly requested.
+
+## Deployment
+
+Deploy the Robinhood solver adapters with the chain-managed signer:
+
+```sh
+chain robinhood
+dev true
+ADAPTER_TYPE=default ROUTER=0x0000000000001fF3684f28c67538d4D072C22734 script/deploy --adapter ZeroX --broadcast --sender "$ETH_FROM"
+ADAPTER_TYPE=approval ROUTER=0x6e2a35a7ad683cf634d91492d73bb7ff774c6919 SPENDER=0x42170295F1173c9e5874ea9d00c6d137E1a4f53d script/deploy --adapter OKX --broadcast --sender "$ETH_FROM"
+npm run build
+```
+
+Omit `--broadcast` to simulate. Successful broadcasts write the adapter addresses to `config.json`; configured adapters are skipped on subsequent runs.
+
+## Test Coverage
+
+Run `t` before local order QA. `npm test` includes `npm run test:e2e`, which runs `t` in the sibling `../offchain-oracle` checkout, then checks Spot deployments and oracle chain coverage. Set `OFFCHAIN_ORACLE_DIR` to use another oracle checkout. The coverage table includes the union of Spot config, skill chains, and that oracle checkout’s config. `npm run test:e2e -- 1` scopes the Spot report to Ethereum; the oracle suite still runs in full.
+
+The E2E table shows core deployment, deployed/known adapter counts, support status, and oracle configuration coverage separately. Every explicit Spot chain requires all 6 core contracts and at least one deployed adapter; named solver counts are informational. Shared integrations whose adapters are undeployed are omitted from that chain's active integrations, while missing chain-specific integrations remain failures. Configured chains missing a skill listing also fail. Unlisted chains remain unsupported even when contracts and adapters are deployed.
+
+The offchain-oracle suite owns oracle bytecode, aggregator binding, adapter registration, feed configuration, and price checks. Spot requires every supported chain to exist in the tested oracle configuration. A failed oracle suite stops the Spot dependency check.
 
 ## Build Requirement
 
