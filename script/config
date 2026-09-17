@@ -494,7 +494,7 @@ collect_results() {
 
 print_runtime_coverage() {
   {
-    print 'chain\tSpot\tcore\tadapters\toracle'
+    print 'chain\tSpot\tcore\tSpot adapters\toracle'
     printf '%s\n' "${runtime_rows[@]}" | sort -t $'\t' -k2,2n | awk -F '\t' '
       function icon(value, expected) { return value == "unknown" ? "?" : (value == expected ? "✓" : "✗") }
       {
