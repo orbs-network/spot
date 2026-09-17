@@ -509,7 +509,7 @@ print_runtime_coverage() {
           ($5 == "unknown" ? "?" : adapters[1] (adapters[1] == adapters[2] && adapters[2] > 0 ? " ✓" : ""))
       }
     '
-  } | node "$root/script/table.mjs"
+  } | print_table
 }
 
 print_solver_coverage() {
