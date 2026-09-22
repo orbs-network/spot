@@ -495,25 +495,26 @@ collect_results() {
 
 print_runtime_coverage() {
   {
-    print 'chain\tcore\tSpot adapters\tsolvers\tOracle provider\tfeeds\toracle adapters'
+    print 'chain\tcore\tSpot\tsolvers\tOracle\tfeeds\tadapters'
     printf '%s\n' "${runtime_rows[@]}" | sort -t $'\t' -k2,2n | \
       SOLVER_ROWS="$(printf '%s\n' "${coverage_rows[@]}")" ORACLE_ROWS="$oracle_rows" awk -F '\t' \
       -v spot_ids="$(jq -r 'keys | join(" ")' "$config")" \
-      -v oracle_ids="$(print -r -- "$oracle_config" | jq -r 'keys | join(" ")')" '
+      -v oracle_counts="$(print -r -- "$oracle_config" | jq -r 'to_entries | map("\(.key):\(.value.adapters // [] | length)") | join(" ")')" '
       BEGIN {
         split(ENVIRON["SOLVER_ROWS"], rows, "\n")
         for (i in rows) { split(rows[i], cells, "\t"); solvers[cells[1]] = cells[3] }
         split(ENVIRON["ORACLE_ROWS"], rows, "\n")
-        for (i in rows) { split(rows[i], cells, "\t"); feeds[cells[1]] = cells[2] "\t" cells[3] "\t" cells[4] }
+        for (i in rows) { split(rows[i], cells, "\t"); feeds[cells[1]] = cells[2] "\t" cells[3] }
         split(spot_ids, ids, " "); for (i in ids) spot[ids[i]] = 1
-        split(oracle_ids, ids, " "); for (i in ids) oracle[ids[i]] = 1
+        split(oracle_counts, ids, " ")
+        for (i in ids) { split(ids[i], pair, ":"); oracle[pair[1]] = pair[2] }
       }
       function icon(value, expected) { return value == "unknown" ? "?" : (value == expected ? "✅" : "❌") }
       {
         split($5, adapters, "/")
         print $1 (!($2 in spot) ? " (missing Spot config)" : "") (!($2 in oracle) ? " (missing oracle config)" : "") "\t" icon($4, "6/6") "\t" \
           ($5 == "unknown" ? "?" : adapters[1] (adapters[1] == adapters[2] && adapters[2] > 0 ? " ✅" : "")) "\t" \
-          ($4 == "unknown" ? "?" : ($1 in solvers ? solvers[$1] : "-")) "\t" ($2 in feeds ? feeds[$2] : "-\t-\t-")
+          ($4 == "unknown" ? "?" : ($1 in solvers ? solvers[$1] : "-")) "\t" ($2 in feeds ? feeds[$2] "\t" oracle[$2] : "-\t-\t-")
       }
     '
   } | print_table
