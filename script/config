@@ -495,7 +495,7 @@ collect_results() {
 
 print_runtime_coverage() {
   {
-    print 'chain\tcore\tadapter\tsolvers\tfeed\tfeeds\toracle adapters'
+    print 'chain\tcore\tSpot adapters\tsolvers\tOracle provider\tfeeds\toracle adapters'
     printf '%s\n' "${runtime_rows[@]}" | sort -t $'\t' -k2,2n | \
       SOLVER_ROWS="$(printf '%s\n' "${coverage_rows[@]}")" ORACLE_ROWS="$oracle_rows" awk -F '\t' \
       -v spot_ids="$(jq -r 'keys | join(" ")' "$config")" \
