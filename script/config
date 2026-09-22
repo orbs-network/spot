@@ -26,7 +26,7 @@ usage() {
   print 'Options:'
   print '  -h, --help     Show this help message.'
   print
-  print 'CHAIN_ID defaults to *; quote "*" to check the union of Spot config, skill, and oracle chains.'
+  print 'CHAIN_ID defaults to *; quote "*" to check the union of spot config, skill, and oracle chains.'
 }
 
 die() {
@@ -495,7 +495,7 @@ collect_results() {
 
 print_runtime_coverage() {
   {
-    print 'chain\tcore\tSpot\tsolvers\tOracle\tfeeds\tadapters'
+    print 'chain\tcore\tspot\tsolvers\toracle\tfeeds\tadapters'
     printf '%s\n' "${runtime_rows[@]}" | sort -t $'\t' -k2,2n | \
       SOLVER_ROWS="$(printf '%s\n' "${coverage_rows[@]}")" ORACLE_ROWS="$oracle_rows" awk -F '\t' \
       -v spot_ids="$(jq -r 'keys | join(" ")' "$config")" \
@@ -512,7 +512,7 @@ print_runtime_coverage() {
       function icon(value, expected) { return value == "unknown" ? "?" : (value == expected ? "✅" : "❌") }
       {
         split($5, adapters, "/")
-        print $1 (!($2 in spot) ? " (missing Spot config)" : "") (!($2 in oracle) ? " (missing oracle config)" : "") "\t" icon($4, "6/6") "\t" \
+        print $1 (!($2 in spot) ? " (missing spot config)" : "") (!($2 in oracle) ? " (missing oracle config)" : "") "\t" icon($4, "6/6") "\t" \
           ($5 == "unknown" ? "?" : adapters[1] (adapters[1] == adapters[2] && adapters[2] > 0 ? " ✅" : "")) "\t" \
           ($4 == "unknown" ? "?" : ($1 in solvers ? solvers[$1] : "-")) "\t" ($2 in feeds ? feeds[$2] "\t" oracle[$2] : "-\t-\t-")
       }
@@ -575,9 +575,9 @@ main() {
   oracle_rows=$("$oracle_repo/test/e2e" --config-rows) || die 'oracle config report failed'
   collect_results "${selected[@]}"
 
-  print "🔎 Spot / Oracle Coverage"
+  print "🔎 spot / oracle Coverage"
   print_runtime_coverage
-  print 'Oracle checks run in offchain-oracle; feed and oracle adapter columns show its tested config.'
+  print 'oracle checks run in offchain-oracle; feed and oracle adapter columns show its tested config.'
 
   print
   print "🔎 Integrations"
@@ -589,7 +589,7 @@ main() {
     { print 'chain\tcheck\tdetail'; printf '%s\n' "${issue_rows[@]}"; } | print_table
     return 1
   fi
-  print '✅ Spot deployment and oracle chain-coverage checks passed.'
+  print '✅ spot deployment and oracle chain-coverage checks passed.'
 }
 
 main "$@"

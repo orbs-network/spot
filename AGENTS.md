@@ -4,7 +4,9 @@
 
 These instructions apply to the whole repository.
 
-- Never open an issue on the Spot repository unless the user specifically asks for one.
+Use lowercase `spot` branding outside README files; preserve the skill display title, skill package, and source files.
+
+- Never open an issue on the spot repository unless the user specifically asks for one.
 - When adding a DEX integration, always use the universal adapter type unless the user explicitly specifies another type.
 - Supported chains must be explicitly included in config and have all six core contracts plus at least one deployed shared or chain-specific adapter. Keep config and the skill chain list in sync; named solver count is not a prerequisite. Do not restore intentionally removed chains based on existing deployments; Manta is excluded.
 
@@ -35,7 +37,7 @@ This commonly includes `skill/SKILL.md`, `config.json`, `skill/`, `README.md`, `
 
 The canonical skill npm package name is `@orbs-network/spot-skill`.
 
-## Spot Runtime QA
+## spot Runtime QA
 
 Live relay and taker coverage is a manual AI check during `qa`, or when explicitly requested. Normal testing (`t`, `npm test`, and `test:e2e`) checks contracts, deployments, and oracle coverage; it must not query relay/taker health or require their integration coverage.
 
@@ -45,12 +47,12 @@ Live relay and taker coverage is a manual AI check during `qa`, or when explicit
 4. Before interpreting gaps, compare the live library versions and adapter addresses with current config and remote code in `orbs-network/twap-bidder` and `orbs-network/order-sink`. Account for SAFO/backup/L3 assignments and the health endpoints actually observed. An unobserved loop is not proof that an integration is unsupported or broken.
 5. Include a concise runtime diagnosis in the QA report, separating confirmed mismatches, unavailable evidence, and the results of this run's orders. Health checks alone do not prove successful swaps.
 
-## Spot Notion Dashboard
+## spot Notion Dashboard
 
 Notion checking is a manual AI task during `qa`, or when explicitly requested. Normal testing (`t`, `npm test`, and `test:e2e`) must not query Notion or evaluate board readiness.
 
 1. Read all pages of the integrations board (`262312ca68a98089837bfaf4ac9ef209`) using `NOTION_API_KEY` from the environment. Keep tokens and private taker endpoints out of committed files and output.
-2. Review only SPOT rows and the `Contracts`, `Oracle`, `Takers`, and `Relay` status columns, plus chain membership and solver labels. Compare with current Spot config, deployments, oracle coverage, and live relay/taker observations. TWAP/LH rows and other team readiness columns are outside this review.
+2. Review only SPOT rows and the `Contracts`, `Oracle`, `Takers`, and `Relay` status columns, plus chain membership and solver labels. Compare with current spot config, deployments, oracle coverage, and live relay/taker observations. TWAP/LH rows and other team readiness columns are outside this review.
 3. Distinguish implementation readiness from observed runtime coverage. Check deployed library versions, adapter addresses, and SAFO/backup/L3 taker assignments before interpreting missing loops. Missing health access or partial observations mean unknown coverage, not an automatic downgrade. Honor user-confirmed readiness.
 4. Treat integrations absent from config and already marked `Takers: Dead` as resolved. For other stale SPOT rows, propose marking Takers Dead; do not restore removed integrations to config.
 5. Report only an ultra-concise numbered fix list: group partners by target status, combine identical column changes, and group stale rows. If access is unavailable, state that the manual review could not be completed. Do not produce a full board table.
@@ -92,11 +94,11 @@ Omit `--broadcast` to simulate. Successful broadcasts write the adapter addresse
 
 ## Test Coverage
 
-Run `t` before local order QA. `npm test` includes `npm run test:e2e`, which runs `t` in the sibling `../offchain-oracle` checkout, then checks Spot deployments and oracle chain coverage. Set `OFFCHAIN_ORACLE_DIR` to use another oracle checkout. The coverage table includes the union of Spot config, skill chains, and that oracle checkout’s config. `npm run test:e2e -- 1` scopes the Spot report to Ethereum; the oracle suite still runs in full.
+Run `t` before local order QA. `npm test` includes `npm run test:e2e`, which runs `t` in the sibling `../offchain-oracle` checkout, then checks spot deployments and oracle chain coverage. Set `OFFCHAIN_ORACLE_DIR` to use another oracle checkout. The coverage table includes the union of spot config, skill chains, and that oracle checkout’s config. `npm run test:e2e -- 1` scopes the spot report to Ethereum; the oracle suite still runs in full.
 
-The combined coverage table has #, chain, core, Spot, solvers, Oracle, feeds, and adapters columns. Oracle shows the feed provider and feeds shows its feed count from the tested oracle checkout’s `test/e2e --config-rows`; adapters shows the number of entries in that checkout’s per-chain adapters config. The oracle suite runs normally and prints its own table. Chain labels identify missing Spot or oracle config; core shows deployment status, and Spot shows the deployed Spot adapter count with ✅ when all known adapters are deployed. Unknown checks show ?. All Spot E2E tables have row numbers. Every explicit Spot chain requires all 6 core contracts and at least one deployed adapter; named solver counts are informational. Shared integrations whose adapters are undeployed are omitted from that chain's active integrations, while missing chain-specific integrations remain failures. Configured chains missing a skill listing also fail. Unlisted chains remain unsupported even when contracts and adapters are deployed.
+The combined coverage table has #, chain, core, spot, solvers, oracle, feeds, and adapters columns. oracle shows the feed provider and feeds shows its feed count from the tested oracle checkout’s `test/e2e --config-rows`; adapters shows the number of entries in that checkout’s per-chain adapters config. The oracle suite runs normally and prints its own table. Chain labels identify missing spot or oracle config; core shows deployment status, and spot shows the deployed spot adapter count with ✅ when all known adapters are deployed. Unknown checks show ?. All spot E2E tables have row numbers. Every explicit spot chain requires all 6 core contracts and at least one deployed adapter; named solver counts are informational. Shared integrations whose adapters are undeployed are omitted from that chain's active integrations, while missing chain-specific integrations remain failures. Configured chains missing a skill listing also fail. Unlisted chains remain unsupported even when contracts and adapters are deployed.
 
-The offchain-oracle suite owns oracle bytecode, aggregator binding, adapter registration, feed configuration, and price checks. Spot requires every supported chain to exist in the tested oracle configuration. A failed oracle suite stops the Spot dependency check.
+The offchain-oracle suite owns oracle bytecode, aggregator binding, adapter registration, feed configuration, and price checks. spot requires every supported chain to exist in the tested oracle configuration. A failed oracle suite stops the spot dependency check.
 
 ## Build Requirement
 
@@ -113,9 +115,9 @@ When the user asks for `skill qa`:
 
 When the user asks for `qa`:
 
-Manually review relay/taker coverage and Notion using the Spot Runtime QA and Spot Notion Dashboard instructions above and include the concise findings in the QA report. These are AI reviews, not test commands or automated test side effects.
+Manually review relay/taker coverage and Notion using the spot Runtime QA and spot Notion Dashboard instructions above and include the concise findings in the QA report. These are AI reviews, not test commands or automated test side effects.
 
-Before any onchain QA action, run `t` from this repository. It builds and runs all tests, including live Spot/oracle dependency coverage. Stop if any test fails; report the failures before placing orders.
+Before any onchain QA action, run `t` from this repository. It builds and runs all tests, including live spot/oracle dependency coverage. Stop if any test fails; report the failures before placing orders.
 
 1. Treat `qa` as a local E2E dev task.
 2. The default `qa` flow is two sequential TWAP orders, not one mixed order or a single-shot market order.

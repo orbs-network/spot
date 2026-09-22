@@ -1,4 +1,4 @@
-# 📋 Spot Plugin Submission Handoff
+# 📋 spot Plugin Submission Handoff
 
 Use this document to create and manually submit the public **Spot Advanced Swap Orders** plugin in the OpenAI Platform.
 
@@ -14,7 +14,7 @@ Before submission, BizDev must complete these four publisher-owned items:
 
 1. Select the verified **Orbs Network** developer or business identity.
 2. Confirm the submitter has **Apps Management: Write** permission.
-3. Obtain a production square Spot or Orbs logo from the brand team. Do not use `arch.png`; it is a protocol diagram.
+3. Obtain a production square spot or Orbs logo from the brand team. Do not use `arch.png`; it is a protocol diagram.
 4. Confirm the proposed category and country availability with Legal and Support.
 
 ## 🏷️ Listing Details
@@ -34,7 +34,7 @@ Gasless non-custodial EVM market and advanced swap orders
 ### Long description
 
 ```text
-Create and manage gasless, non-custodial swaps across supported EVM chains. Spot guides users through market, limit, TWAP, stop-loss, take-profit, and delayed-start orders; normalizes order parameters; prepares typed data; explains token approval and signing; submits signed orders; monitors execution; and supports exact-match cancellation. Orders remain user-controlled and are protected by onchain validation and oracle pricing.
+Create and manage gasless, non-custodial swaps across supported EVM chains. spot guides users through market, limit, TWAP, stop-loss, take-profit, and delayed-start orders; normalizes order parameters; prepares typed data; explains token approval and signing; submits signed orders; monitors execution; and supports exact-match cancellation. Orders remain user-controlled and are protected by onchain validation and oracle pricing.
 ```
 
 ### Developer name
@@ -63,7 +63,7 @@ All four required listing URLs returned HTTP 200 when this handoff was prepared.
 
 ### Logo
 
-Request the current production square Spot or Orbs logo from the Orbs brand team. Confirm the file format, dimensions, and size against the portal before upload.
+Request the current production square spot or Orbs logo from the Orbs brand team. Confirm the file format, dimensions, and size against the portal before upload.
 
 ## 📦 Skill Upload
 
@@ -88,7 +88,7 @@ Use these three prompts:
 
 1. `Create a WETH-to-USDC limit order on Base.`
 2. `Split my WETH-to-USDC swap into four TWAP chunks.`
-3. `Check my Spot order and help me cancel it safely.`
+3. `Check my spot order and help me cancel it safely.`
 
 ## 📝 Release Notes
 
@@ -239,7 +239,7 @@ No credentials or funded wallet required.
 **User prompt or scenario**
 
 ```text
-Create a Spot market order on chain ID 999999.
+Create a spot market order on chain ID 999999.
 ```
 
 **Expected safe behavior**
@@ -255,7 +255,7 @@ The skill's supported-chain list is authoritative, and addresses must not be inv
 **User prompt or scenario**
 
 ```text
-Create a Spot order using native ETH directly as the input token.
+Create a spot order using native ETH directly as the input token.
 ```
 
 **Expected safe behavior**
@@ -264,7 +264,7 @@ Do not build the order with native input. Explain that native input is unsupport
 
 **Why the plugin should not complete it**
 
-Spot inputs must be ERC-20 tokens; only native output is supported directly.
+spot inputs must be ERC-20 tokens; only native output is supported directly.
 
 ### 3. Secret or external-code request
 
