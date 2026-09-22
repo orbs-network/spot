@@ -12,6 +12,7 @@ coverage_rows=()
 runtime_rows=()
 oracle_repo=${OFFCHAIN_ORACLE_DIR:-$root/../offchain-oracle}
 oracle_config=""
+oracle_rows=""
 issue_rows=()
 supported_order=()
 typeset -A supported_chains
@@ -494,11 +495,16 @@ collect_results() {
 
 print_runtime_coverage() {
   {
-    print 'chain\tcore\tadapter'
-    printf '%s\n' "${runtime_rows[@]}" | sort -t $'\t' -k2,2n | awk -F '\t' \
+    print 'chain\tcore\tadapter\tsolvers\tfeed\tfeeds\toracle adapters'
+    printf '%s\n' "${runtime_rows[@]}" | sort -t $'\t' -k2,2n | \
+      SOLVER_ROWS="$(printf '%s\n' "${coverage_rows[@]}")" ORACLE_ROWS="$oracle_rows" awk -F '\t' \
       -v spot_ids="$(jq -r 'keys | join(" ")' "$config")" \
       -v oracle_ids="$(print -r -- "$oracle_config" | jq -r 'keys | join(" ")')" '
       BEGIN {
+        split(ENVIRON["SOLVER_ROWS"], rows, "\n")
+        for (i in rows) { split(rows[i], cells, "\t"); solvers[cells[1]] = cells[3] }
+        split(ENVIRON["ORACLE_ROWS"], rows, "\n")
+        for (i in rows) { split(rows[i], cells, "\t"); feeds[cells[1]] = cells[2] "\t" cells[3] "\t" cells[4] }
         split(spot_ids, ids, " "); for (i in ids) spot[ids[i]] = 1
         split(oracle_ids, ids, " "); for (i in ids) oracle[ids[i]] = 1
       }
@@ -506,16 +512,10 @@ print_runtime_coverage() {
       {
         split($5, adapters, "/")
         print $1 (!($2 in spot) ? " (missing Spot config)" : "") (!($2 in oracle) ? " (missing oracle config)" : "") "\t" icon($4, "6/6") "\t" \
-          ($5 == "unknown" ? "?" : adapters[1] (adapters[1] == adapters[2] && adapters[2] > 0 ? " ✅" : ""))
+          ($5 == "unknown" ? "?" : adapters[1] (adapters[1] == adapters[2] && adapters[2] > 0 ? " ✅" : "")) "\t" \
+          ($4 == "unknown" ? "?" : ($1 in solvers ? solvers[$1] : "-")) "\t" ($2 in feeds ? feeds[$2] : "-\t-\t-")
       }
     '
-  } | print_table
-}
-
-print_solver_coverage() {
-  {
-    print "chain\tsolvers"
-    printf '%s\n' "${coverage_rows[@]}" | sort -t $'\t' -k2,2n -k1,1 | awk -F '\t' '{ print $1 "\t" $3 }'
   } | print_table
 }
 
@@ -556,7 +556,7 @@ main() {
   [[ -f $oracle_repo/config.json && -x $oracle_repo/test/e2e ]] || die "offchain-oracle checkout required at $oracle_repo (set OFFCHAIN_ORACLE_DIR)"
   export OFFCHAIN_ORACLE_DIR=${oracle_repo:A}
   if [[ ${SPOT_CONFIG_ROW_MODE:-} != 1 ]]; then
-    (cd "$oracle_repo" && t) || die 'offchain-oracle test suite failed'
+    (cd "$oracle_repo" && ORACLE_HIDE_CONFIG_TABLE=1 t) || die 'offchain-oracle test suite failed'
   fi
   oracle_config=$(cat "$oracle_repo/config.json")
   print -r -- "$oracle_config" | jq -e 'type == "object" and length > 0 and all(keys[]; test("^[0-9]+$"))' >/dev/null || die 'invalid oracle config'
@@ -571,14 +571,12 @@ main() {
     return 0
   fi
 
+  oracle_rows=$("$oracle_repo/test/e2e" --config-rows) || die 'oracle config report failed'
   collect_results "${selected[@]}"
 
-  print "🔎 Spot / Oracle Coverage (Spot deployments; oracle chain overlap)"
+  print "🔎 Spot / Oracle Coverage"
   print_runtime_coverage
-  print 'Oracle checks run in offchain-oracle; this table shows chain coverage.'
-  print
-  print "🔎 Solver Coverage"
-  print_solver_coverage
+  print 'Oracle checks run in offchain-oracle; feed and oracle adapter columns show its tested config.'
 
   print
   print "🔎 Integrations"
