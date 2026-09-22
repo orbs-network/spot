@@ -502,11 +502,11 @@ print_runtime_coverage() {
         split(spot_ids, ids, " "); for (i in ids) spot[ids[i]] = 1
         split(oracle_ids, ids, " "); for (i in ids) oracle[ids[i]] = 1
       }
-      function icon(value, expected) { return value == "unknown" ? "?" : (value == expected ? "✓" : "✗") }
+      function icon(value, expected) { return value == "unknown" ? "?" : (value == expected ? "✅" : "❌") }
       {
         split($5, adapters, "/")
         print $1 (!($2 in spot) ? " (missing Spot config)" : "") (!($2 in oracle) ? " (missing oracle config)" : "") "\t" icon($4, "6/6") "\t" \
-          ($5 == "unknown" ? "?" : adapters[1] (adapters[1] == adapters[2] && adapters[2] > 0 ? " ✓" : ""))
+          ($5 == "unknown" ? "?" : adapters[1] (adapters[1] == adapters[2] && adapters[2] > 0 ? " ✅" : ""))
       }
     '
   } | print_table
