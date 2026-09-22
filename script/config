@@ -556,7 +556,7 @@ main() {
   [[ -f $oracle_repo/config.json && -x $oracle_repo/test/e2e ]] || die "offchain-oracle checkout required at $oracle_repo (set OFFCHAIN_ORACLE_DIR)"
   export OFFCHAIN_ORACLE_DIR=${oracle_repo:A}
   if [[ ${SPOT_CONFIG_ROW_MODE:-} != 1 ]]; then
-    (cd "$oracle_repo" && ORACLE_HIDE_CONFIG_TABLE=1 t) || die 'offchain-oracle test suite failed'
+    (cd "$oracle_repo" && t) || die 'offchain-oracle test suite failed'
   fi
   oracle_config=$(cat "$oracle_repo/config.json")
   print -r -- "$oracle_config" | jq -e 'type == "object" and length > 0 and all(keys[]; test("^[0-9]+$"))' >/dev/null || die 'invalid oracle config'
