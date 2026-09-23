@@ -453,10 +453,8 @@
         },
         "dex": {
             "spark": {
-                "type": "default",
-                "solver": "SparkDex",
-                "router": "0x0f3D8a38D4c74afBebc2c42695642f0e3acb15D3",
-                "adapter": "0x00c7617C471Ef69124464CEc318a3b8CC90aE9A7",
+                "type": "universal",
+                "adapter": "0x149B199cAdF7A273ed0A4E9Ba50Be0656C3273ab",
                 "fee": "0xaeA8C3e1a129A77686E115b1a46D9aD8405F7D2b"
             }
         }
@@ -514,6 +512,11 @@
                 "type": "universal",
                 "adapter": "0xbdf2A1565f0fa68974d703e3F0505e26DBeB604f",
                 "fee": "0xA31F236b8f9cb321258824d33472D7b06d98D648"
+            },
+            "listed": {
+                "type": "universal",
+                "adapter": "0x3aBD8B498945794F714da98a39ED3Ce154363147",
+                "fee": "0xB1d553E04FB3B3293ea15921DF82869aF49254eD"
             }
         }
     },
