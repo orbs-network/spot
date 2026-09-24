@@ -120,7 +120,7 @@ Before any onchain QA action, run `t` from this repository. It builds and runs a
 1. Treat `qa` as a local E2E dev task.
 2. The default `qa` flow is two sequential TWAP orders, not one mixed order or a single-shot market order.
 3. Unless the user overrides scope or shape, place a first order that is a 2-chunk stop-loss from wrapped native to USDC, wait for that order to reach a final state, then place a second order that is a 2-chunk take-profit from USDC back to native.
-4. For each default order, size `input.maxAmount` to about `$30` of that leg's input token, use exactly 2 equal chunks so `input.amount = input.maxAmount / 2` is about `$15` per chunk, and set `epoch = 60`.
+4. For each default order, size `input.maxAmount` to about `$100` of that leg's input token, use exactly 2 equal chunks so `input.amount = input.maxAmount / 2` is about `$50` per chunk, and set `epoch = 60`. Leave enough for gas.
 5. For the default stop-loss leg, set `output.triggerLower` to effectively infinite output-token units so the order is immediately eligible for QA, and set `output.triggerUpper = 0`.
 6. For the default take-profit leg, set `output.triggerUpper = 1` wei so the order is immediately eligible for QA, and set `output.triggerLower = 0`.
 7. Unless the user overrides tokens, use wrapped native input and USDC output on the first order, then USDC input and native output on the second order, on each supported chain. If USDC is unavailable, use the chain's configured canonical USD stablecoin for both legs; on MegaETH, use USDM; on Robinhood Chain, use USDG.
