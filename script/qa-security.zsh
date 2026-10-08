@@ -80,7 +80,7 @@ Every "note" or "concern" MUST cite artifact evidence with:
 - snippet: a short quote or snippet from that artifact
 - explanation: why that exact evidence matters
 
-Do not create findings from intuition, popularity, missing runtime probes, or unsupported assumptions. A static scan finding is evidence only when its file/rule/snippet is included in the supplied artifacts, and you must still interpret whether it is purpose-aligned.
+Do not create findings from intuition, popularity, missing runtime checks, or unsupported assumptions. A static scan finding is evidence only when its file/rule/snippet is included in the supplied artifacts, and you must still interpret whether it is purpose-aligned.
 
 ## Verdict definitions
 

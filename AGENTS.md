@@ -129,7 +129,7 @@ Before any onchain QA action, run `t` from this repository. It builds and runs a
 10. If the skill bundle is insufficient, report the gap instead of falling back silently.
 11. Do not query, reference, or use any orders from before this run as examples for any purpose.
 12. Honor user scope modifiers such as `just ethereum`; otherwise run on all supported chains in parallel.
-13. Do not probe a chain first; run the supported-chain set in parallel once.
+13. Do not run an individual chain check first; run the supported-chain set in parallel once.
 14. For prerequisite onchain transactions such as wrap or approve, fan out across chains with `parallel`.
 15. In `qa`, when approval is needed, always use a standing max approval such as `approve(..., maxUint256)` rather than an exact `input.maxAmount` approval.
 16. In `qa`, do not send approval-reset or zero-allowance cleanup transactions before, between, or after the default order legs unless the user explicitly asks for them.
