@@ -59,6 +59,11 @@
                 "type": "universal",
                 "adapter": "0x1b836918e5a623807897a4A095AF9eaC8b3f5DB8",
                 "fee": "0xeB58450e23632003f013568703F54446070E2E80"
+            },
+            "kodiak": {
+                "type": "universal",
+                "adapter": "0xb21546919C46f1802CCe187b197b125A6c022ec7",
+                "fee": "0x3C88f90D25Fb1682a6F943e491ADB97B807c3f87"
             }
         }
     },
@@ -419,15 +424,7 @@
             "Magpie": "0x370AC766279eCD03dc1D8eb0E5A632a24A255EAb",
             "Sushi": "0xA985f801ea74321AdcC9Ef88B394858CbA3F71ba"
         },
-        "dex": {
-            "kodiak": {
-                "type": "default",
-                "solver": "Kodiak",
-                "router": "0x43Dac637c4383f91B4368041E7A8687da3806Cae",
-                "adapter": "0xcB16237c88A859d46Ae850B97d7D1bdECF482C06",
-                "fee": "0xBA47Ec15aFbCF6e7e9F52900632049530bB6bAe4"
-            }
-        }
+        "dex": {}
     },
     "1329": {
         "adapter": {
