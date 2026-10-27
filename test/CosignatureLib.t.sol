@@ -4,7 +4,9 @@ pragma solidity 0.8.27;
 import {BaseTest} from "test/base/BaseTest.sol";
 
 import {CosignatureLib} from "src/lib/CosignatureLib.sol";
-import {CosignedOrder} from "src/Structs.sol";
+import {OrderLib} from "src/lib/OrderLib.sol";
+import {IEIP712} from "src/interface/IEIP712.sol";
+import {CosignedOrder, Cosignature} from "src/Structs.sol";
 
 contract CosignatureLibTest is BaseTest {
     function setUp() public override {
@@ -199,5 +201,53 @@ contract CosignatureLibTest is BaseTest {
         co.current.chainid = 999; // Wrong chainid
         vm.expectRevert(CosignatureLib.InvalidCosignatureChainid.selector);
         this.callValidateCosignature(co, signer);
+    }
+
+    function test_validateCosignature_reverts_triggerBeforeStart() public {
+        freshness = 300;
+        inMax = 2_000;
+        outAmount = 500;
+        triggerUpper = 5_000;
+        cosignInValue = 100;
+        cosignOutValue = 200;
+        CosignedOrder memory co = order();
+        co = cosign(co);
+        co.trigger = _copyCosignature(co.current, co.order.start - 1);
+        co.triggerCosignature = signEIP712(repermit, signerPK, OrderLib.hash(co.trigger));
+
+        vm.expectRevert(CosignatureLib.TriggerBeforeStart.selector);
+        this.callValidateCosignature(co, signer);
+    }
+
+    function test_validateCosignature_reverts_triggerAfterCurrent() public {
+        freshness = 300;
+        inMax = 2_000;
+        outAmount = 500;
+        triggerUpper = 5_000;
+        cosignInValue = 100;
+        cosignOutValue = 200;
+        CosignedOrder memory co = order();
+        co = cosign(co);
+        vm.warp(block.timestamp + 10);
+        co.trigger = _copyCosignature(co.current, block.timestamp);
+        co.triggerCosignature = signEIP712(repermit, signerPK, OrderLib.hash(co.trigger));
+
+        vm.expectRevert(CosignatureLib.TriggerAfterCurrent.selector);
+        this.callValidateCosignature(co, signer);
+    }
+
+    function _copyCosignature(Cosignature memory src, uint256 timestamp)
+        internal
+        pure
+        returns (Cosignature memory dst)
+    {
+        dst = Cosignature({
+            timestamp: timestamp,
+            chainid: src.chainid,
+            reactor: src.reactor,
+            cosigner: src.cosigner,
+            input: src.input,
+            output: src.output
+        });
     }
 }

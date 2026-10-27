@@ -132,6 +132,17 @@ contract CosignerTest is Test {
         assertFalse(cosigner.isApprovedNow(address(0)));
     }
 
+    function test_isApprovedNow_eoa_owner_returns_false_for_non_owner() public {
+        Cosigner eoaCosigner = new Cosigner(signer1);
+        assertFalse(eoaCosigner.isApprovedNow(signer2));
+    }
+
+    function test_isApprovedNow_returns_false_when_committee_config_reverts() public {
+        RevertingCommitteeSync revertingCommittee = new RevertingCommitteeSync();
+        Cosigner revertingCosigner = new Cosigner(address(revertingCommittee));
+        assertFalse(revertingCosigner.isApprovedNow(signer1));
+    }
+
     function test_zeroAddressConfig_cannotBypassSignatureValidation() public {
         uint256 expires = block.timestamp + 1 days;
         _setSignerConfig(address(0), expires);
@@ -200,5 +211,11 @@ contract CosignerWrapper is Cosigner {
 
     function validateSignature(bytes32 hash, bytes calldata signature) external view returns (bool) {
         return _rawSignatureValidation(hash, signature);
+    }
+}
+
+contract RevertingCommitteeSync {
+    function config(bytes32, address) external pure returns (bytes memory) {
+        revert("CommitteeSync: failure");
     }
 }

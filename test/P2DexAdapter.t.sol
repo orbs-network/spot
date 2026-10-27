@@ -7,9 +7,12 @@ import {IExchangeAdapter} from "src/interface/IExchangeAdapter.sol";
 import {Execution, CosignedOrder} from "src/Structs.sol";
 import {OrderLib} from "src/lib/OrderLib.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {MockDexRouter} from "test/mocks/MockDexRouter.sol";
 import {USDTMock} from "test/mocks/USDTMock.sol";
 import {MockPermit2} from "test/mocks/MockPermit2.sol";
+import {Executor} from "src/Executor.sol";
+import {OrderReactor} from "src/OrderReactor.sol";
 
 contract P2DexAdapterTest is BaseTest {
     P2DexAdapter public adapterUut;
@@ -153,5 +156,44 @@ contract P2DexAdapterTest is BaseTest {
         vm.expectRevert(IExchangeAdapter.InvalidTarget.selector);
         Execution memory x = executionWithTargetData(0, makeAddr("wrongTarget"), data);
         adapterUut.delegateSwap(hash, resolvedAmountOut, cosignedOrder, x);
+    }
+
+    function test_executor_blocks_arbitrary_input_token_target_surplus_capture() public {
+        OrderReactor reactorUut = new OrderReactor(repermit, signer, wm);
+        Executor exec = new Executor(address(reactorUut), wm);
+        address solver = makeAddr("solver");
+        allow(solver);
+
+        reactor = address(reactorUut);
+        executor = address(exec);
+        adapter = address(adapterUut);
+        recipient = other;
+        inAmount = 1000 ether;
+        inMax = inAmount;
+        outAmount = 500 ether;
+        uint256 surplus = 250 ether;
+        cosignInValue = 1;
+        cosignOutValue = 1;
+        slippage = 0;
+        freshness = 300;
+
+        token.mint(executor, surplus);
+        token2.mint(executor, outAmount);
+
+        CosignedOrder memory co = order();
+        fundOrderInput(co);
+        co = cosign(co);
+        co.signature = permitFor(co, reactor);
+
+        vm.prank(solver);
+        vm.expectRevert(IExchangeAdapter.InvalidTarget.selector);
+        exec.execute(
+            co,
+            executionWithTargetData(
+                outAmount, address(token), abi.encodeCall(IERC20.transfer, (solver, inAmount + surplus))
+            )
+        );
+        assertEq(token.balanceOf(executor), surplus);
+        assertEq(token.balanceOf(solver), 0);
     }
 }

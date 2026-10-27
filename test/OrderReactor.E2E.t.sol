@@ -16,6 +16,15 @@ import {MockDexRouter} from "test/mocks/MockDexRouter.sol";
 import {SwapAdapterMock} from "test/mocks/SwapAdapter.sol";
 import {ResolutionLib} from "src/lib/ResolutionLib.sol";
 import {ExclusivityOverrideLib} from "src/lib/ExclusivityOverrideLib.sol";
+import {EpochLib} from "src/lib/EpochLib.sol";
+import {IExchangeAdapter} from "src/interface/IExchangeAdapter.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+
+contract ReentrantAdapter is IExchangeAdapter {
+    function delegateSwap(bytes32, uint256, CosignedOrder memory co, Execution memory x) external override {
+        OrderReactor(payable(co.order.reactor)).executeWithCallback(co, x);
+    }
+}
 
 contract OrderReactorE2ETest is BaseTest {
     OrderReactor public reactorUut;
@@ -589,5 +598,53 @@ contract OrderReactorE2ETest is BaseTest {
 
         assertEq(ERC20Mock(outToken).balanceOf(recipient) - recipientBefore, expectedOut);
         assertEq(feeToken.balanceOf(feeRecipient) - feeRecipientBefore, fee1 + fee2);
+    }
+
+    function test_e2e_reentrancy_into_reactor_reverts() public {
+        inToken = address(token);
+        outToken = address(token2);
+        inAmount = 1 ether;
+        inMax = 2 ether;
+        outAmount = 500 ether;
+        triggerUpper = 0;
+        adapter = address(new ReentrantAdapter());
+
+        CosignedOrder memory co = order();
+        fundOrderInput(co);
+        cosignInValue = 500;
+        cosignOutValue = 1;
+        co = cosign(co);
+        co.signature = permitFor(co, address(reactorUut));
+
+        Execution memory ex = execution(outAmount, address(0), 0, address(0));
+        vm.expectRevert(ReentrancyGuard.ReentrancyGuardReentrantCall.selector);
+        exec.execute(co, ex);
+    }
+
+    function test_e2e_single_fill_order_cannot_replay_even_with_remaining_permit_allowance() public {
+        inToken = address(token);
+        outToken = address(token2);
+        inAmount = 1 ether;
+        inMax = 2 ether;
+        outAmount = 500 ether;
+        triggerUpper = 0;
+
+        CosignedOrder memory co = order();
+        fundOrderInput(co);
+        cosignInValue = 500;
+        cosignOutValue = 1;
+        co = cosign(co);
+        co.signature = permitFor(co, address(reactorUut));
+
+        Execution memory ex = executionWithTargetData(
+            outAmount,
+            address(router),
+            abi.encodeWithSelector(MockDexRouter.doSwap.selector, inToken, inAmount, outToken, outAmount, address(exec))
+        );
+
+        exec.execute(co, ex);
+
+        vm.expectRevert(EpochLib.InvalidEpoch.selector);
+        exec.execute(co, ex);
     }
 }

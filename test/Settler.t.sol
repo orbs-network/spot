@@ -6,6 +6,7 @@ import {Executor} from "src/Executor.sol";
 import {Settler} from "src/adapter/Settler.sol";
 import {UniversalAdapter} from "src/adapter/UniversalAdapter.sol";
 import {OrderLib} from "src/lib/OrderLib.sol";
+import {SettlementLib} from "src/lib/SettlementLib.sol";
 import {Execution, CosignedOrder} from "src/Structs.sol";
 import {RePermit} from "src/RePermit.sol";
 import {IEIP712} from "src/interface/IEIP712.sol";
@@ -72,10 +73,45 @@ contract SettlerTest is BaseTest {
         CosignedOrder memory co = order();
         bytes32 hash = OrderLib.hash(co.order);
 
-        Execution memory x = executionWithTargetData(0, address(0), abi.encode(uint256(0), bytes("")));
+        Execution memory x = _executionViaSettler(address(0), 0, "");
         vm.expectRevert(IExchangeAdapter.InvalidTarget.selector);
         vm.prank(address(reactorMock));
         exec.reactorCallback(hash, 0, co, x);
+    }
+
+    function test_settler_receive_accepts_eth() public {
+        (bool ok,) = address(settlerUut).call{value: 1 ether}("");
+        assertTrue(ok);
+        assertEq(address(settlerUut).balance, 1 ether);
+    }
+
+    function test_settler_reverts_when_solver_output_below_resolved_amount() public {
+        inToken = address(token);
+        outToken = address(token2);
+        inAmount = 100 ether;
+        inMax = inAmount;
+        outAmount = 55 ether;
+        triggerUpper = 0;
+        CosignedOrder memory co = order();
+
+        bytes32 hash = OrderLib.hash(co.order);
+        uint256 shortOutput = outAmount - 1;
+        bytes memory solverSig = _solverSignature(co, co.order.output.token, shortOutput, address(exec));
+
+        ERC20Mock(outToken).mint(solver, shortOutput);
+        hoax(solver);
+        ERC20Mock(outToken).approve(repermit, shortOutput);
+        ERC20Mock(inToken).mint(address(exec), inAmount);
+
+        Execution memory x = _executionViaSettler(solver, shortOutput, solverSig);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                SettlementLib.InsufficientPostSwapBalance.selector, shortOutput, outAmount, 0, outAmount
+            )
+        );
+        vm.prank(address(reactorMock));
+        exec.reactorCallback(hash, outAmount, co, x);
+        assertEq(ERC20Mock(inToken).balanceOf(solver), 0);
     }
 
     function test_settler_reverts_invalid_signature() public {
