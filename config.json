@@ -64,6 +64,11 @@
                 "type": "universal",
                 "adapter": "0xb21546919C46f1802CCe187b197b125A6c022ec7",
                 "fee": "0x3C88f90D25Fb1682a6F943e491ADB97B807c3f87"
+            },
+            "quick": {
+                "type": "universal",
+                "adapter": "0xfc32f288aE7EBa1884dB6850660a19A387064fF0",
+                "fee": "0xd207DC6a6dA88f27c8DB78201F974161b1d84b1f"
             }
         }
     },
@@ -190,13 +195,6 @@
             "Sushi": "0xA985f801ea74321AdcC9Ef88B394858CbA3F71ba"
         },
         "dex": {
-            "quick": {
-                "type": "paraswap",
-                "solver": "Paraswap",
-                "router": "0xDEF171Fe48CF0115B1d80b88dc8eAB59176FEe57",
-                "adapter": "0x727e1CbA41Ff1ff11C32fa43DAb499b4317A1b65",
-                "fee": "0xd207DC6a6dA88f27c8DB78201F974161b1d84b1f"
-            },
             "teafi": {
                 "type": "paraswap",
                 "solver": "Paraswap",
@@ -245,13 +243,6 @@
                 "permit2": "0x31c2F6fcFf4F8759b3Bd5Bf0e1084A055615c768",
                 "adapter": "0xA7CcB11F1D20D1F915FC220F5Cb1646E4523bB75",
                 "fee": "0x37A957f10F458e0d7fDECBE2917971b57F15c927"
-            },
-            "quick": {
-                "type": "default",
-                "solver": "Kyber",
-                "router": "0x6131B5fae19EA4f9D964eAc0408E4408b66337b5",
-                "adapter": "0x0438644898F69bfF1018Cb01a81877D14d3e6493",
-                "fee": "0xd207DC6a6dA88f27c8DB78201F974161b1d84b1f"
             },
             "trebleswap": {
                 "type": "default",
