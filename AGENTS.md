@@ -46,7 +46,7 @@ Live relay coverage is a manual AI check during `qa`, or when explicitly request
 
 ## Spot Notion Dashboard
 
-Notion checking is a manual AI task during `qa`, or when explicitly requested. Normal testing (`t`, `npm test`, and `test:e2e`) must not query Notion or evaluate board readiness.
+Review Notion only when explicitly requested; `qa` does not include it. Normal testing (`t`, `npm test`, and `test:e2e`) must not query Notion or evaluate board readiness.
 
 1. Read all pages of the integrations board (`262312ca68a98089837bfaf4ac9ef209`) using `NOTION_API_KEY` from the environment. Keep tokens and private taker endpoints out of committed files and output.
 2. Review only SPOT rows and the `Contracts`, `Oracle`, `Takers`, and `Relay` status columns, plus chain membership and solver labels. Compare with current Spot config, deployments, oracle coverage, relay observations, and this run's order results. TWAP/LH rows and other team readiness columns are outside this review.
@@ -112,7 +112,7 @@ When the user asks for `skill qa`:
 
 When the user asks for `qa`:
 
-Manually review relay coverage and Notion using the Spot Runtime QA and Spot Notion Dashboard instructions above and include the concise findings in the QA report. These are AI reviews, not test commands or automated test side effects.
+Manually review relay coverage using the Spot Runtime QA instructions above and include concise findings in the QA report. This is an AI review, not a test command or automated test side effect.
 
 Before any onchain QA action, run `t` from this repository. It builds and runs all tests, including live Spot/oracle dependency coverage. Stop if any test fails; report the failures before placing orders.
 
