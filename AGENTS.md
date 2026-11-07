@@ -44,17 +44,6 @@ Live relay coverage is a manual AI check during `qa`, or when explicitly request
 3. Before interpreting gaps, compare relay adapter addresses with current config and remote code in `orbs-network/twap-bidder` and `orbs-network/order-sink`. Relay observations alone do not establish taker integration coverage.
 4. Include a concise runtime diagnosis in the QA report, separating confirmed mismatches, unavailable evidence, and the results of this run's orders. Relay health alone does not prove successful swaps.
 
-## Spot Notion Dashboard
-
-Review Notion only when explicitly requested; `qa` does not include it. Normal testing (`t`, `npm test`, and `test:e2e`) must not query Notion or evaluate board readiness.
-
-1. Read all pages of the integrations board (`262312ca68a98089837bfaf4ac9ef209`) using `NOTION_API_KEY` from the environment. Keep tokens and private taker endpoints out of committed files and output.
-2. Review only SPOT rows and the `Contracts`, `Oracle`, `Takers`, and `Relay` status columns, plus chain membership and solver labels. Compare with current Spot config, deployments, oracle coverage, relay observations, and this run's order results. TWAP/LH rows and other team readiness columns are outside this review.
-3. Distinguish implementation readiness from observed runtime coverage. Use relay observations and this run's order results for runtime evidence. Partial observations mean unknown coverage, not an automatic downgrade. Honor user-confirmed readiness.
-4. Treat integrations absent from config and already marked `Takers: Dead` as resolved. For other stale SPOT rows, propose marking Takers Dead; do not restore removed integrations to config.
-5. Report only an ultra-concise numbered fix list: group partners by target status, combine identical column changes, and group stale rows. If access is unavailable, state that the manual review could not be completed. Do not produce a full board table.
-6. Review is read-only unless the user has authorized board updates. After authorized updates, read the affected rows again to verify them.
-
 ## Development
 
 ```bash
