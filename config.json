@@ -555,13 +555,5 @@
             "OKX": "0xCdb7F258DE544c4E2a40ed0092A5188B06f09318"
         },
         "dex": {}
-    },
-    "30": {
-        "adapter": {
-            "Sushi": "0xA985f801ea74321AdcC9Ef88B394858CbA3F71ba",
-            "LiFi": "0xe8CD820d5bb34141C4bfd92544Ba9246fc6e8380",
-            "OpenOcean": "0x2Be5260d030ff9A6040bA4292326B796ff1a055d"
-        },
-        "dex": {}
     }
 }

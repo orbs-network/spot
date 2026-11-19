@@ -110,14 +110,6 @@ Issuer reference: [Paxos USDG mainnet addresses](https://docs.paxos.com/guides/s
 | `usdt` | `6` | `0x6047828dc181963ba44974801FF68e538dA5eaF9` |
 | `sfc` | `18` | `0xFC00FACE00000000000000000000000000000000` |
 
-## Rootstock (`30`)
-
-| Symbol | Decimals | Address |
-| --- | ---: | --- |
-| `wrbtc` | `18` | `0x542fDA317318eBF1d3DEAf76E0b632741A7e677d` |
-| `usdt0` | `6` | `0x779Ded0c9e1022225f8E0630b35a9b54bE713736` |
-| `rif` | `18` | `0x2AcC95758f8b5F583470ba265EB685a8F45fC9D5` |
-
 ## Mantle (`5000`)
 
 | Symbol | Decimals | Address |
