@@ -472,21 +472,6 @@
             }
         }
     },
-    "196": {
-        "adapter": {
-            "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B",
-            "Sushi": "0xA985f801ea74321AdcC9Ef88B394858CbA3F71ba"
-        },
-        "dex": {
-            "ring": {
-                "type": "dynamicp2",
-                "solver": "Ring",
-                "permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
-                "adapter": "0x028fa69049aB68EC42064Eb18896D587dD41Af2a",
-                "fee": "0xA04329696aAd1417c75Cf6d91342815001999B21"
-            }
-        }
-    },
     "4663": {
         "adapter": {
             "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA",
