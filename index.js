@@ -30,7 +30,7 @@ function config(chainId, dexName) {
 
   const { dex, salt: _chainSalt, ...chainDefaults } = chainConfig;
 
-  const mergedConfig = { ...baseDefaults, ...chainDefaults };
+  const mergedConfig = { ...baseDefaults, ...chainDefaults, adapter: adapters(chainId) };
   const name = dexName?.trim();
 
   if (!name) return mergedConfig;
