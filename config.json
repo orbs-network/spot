@@ -74,6 +74,7 @@
     },
     "1": {
         "adapter": {
+            "Velora": "0x0734715C561b342c1E5A06A32b509bDfD6c54f57",
             "Nordstern": "0x6603629C8d4b683fdc51c7F810D1799cfEAcEAe3",
             "Sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c",
             "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B",
@@ -101,6 +102,7 @@
     },
     "10": {
         "adapter": {
+            "Velora": "0x0734715C561b342c1E5A06A32b509bDfD6c54f57",
             "Nordstern": "0x1D06d98D523F8B51AD693D4A22fb97fCf0838d83",
             "Sushi": "0x11985E88847aEC23D1C3BCD77Ca0F4A704aB751c",
             "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA",
@@ -112,6 +114,7 @@
     },
     "56": {
         "adapter": {
+            "Velora": "0x0734715C561b342c1E5A06A32b509bDfD6c54f57",
             "Nordstern": "0x20253Cd6EEEB89e61ce7DDCf74a25Baba6A05BDF",
             "Orbs": "0xaf3532dca7b4a75cD06671614C093e9e8fb5b1F2",
             "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B",
@@ -154,6 +157,7 @@
     },
     "146": {
         "adapter": {
+            "Velora": "0x0734715C561b342c1E5A06A32b509bDfD6c54f57",
             "Nordstern": "0xEAEEdF2b8818970356212d5C2f449E2BE68D6800",
             "OpenOcean": "0xc7f07C830e22FCA94bF52F38C6707F9D396c6172",
             "Magpie": "0x370AC766279eCD03dc1D8eb0E5A632a24A255EAb",
@@ -187,6 +191,7 @@
     },
     "137": {
         "adapter": {
+            "Velora": "0x0734715C561b342c1E5A06A32b509bDfD6c54f57",
             "Nordstern": "0xf065b4bFa073b5A0A3eb254D67cbc5118D8B0Ea7",
             "Paraswap": "0x179C4b8e982b5F1365d36CC8d0c1CEB621B7198D",
             "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA",
@@ -196,16 +201,15 @@
         },
         "dex": {
             "teafi": {
-                "type": "paraswap",
-                "solver": "Paraswap",
-                "router": "0xDEF171Fe48CF0115B1d80b88dc8eAB59176FEe57",
-                "adapter": "0xF710D67C783D2C14671EC1c61B0683DCb996F5c3",
+                "type": "universal",
+                "adapter": "0xf26BF96182F9ee56c58333cBaD31F4F6906c3C19",
                 "fee": "0x04Ff96e2c4D62b5771795d307AD679a25b3D2D50"
             }
         }
     },
     "130": {
         "adapter": {
+            "Velora": "0x0734715C561b342c1E5A06A32b509bDfD6c54f57",
             "Nordstern": "0x763Fb927d181bCE8be779794A030BCE45D4869fA",
             "Ring": "0x47e27973dA3e16dB13F8b713877b3A31623E0E5B",
             "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA",
@@ -225,6 +229,7 @@
     },
     "8453": {
         "adapter": {
+            "Velora": "0x0734715C561b342c1E5A06A32b509bDfD6c54f57",
             "Nordstern": "0xd16A1849E86431872a87f476fa0DfB30eEb96cb3",
             "Orbs": "0x917b492557957f5dD3e69c04c8E1Ac3d6948c022",
             "Kyber": "0x6f4e5b8d7F6b037c62277992c39E7834D7C04596",
@@ -296,6 +301,7 @@
     },
     "42161": {
         "adapter": {
+            "Velora": "0x0734715C561b342c1E5A06A32b509bDfD6c54f57",
             "Nordstern": "0x52756370A08F63ADE4900A9c3046cf93ac0397e5",
             "Paraswap": "0x179C4b8e982b5F1365d36CC8d0c1CEB621B7198D",
             "Orbs": "0x917b492557957f5dD3e69c04c8E1Ac3d6948c022",
@@ -307,17 +313,13 @@
         },
         "dex": {
             "ramses": {
-                "type": "paraswap",
-                "solver": "Paraswap",
-                "router": "0xDEF171Fe48CF0115B1d80b88dc8eAB59176FEe57",
-                "adapter": "0xf075352f43cd15bA51B0957A4465223EDf6b4Cd8",
+                "type": "universal",
+                "adapter": "0x0B06164160AB80bEe37EC7D1e7C96399A59809BF",
                 "fee": "0xB5BaCB60ECDa0bEF809B2A26eC9B4B926835D7af"
             },
             "omni": {
-                "type": "paraswap",
-                "solver": "Paraswap",
-                "router": "0xDEF171Fe48CF0115B1d80b88dc8eAB59176FEe57",
-                "adapter": "0x41c925E8E4fC65136BDf5322824E0D8c20c4824e",
+                "type": "universal",
+                "adapter": "0x9cA8852c5417697200B2aE80b1B50e667c0d8125",
                 "fee": "0xba5291526c30B097E9F1Fd1Be301E2ab6E0782aa"
             },
             "pancake": {
@@ -346,6 +348,7 @@
     },
     "43114": {
         "adapter": {
+            "Velora": "0x0734715C561b342c1E5A06A32b509bDfD6c54f57",
             "Nordstern": "0x1D06d98D523F8B51AD693D4A22fb97fCf0838d83",
             "Kyber": "0x6f4e5b8d7F6b037c62277992c39E7834D7C04596",
             "Magpie": "0x370AC766279eCD03dc1D8eb0E5A632a24A255EAb",
@@ -474,6 +477,7 @@
     },
     "4663": {
         "adapter": {
+            "Velora": "0x0734715C561b342c1E5A06A32b509bDfD6c54f57",
             "Kyber": "0x6bbE14b2205a87FA0EAdE5f0795C7bb16B5347EA",
             "OpenOcean": "0xF4087df1F43De3B8e84171c1434da5aE0355796C",
             "LiFi": "0xA75eA4C3570Ec0ebCbe79176B8D6E06839C36c84",
