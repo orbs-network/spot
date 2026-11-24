@@ -128,7 +128,9 @@ update_config() {
     local IFS=':'
     read -r _ chain solver <<< "$target"
     jq --indent 4 --arg chain "$chain" --arg solver "$solver" --arg addr "$address" '
-      setpath([$chain, "adapter", $solver]; $addr)
+      if ((.["*"].adapter[$solver] // "") | ascii_downcase) == ($addr | ascii_downcase) then .
+      else setpath([$chain, "adapter", $solver]; $addr)
+      end
     ' "$CONFIG_FILE" >"$tmp"
   else
     local chain dex field
